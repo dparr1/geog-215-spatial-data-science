@@ -1,0 +1,15 @@
+{
+  "hash": "55215b17beec7f0dfba923c3398153a2",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Introduction\"\nengine: knitr\n---\n\n```{webr-r}\n# 1. Define a vector of scores\nscores <- c(88, 92, 79, 95, 84)\n\n# 2. Compute summary statistics\nmean_score <- mean(scores)\nsd_score   <- sd(scores)\n\ncat(\"Mean:\", mean_score, \"\\nSD:\", sd_score)\n```\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

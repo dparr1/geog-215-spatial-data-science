@@ -1,3 +1,8 @@
+---
+title: "Introduction"
+engine: knitr
+---
+
 ```{webr-r}
 # 1. Define a vector of scores
 scores <- c(88, 92, 79, 95, 84)

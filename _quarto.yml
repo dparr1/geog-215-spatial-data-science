@@ -9,6 +9,7 @@ book:
   date: last-modified
   chapters:
     - index.qmd
+    - intro.qmd
     - chapters/census-data-apis.qmd
 
 bibliography: references.bib
