@@ -1,0 +1,40 @@
+<!-- Netlify Identity Widget -->
+<script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+<style>
+  /* Prevent interaction with book content until authentication succeeds */
+  body.auth-locked {
+    visibility: hidden;
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Hide content immediately while verifying identity
+    document.body.classList.add("auth-locked");
+
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on("init", (user) => {
+        if (!user) {
+          // If not authenticated, open login modal
+          window.netlifyIdentity.open("login");
+        } else {
+          // Authenticated: reveal content
+          document.body.classList.remove("auth-locked");
+        }
+      });
+
+      // Handle successful login
+      window.netlifyIdentity.on("login", (user) => {
+        document.body.classList.remove("auth-locked");
+        window.netlifyIdentity.close();
+      });
+
+      // Handle logout
+      window.netlifyIdentity.on("logout", () => {
+        document.body.classList.add("auth-locked");
+        window.netlifyIdentity.open("login");
+      });
+    }
+  });
+</script>

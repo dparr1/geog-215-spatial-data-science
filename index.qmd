@@ -1,0 +1,15 @@
+# Preface {.unnumbered}
+
+This is a working draft of a textbook built from the lectures for GEOG 215, Spatial Data Science.
+
+Every chapter is a runnable Quarto document. The R code in each chapter runs when the book is built, so the tables and maps you see come from the code printed beside them.
+
+## Before you start
+
+Several chapters download data from web APIs. For the US Census chapters, request a free API key at <https://api.census.gov/data/key_signup.html> and store it once:
+
+```r
+tidycensus::census_api_key("YOUR KEY HERE", install = TRUE)
+```
+
+This saves the key to your `.Renviron` file, so it never needs to appear in your scripts.

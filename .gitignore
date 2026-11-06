@@ -1,0 +1,28 @@
+# Quarto build output and cache
+/.quarto/
+/_book/
+/site_libs/
+**/*.quarto_ipynb
+
+# LaTeX intermediates (keep-tex output)
+*.tex
+*.aux
+*.log
+*.toc
+*.out
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+.Renviron
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.dropbox
+.vscode/
+
+# Note: _freeze/ is intentionally committed (freeze: auto in _quarto.yml)
+**/*_files/

@@ -1,0 +1,10 @@
+```{webr-r}
+# 1. Define a vector of scores
+scores <- c(88, 92, 79, 95, 84)
+
+# 2. Compute summary statistics
+mean_score <- mean(scores)
+sd_score   <- sd(scores)
+
+cat("Mean:", mean_score, "\nSD:", sd_score)
+```

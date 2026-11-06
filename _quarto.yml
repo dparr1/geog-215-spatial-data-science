@@ -1,0 +1,44 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "Spatial Data Science"
+  subtitle: "Working draft"
+  author: "David Parr"
+  date: last-modified
+  chapters:
+    - index.qmd
+    - chapters/census-data-apis.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+    code-copy: true
+    code-overflow: wrap
+    toc-depth: 3
+    fig-cap-location: bottom
+    tbl-cap-location: top
+
+
+  PrettyPDF-pdf:
+    toc: true
+    number-sections: true
+    keep-tex: true
+
+execute:
+  # Re-run code only when a chapter's source changes; rendered results are
+  # stored in _freeze/ and should be committed with the book.
+  freeze: auto
+  warning: false
+  message: false
+
+filters:
+  - webr
+
+webr:
+  show-startup-message: false
+  show-header-message: false
+  autoload-packages: true
