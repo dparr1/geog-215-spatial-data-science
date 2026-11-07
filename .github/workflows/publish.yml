@@ -3,8 +3,8 @@ name: Render and Publish Quarto Book
 # Every push to main renders the book twice:
 #   1. Public copy  -> committed to dparr1/daveparr.com under geog215/, which
 #      triggers Cloudflare's build of daveparr.com (daveparr.com/geog215/).
-#   2. Gated copy   -> deployed to Netlify with the Netlify Identity login gate
-#      (the `netlify` Quarto profile, see _quarto-netlify.yml).
+#   2. Gated copy   -> Netlify, with the Netlify Identity login gate (the
+#      `netlify` Quarto profile, see _quarto-netlify.yml). CURRENTLY DISABLED.
 #
 # Only HTML is rendered: the PDF format needs R even when results are frozen,
 # and R is not installed on the runner. Code results come from _freeze/.
@@ -16,8 +16,9 @@ on:
 
 permissions:
   contents: read
-  deployments: write   # lets the Netlify action post the deploy to GitHub
-  statuses: write
+  # Needed only by the Netlify deploy (disabled below):
+  # deployments: write   # lets the Netlify action post the deploy to GitHub
+  # statuses: write
 
 concurrency:
   group: publish-book
@@ -61,22 +62,27 @@ jobs:
           git commit -m "Update GEOG 215 book from ${GITHUB_REPOSITORY}@${GITHUB_SHA::7}"
           git push origin HEAD:main
 
+      # Keeps the daveparr.com checkout out of the Netlify render below.
       - name: Remove daveparr.com checkout
         run: rm -rf daveparr.com
 
-      # ---- 2. Gated copy for Netlify ----------------------------------------
-      - name: Render gated book (netlify profile)
-        run: quarto render --to html --profile netlify
-
-      - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v3.0
-        with:
-          publish-dir: './_book'
-          production-branch: main
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy from GitHub Actions"
-          enable-pull-request-comment: false
-          enable-commit-comment: false
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      # ---- 2. Gated copy for Netlify (DISABLED) ------------------------------
+      # To re-enable: uncomment these two steps and the deployments/statuses
+      # permissions above. The NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID secrets
+      # are still set on this repo.
+      #
+      # - name: Render gated book (netlify profile)
+      #   run: quarto render --to html --profile netlify
+      #
+      # - name: Deploy to Netlify
+      #   uses: nwtgck/actions-netlify@v3.0
+      #   with:
+      #     publish-dir: './_book'
+      #     production-branch: main
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     deploy-message: "Deploy from GitHub Actions"
+      #     enable-pull-request-comment: false
+      #     enable-commit-comment: false
+      #   env:
+      #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
