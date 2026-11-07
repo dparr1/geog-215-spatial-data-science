@@ -51,7 +51,7 @@ The Census Bureau has repeatedly pushed new technology into being because the jo
 | 2005 | ACS launches | A yearly survey replaces the decennial "long form" |
 | 2020 | Online response | First census answered online; differential privacy added |
 
-: Milestones in the history of the US Census.
+: Milestones in the history of the US Census. {#tbl-census-timeline}
 
 For our purposes the most important change is the one from 2005. Before then, detailed social and economic questions (income, education, commuting) were asked on a "long form" sent to a sample of households once a decade. Since 2005 those questions have moved to the **American Community Survey**, which samples households every year. That gives two distinct sources of Census data, and you will choose between them constantly:
 
@@ -187,7 +187,7 @@ Every Census area has a unique identifier called a **GEOID**, built by stringing
 | Block group | `2`                   |   1    | `371350116002` (12 digits)    |
 | Block       | `2004`                |   4    | `371350116002004` (15 digits) |
 
-: Reading a GEOID, using a tract in Orange County, NC. The tract number is illustrative. A block GEOID appends a four-digit block number to the *tract* GEOID, and the first digit of that block number is the block group.
+: Reading a GEOID, using a tract in Orange County, NC. The tract number is illustrative. A block GEOID appends a four-digit block number to the *tract* GEOID, and the first digit of that block number is the block group. {#tbl-geoid}
 
 Read @tbl-geoid from the top down. Because the parts always have the same number of digits, you can recover the state, county, and tract of any block just by slicing its GEOID, for example with `str_sub(GEOID, 1, 5)` for the county.
 
@@ -211,7 +211,7 @@ Not every table is published for every geography. As areas get smaller, the Bure
 | Block group | All basic counts | Subset of DHC tables | Detailed race and age cross-tabs omitted or generalized |
 | Block | Basic population, race, voting-age, and housing counts | Core counts only (P1, H1, basic tables) | Most affected by differential privacy; detailed cross-tabs absent |
 
-: Variables available in the 2020 Census redistricting (PL 94-171) and DHC products, by geographic level.
+: Variables available in the 2020 Census redistricting (PL 94-171) and DHC products, by geographic level. {#tbl-availability}
 
 ### ACS 1-year and 5-year estimates
 
@@ -226,7 +226,7 @@ The ACS publishes estimates for different periods (@tbl-acs-periods). **1-year**
 | Currency | Most current | Most current | Middle | Least current |
 | Released | Annually since 2005 | Annually since 2014 | 2007–2013 | Annually since 2009 |
 
-: ACS period estimates. \*The 3-year product was discontinued after the 2011–2013 release. Source: U.S. Census Bureau, American Community Survey.
+: ACS period estimates. \*The 3-year product was discontinued after the 2011–2013 release. Source: U.S. Census Bureau, American Community Survey. {#tbl-acs-periods}
 
 A 5-year estimate labeled 2022 describes the whole period 2018–2022, not the year 2022. Keep that in mind when you write about the results.
 
@@ -386,7 +386,7 @@ Every manual API call follows the same steps, whatever the service (@tbl-api-ste
 | 3 | Parse the response | `resp_body_json()` | Turn JSON text into a list or matrix |
 | 4 | Analyze | dplyr, sf, tmap | Clean, join to geometry, and map |
 
-: The steps of a manual API call.
+: The steps of a manual API call. {#tbl-api-steps}
 
 Here are steps 1 to 3 for the North Carolina income request, using **httr2**:
 
@@ -645,7 +645,7 @@ tidycensus can do much more than `get_acs()` and `get_decennial()`. @tbl-more-ti
 | `survey = "acs1"` | 1-year ACS estimates | Recent data for large counties and metros |
 | `tigris::erase_water()` | Geometry with water areas removed | Cleaner maps along coasts and lakes |
 
-: Other tidycensus functions and arguments.
+: Other tidycensus functions and arguments. {#tbl-more-tidycensus}
 
 ## Summary
 

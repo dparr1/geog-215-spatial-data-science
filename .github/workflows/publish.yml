@@ -22,8 +22,12 @@ jobs:
       #     python-version: '3.10'
       # - run: pip install -r requirements.txt
 
+      # HTML only: Netlify serves the HTML book, and the PDF format needs R
+      # even when results are frozen (R is not installed on the runner).
       - name: Render Quarto Book
         uses: quarto-dev/quarto-actions/render@v2
+        with:
+          to: html
 
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v3.0
