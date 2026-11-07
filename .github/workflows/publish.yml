@@ -5,6 +5,11 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  deployments: write   # lets the Netlify action post the deploy to GitHub
+  statuses: write
+
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
