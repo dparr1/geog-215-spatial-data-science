@@ -22,7 +22,6 @@ format:
     toc-depth: 3
     fig-cap-location: bottom
     tbl-cap-location: top
-    include-in-header: auth-header.html
 
 
   PrettyPDF-pdf:

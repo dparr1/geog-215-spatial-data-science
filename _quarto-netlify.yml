@@ -1,0 +1,5 @@
+# Netlify profile: `quarto render --profile netlify` adds the Netlify Identity
+# login gate. The default render (used for daveparr.com/geog215/) is public.
+format:
+  html:
+    include-in-header: auth-header.html

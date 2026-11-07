@@ -1,8 +1,17 @@
 name: Render and Publish Quarto Book
 
+# Every push to main renders the book twice:
+#   1. Public copy  -> committed to dparr1/daveparr.com under geog215/, which
+#      triggers Cloudflare's build of daveparr.com (daveparr.com/geog215/).
+#   2. Gated copy   -> deployed to Netlify with the Netlify Identity login gate
+#      (the `netlify` Quarto profile, see _quarto-netlify.yml).
+#
+# Only HTML is rendered: the PDF format needs R even when results are frozen,
+# and R is not installed on the runner. Code results come from _freeze/.
+
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -10,29 +19,54 @@ permissions:
   deployments: write   # lets the Netlify action post the deploy to GitHub
   statuses: write
 
+concurrency:
+  group: publish-book
+  cancel-in-progress: false
+
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
+      - name: Check out book
         uses: actions/checkout@v4
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      # Optional: Uncomment if your book executes Python or R code
-      # - name: Set up Python
-      #   uses: actions/setup-python@v5
-      #   with:
-      #     python-version: '3.10'
-      # - run: pip install -r requirements.txt
+      # ---- 1. Public copy for daveparr.com/geog215/ -------------------------
+      - name: Render public book
+        run: quarto render --to html
 
-      # HTML only: Netlify serves the HTML book, and the PDF format needs R
-      # even when results are frozen (R is not installed on the runner).
-      - name: Render Quarto Book
-        uses: quarto-dev/quarto-actions/render@v2
+      - name: Check out daveparr.com
+        uses: actions/checkout@v4
         with:
-          to: html
+          repository: dparr1/daveparr.com
+          ref: main
+          path: daveparr.com
+          # Deploy key with write access to daveparr.com (repo Settings >
+          # Deploy keys); its private half is this repo's secret.
+          ssh-key: ${{ secrets.DAVEPARR_DEPLOY_KEY }}
+
+      - name: Copy book into daveparr.com/geog215
+        run: |
+          rsync -a --delete _book/ daveparr.com/geog215/
+          cd daveparr.com
+          git add -A geog215
+          if git diff --cached --quiet; then
+            echo "Book unchanged on daveparr.com; nothing to push."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update GEOG 215 book from ${GITHUB_REPOSITORY}@${GITHUB_SHA::7}"
+          git push origin HEAD:main
+
+      - name: Remove daveparr.com checkout
+        run: rm -rf daveparr.com
+
+      # ---- 2. Gated copy for Netlify ----------------------------------------
+      - name: Render gated book (netlify profile)
+        run: quarto render --to html --profile netlify
 
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v3.0
