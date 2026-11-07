@@ -22,6 +22,10 @@ format:
     toc-depth: 3
     fig-cap-location: bottom
     tbl-cap-location: top
+    # webexercises (interactive self-check questions); from
+    # webexercises::add_to_quarto(), copied to include/ by hand
+    css: include/webex.css
+    include-after-body: include/webex.js
 
 
   PrettyPDF-pdf:

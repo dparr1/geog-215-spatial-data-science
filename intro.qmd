@@ -3,6 +3,12 @@ title: "Introduction"
 engine: knitr
 ---
 
+```{r}
+#| label: setup-webex
+#| include: false
+library(webexercises)
+```
+
 ```{webr-r}
 # 1. Define a vector of scores
 scores <- c(88, 92, 79, 95, 84)
@@ -13,3 +19,17 @@ sd_score   <- sd(scores)
 
 cat("Mean:", mean_score, "\nSD:", sd_score)
 ```
+
+## Check your understanding
+
+Run the code above, then answer these questions.
+
+1. What is the mean of `scores`? `r fitb(87.6, num = TRUE, tol = 0.05)`
+
+2. Which function computes the standard deviation in R? `r mcq(c("var()", answer = "sd()", "mean()", "range()"))`
+
+3. True or false: `c()` combines values into a vector. `r torf(TRUE)`
+
+`r hide("Show hint")`
+Add the five scores and divide by 5: (88 + 92 + 79 + 95 + 84) / 5.
+`r unhide()`
