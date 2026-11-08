@@ -1,14 +1,14 @@
-// GEOG 215: turn an instructor-issued access code into a Supabase account.
+// GEOG 215: set up (or reset) a student's password from their setup code.
 //
 // Called by the sign-in gate (assets/auth-gate.html) when a student uses
-// "First time here?". It receives { code, password } and:
-//   - a new code: creates an account <code>@students.geog215.org with that
-//     password, already confirmed (so Supabase never sends an email), and
-//     links it to the roster row;
-//   - a used code with roster.allow_reset = true: sets the new password and
-//     turns allow_reset back off;
+// "First time here?". It receives { email, code, password } and:
+//   - email and code belong to the same active roster row, not set up yet:
+//     creates a Supabase account with that email and password, already
+//     confirmed (so Supabase never sends an email), and links it to the row;
+//   - already set up, with roster.allow_reset = true: sets the new password
+//     and turns allow_reset back off;
 //   - anything else: refuses.
-// The student then signs in with code + password from the browser.
+// The student then signs in with email + password from the browser.
 //
 // Deploy with JWT verification OFF (students aren't signed in yet):
 //   supabase functions deploy redeem-code --no-verify-jwt
@@ -17,7 +17,6 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2.118.0";
 
-const STUDENT_EMAIL_DOMAIN = "students.geog215.org"; // keep in step with setup.sql and auth-gate.html
 const ALLOWED_ORIGINS = ["https://geog215.org", "https://www.geog215.org"];
 const MIN_PASSWORD = 8;
 const MAX_PASSWORD = 72; // bcrypt limit used by Supabase Auth
@@ -37,6 +36,8 @@ function corsHeaders(origin: string): Record<string, string> {
 
 const normalizeCode = (raw: unknown) =>
   typeof raw === "string" ? raw.toUpperCase().replace(/[^A-Z0-9]/g, "") : "";
+const normalizeEmail = (raw: unknown) =>
+  typeof raw === "string" ? raw.trim().toLowerCase() : "";
 
 Deno.serve(async (req) => {
   const headers = {
@@ -49,17 +50,23 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers });
   if (req.method !== "POST") return reply(405, { error: "Use POST." });
 
-  let body: { code?: unknown; password?: unknown };
+  let body: { email?: unknown; code?: unknown; password?: unknown };
   try {
     body = await req.json();
   } catch {
-    return reply(400, { error: "Send JSON with a code and a password." });
+    return reply(400, { error: "Send JSON with an email, a code and a password." });
   }
 
+  const email = normalizeEmail(body.email);
   const code = normalizeCode(body.code);
   const password = body.password;
-  const badCode = { error: "That access code isn't valid. Check it, or contact your instructor." };
+  const badCode = {
+    error: "That email and setup code don't match. Check both, or contact your instructor.",
+  };
 
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    return reply(400, { error: "Enter the email address your instructor has on file." });
+  }
   if (!/^[A-Z0-9]{6,16}$/.test(code)) return reply(400, badCode);
   if (typeof password !== "string" || password.length < MIN_PASSWORD) {
     return reply(400, { error: `Choose a password of at least ${MIN_PASSWORD} characters.` });
@@ -76,22 +83,22 @@ Deno.serve(async (req) => {
 
   const { data: row, error: readError } = await admin
     .from("roster")
-    .select("code, student_name, active, allow_reset, user_id")
+    .select("code, student_name, email, active, allow_reset, user_id")
     .eq("code", code)
     .maybeSingle();
   if (readError) {
     console.error("roster read failed", readError);
     return reply(500, { error: "Sign-up is unavailable right now. Try again in a minute." });
   }
-  if (!row || !row.active) return reply(404, badCode);
-
-  const email = `${code.toLowerCase()}@${STUDENT_EMAIL_DOMAIN}`;
+  // Same answer whether the code is unknown or belongs to someone else, so the
+  // form can't be used to discover which emails are on the roster.
+  if (!row || !row.active || !row.email || row.email !== email) return reply(404, badCode);
 
   // Already set up: only allowed when the instructor has turned on a reset.
   if (row.user_id) {
     if (!row.allow_reset) {
       return reply(409, {
-        error: "This code is already set up. Sign in with your password, " +
+        error: "You've already set up your password. Sign in with your email and password, " +
           "or ask your instructor to reset it if you've forgotten it.",
       });
     }

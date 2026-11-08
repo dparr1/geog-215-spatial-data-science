@@ -191,7 +191,7 @@
       <div class="toolbar">
         <div>
           <label for="student-search">Search</label>
-          <input id="student-search" type="search" placeholder="Name or code">
+          <input id="student-search" type="search" placeholder="Name, email or code">
         </div>
         <div>
           <label for="student-note">Group / term</label>
@@ -212,7 +212,7 @@
         <table>
           <thead>
             <tr>
-              <th>Name</th><th>Group / term</th><th>Code</th><th>Status</th>
+              <th>Name</th><th>Email</th><th>Group / term</th><th>Setup code</th><th>Status</th>
               <th class="num">Pages opened</th><th>Last active</th><th>Actions</th>
             </tr>
           </thead>
@@ -223,14 +223,17 @@
 
     <!-- Add students -->
     <div class="panel" data-panel="add" hidden>
-      <p class="hint">One student per line. Each gets a random access code. Send each student their
-        code privately (for example a Canvas message). They go to geog215.org, choose
-        <em>First time here?</em>, enter the code and pick a password.</p>
+      <p class="hint">One student per line: name and email, separated by a comma or tab (you can
+        paste two columns from a spreadsheet or Canvas export). Each student gets a one-time setup
+        code. Send each student their code privately (for example a Canvas message). They go to
+        geog215.org, choose <em>First time here?</em>, enter their email and the code, and pick a
+        password. After that they sign in with their email and password.</p>
       <form id="add-form">
         <div class="toolbar">
           <div style="flex-basis: 100%">
-            <label for="add-names">Student names</label>
-            <textarea id="add-names" placeholder="Ada Lovelace&#10;Grace Hopper" required></textarea>
+            <label for="add-names">Students (name, email)</label>
+            <textarea id="add-names" placeholder="Ada Lovelace, ada@unc.edu&#10;Grace Hopper, grace@unc.edu" required></textarea>
+            <p class="msg error" id="add-errors" hidden></p>
           </div>
           <div>
             <label for="add-note">Group / term (optional)</label>
@@ -250,7 +253,7 @@
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Name</th><th>Code</th></tr></thead>
+            <thead><tr><th>Name</th><th>Email</th><th>Setup code</th></tr></thead>
             <tbody id="add-body"></tbody>
           </table>
         </div>
@@ -440,7 +443,7 @@
     fillSelect($("student-note"), notes.map((n) => [n, n]), '<option value="">All</option>');
     $("note-options").innerHTML = notes.map((n) => `<option value="${esc(n)}">`).join("");
     fillSelect($("activity-student"),
-      state.roster.map((s) => [s.code, s.student_name + " (" + s.code + ")"]),
+      state.roster.map((s) => [s.code, s.student_name + " (" + (s.email || s.code) + ")"]),
       '<option value="">Everyone</option>');
   }
 
@@ -449,7 +452,8 @@
     const note = $("student-note").value;
     const status = $("student-status").value;
     const rows = state.roster.filter((s) =>
-      (!q || s.student_name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q)) &&
+      (!q || s.student_name.toLowerCase().includes(q) || (s.email || "").includes(q) ||
+        s.code.toLowerCase().includes(q)) &&
       (!note || s.note === note) &&
       (!status || statusOf(s).key === status));
 
@@ -463,6 +467,7 @@
         : `<button class="btn secondary small" data-act="reset" data-code="${esc(s.code)}">Allow password reset</button>`;
       return `<tr>
         <td><button class="linkish" data-act="history" data-code="${esc(s.code)}">${esc(s.student_name)}</button></td>
+        <td>${s.email ? esc(s.email) : '<span class="badge warn">No email</span>'}</td>
         <td>${esc(s.note || "")}</td>
         <td><code>${esc(s.code)}</code></td>
         <td>${st.html}</td>
@@ -471,7 +476,7 @@
         <td class="actions">${lock} ${reset}
           <button class="btn danger small" data-act="delete" data-code="${esc(s.code)}">Delete</button></td>
       </tr>`;
-    }).join("") : `<tr><td colspan="7" class="empty">${state.roster.length
+    }).join("") : `<tr><td colspan="8" class="empty">${state.roster.length
       ? "No students match these filters." : "No students yet. Use Add students."}</td></tr>`;
   }
 
@@ -525,7 +530,7 @@
         `Lock ${name} out? They'll be signed out on their next page load.`, `${name} is locked out.`],
       unlock: ["admin_set_active", { p_code: code, p_active: true }, null, `${name} can sign in again.`],
       reset: ["admin_allow_reset", { p_code: code, p_allow: true }, null,
-        `${name} can now choose a new password: tell them to use "First time here?" with code ${code}.`],
+        `${name} can now choose a new password: tell them to use "First time here?" with their email and setup code ${code}.`],
       noreset: ["admin_allow_reset", { p_code: code, p_allow: false }, null, `Password reset cancelled for ${name}.`],
       delete: ["admin_delete_student", { p_code: code },
         `Delete ${name} (${code})? This removes their account and all of their progress, and can't be undone.`,
@@ -546,20 +551,43 @@
     }
   }
 
+  // "Ada Lovelace, ada@unc.edu", "ada@unc.edu<TAB>Ada Lovelace",
+  // "Ada Lovelace <ada@unc.edu>" or just "ada@unc.edu" -> { name, email }
+  const EMAIL_RE = /[^\s,;<>"']+@[^\s,;<>"']+\.[^\s,;<>"']+/;
+  function parseStudents(text) {
+    const students = [], problems = [];
+    text.split(/\r?\n/).forEach((line, i) => {
+      const raw = line.trim();
+      if (!raw) return;
+      const m = raw.match(EMAIL_RE);
+      if (!m) { problems.push(`line ${i + 1} has no email ("${raw}")`); return; }
+      const email = m[0].toLowerCase();
+      const name = raw.replace(m[0], " ").replace(/[<>"]/g, " ")
+        .replace(/^[\s,;]+|[\s,;]+$/g, "").replace(/\s+/g, " ");
+      students.push({ name, email });
+    });
+    return { students, problems };
+  }
+
   async function onAdd(event) {
     event.preventDefault();
-    const names = $("add-names").value.split(/\r?\n/).map((n) => n.trim()).filter(Boolean);
-    if (!names.length) return;
+    const { students, problems } = parseStudents($("add-names").value);
+    $("add-errors").hidden = !problems.length;
+    $("add-errors").textContent = problems.length
+      ? "Nothing was added. Fix these first: " + problems.join("; ") : "";
+    if (problems.length || !students.length) return;
     const note = $("add-note").value.trim();
     $("add-submit").disabled = true;
     try {
-      const added = await rpc("admin_add_students", { p_names: names, p_note: note || null });
+      const added = await rpc("admin_add_students", { p_students: students, p_note: note || null });
       state.lastAdded = added || [];
       $("add-body").innerHTML = state.lastAdded.map((a) =>
-        `<tr><td>${esc(a.student_name)}</td><td><code>${esc(a.code)}</code></td></tr>`).join("");
-      $("add-result").hidden = false;
+        `<tr><td>${esc(a.student_name)}</td><td>${esc(a.email)}</td><td><code>${esc(a.code)}</code></td></tr>`).join("");
+      $("add-result").hidden = !state.lastAdded.length;
       $("add-names").value = "";
-      banner(`Added ${state.lastAdded.length} student${state.lastAdded.length === 1 ? "" : "s"}.`);
+      const skipped = students.length - state.lastAdded.length;
+      banner(`Added ${state.lastAdded.length} student${state.lastAdded.length === 1 ? "" : "s"}.` +
+        (skipped ? ` Skipped ${skipped} already on the roster.` : ""));
       await refresh();
     } catch (e) {
       banner("Couldn't add students: " + e.message, true);
@@ -569,7 +597,8 @@
 
   function codesCsv() {
     const q = (v) => '"' + String(v).replace(/"/g, '""') + '"';
-    return "name,code\n" + state.lastAdded.map((a) => q(a.student_name) + "," + q(a.code)).join("\n") + "\n";
+    return "name,email,setup_code\n" + state.lastAdded.map((a) =>
+      q(a.student_name) + "," + q(a.email) + "," + q(a.code)).join("\n") + "\n";
   }
 
   // ---- Tabs ----------------------------------------------------------------

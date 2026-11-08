@@ -1,51 +1,52 @@
-# geog215.org sign-in: access codes
+# geog215.org sign-in: email + password
 
-Students sign in to https://geog215.org with an **access code** you give them
-and a password they choose. No email is ever sent, so the UNC mail server
-doesn't matter.
+Students sign in to https://geog215.org with **their own email and a password
+they choose**. You add each student (name and email), which gives them a
+one-time **setup code**; they use it once to choose their password. No email
+is ever sent, so the UNC mail server doesn't matter.
 
-- **First visit:** the student clicks *First time here?*, enters their code,
-  and picks a password. The `redeem-code` Edge Function checks the code and
-  creates their Supabase account.
-- **After that:** they sign in with code + password.
-- **Progress:** every page a student opens is recorded in `page_progress`
-  under their Supabase user id. The `instructor_progress` view shows it with
-  their name.
+- **First visit:** the student clicks *First time here?*, enters their email,
+  their setup code and a new password. The `redeem-code` Edge Function checks
+  that the email and code belong to the same student and creates their
+  Supabase account (already confirmed, so no email goes out).
+- **After that:** they sign in with email + password.
+- **Forgotten password:** you allow a reset; they use *First time here?* again
+  with the same email and setup code.
+- **Progress:** every page a student opens is recorded in `page_progress`.
+  The admin page shows it.
 
 | File | What it is |
 | --- | --- |
-| `supabase/setup.sql` | Tables, security rules, and progress tracking. Run in the SQL Editor. |
-| `supabase/functions/redeem-code/index.ts` | First-time sign-up and password resets. Deployed as an Edge Function. |
+| `supabase/setup.sql` | Tables, security rules, progress tracking and the admin functions. Run in the SQL Editor. |
+| `supabase/functions/redeem-code/index.ts` | First-time password setup and resets. Deployed as an Edge Function. |
 | `assets/auth-gate.html` | The sign-in screen on every geog215.org page. |
 | `admin/index.html` | Your admin page at https://geog215.org/admin/ (geog215.org only, never daveparr.com). |
 
 ## One-time setup
 
-Do steps 1 to 3 **before** merging the pull request. The merge redeploys
-geog215.org with the new sign-in screen, and it needs these to exist.
+Do steps 1 to 3 **before** pushing changes to the sign-in screen: geog215.org
+rebuilds on every push and the new screen needs them.
 
 ### 1. Run the database setup
 
 Supabase dashboard > **SQL Editor** > New query > paste all of
-`supabase/setup.sql` > **Run**. It's safe to re-run later.
-
-This also removes the old "approved emails only" sign-up rule. The old
-`approved_emails` table is left in place; delete it whenever you like.
+`supabase/setup.sql` > **Run**. It's safe to re-run; it keeps your students,
+instructors and progress.
 
 ### 2. Deploy the Edge Function
 
-Either way works.
+Re-deploy it whenever `supabase/functions/redeem-code/index.ts` changes.
 
 **From the dashboard (no install):**
 
-1. **Edge Functions** > **Deploy a new function** > **Via Editor**.
-2. Name it exactly `redeem-code`.
-3. Replace the sample code with all of
-   `supabase/functions/redeem-code/index.ts`, then **Deploy function**.
-4. Open the function's **Details** (settings) tab and turn **off**
-   *Verify JWT with legacy secret* / *Enforce JWT verification*. Students
-   aren't signed in yet when they call it, so it must accept calls without a
-   login. Save.
+1. **Edge Functions** > `redeem-code` > **Code** (or, the first time,
+   **Deploy a new function** > **Via Editor** and name it exactly
+   `redeem-code`).
+2. Replace all of the code with `supabase/functions/redeem-code/index.ts`, then
+   **Deploy**.
+3. On the function's **Details** (settings) tab, make sure *Enforce JWT
+   verification* / *Verify JWT with legacy secret* is **off**. Students aren't
+   signed in yet when they call it. Save.
 
 **From a terminal with the Supabase CLI:**
 
@@ -61,135 +62,99 @@ No secrets to add: Supabase gives every Edge Function `SUPABASE_URL` and
 
 **Authentication > Sign In / Providers**
 
-- **Email** provider: leave it **enabled** (the password sign-in uses it).
-- **Allow new users to sign up**: turn it **off**. The function still creates
+- **Email** provider: **enabled**. Everyone signs in with email + password, so
+  with it off nobody (students or you) can sign in ("Email logins are
+  disabled").
+- **Allow new users to sign up**: **off**. The function still creates
   accounts (it uses the admin API), and the database also refuses any account
-  not made from a code, so this is a second lock on the door.
-- **Confirm email**: either setting is fine; the function marks accounts
-  confirmed itself.
+  that isn't a roster student setting up with their code, or an instructor.
+- **Confirm email**: either setting is fine; accounts are created confirmed.
 
-**Authentication > Emails > SMTP Settings:** the Resend SMTP settings are no
-longer used. You can leave or remove them.
+Resend/SMTP settings and email templates aren't used.
 
-### 4. Test it yourself
+### 4. Set up your admin account
 
-Add a test student (next section), open https://geog215.org after the merge
-deploys, click *First time here?*, and use the test code. Then run
-`select * from public.instructor_progress;` and you should see the page you
-opened. Lock the test code afterwards
-(`update public.roster set active = false where student_name = 'Test';`).
-
-## Admin page (https://geog215.org/admin/)
-
-A page for you to add, lock, reset and delete students and to see their
-activity, without writing SQL. Only the geog215.org build includes it.
-
-### One-time setup
-
-1. **Re-run the database setup.** Paste all of `supabase/setup.sql` into the
-   SQL Editor again and run it. It adds the `instructors` table and the
-   `admin_*` functions the page uses; nothing else changes.
-2. **Add yourself as an instructor** (lowercase email):
+1. Add yourself as an instructor (lowercase email):
    ```sql
    insert into public.instructors (email) values ('you@unc.edu');
    ```
-3. **Create your account:** **Authentication > Users > Add user > Create new
-   user**, enter the same email and a strong password, and tick **Auto Confirm
-   User**. No email is sent. (Sign-ups are off, and the database only accepts
-   new accounts for roster codes or emails on the instructor list.)
-4. Open https://geog215.org/admin/ and sign in with that email and password.
+2. **Authentication > Users > Add user > Create new user**: the same email, a
+   strong password, and tick **Auto Confirm User**. No email is sent.
+3. Sign in at https://geog215.org/admin/.
 
-To add another instructor, repeat steps 2 and 3 with their email. To change
-your password, use **Authentication > Users**, open your user, and send a
-password recovery or set a new password there.
+To add another instructor, repeat with their email. To change your password,
+open your user under **Authentication > Users**.
 
-### What it does
+### 5. Test it yourself
+
+On the admin page, add a test student with an email you can type (it never
+receives mail), for example `Test Student, test@example.com`. Then, in a
+private/incognito window, open https://geog215.org, click *First time here?*,
+and use that email, its setup code and a password. Open a page or two; they
+appear on the admin page under **Activity**. Delete the test student
+afterwards.
+
+## Admin page (https://geog215.org/admin/)
 
 | Tab | |
 | --- | --- |
-| **Students** | Every student with their code, status, pages opened and last activity. Search and filter by group/term or status. **Lock out** / **Let back in**, **Allow password reset**, **Delete** (removes their account and progress). Click a name to see their activity. |
-| **Add students** | Paste names, one per line, plus an optional group/term. Each gets a code; copy or download them as CSV to send through Canvas. |
+| **Students** | Every student with their email, setup code, status, pages opened and last activity. Search by name, email or code; filter by group/term or status. **Lock out** / **Let back in**, **Allow password reset**, **Delete** (removes their account and progress). Click a name to see their activity. |
+| **Add students** | Paste one student per line as `Name, email` (comma or tab, so two columns pasted from a spreadsheet or Canvas export work too), plus an optional group/term. Each gets a setup code; copy or download `name,email,setup_code` as CSV. Emails already on the roster are skipped. |
 | **Activity** | The latest page opens, for everyone or one student. |
 | **Pages** | How many students have opened each page. |
 
+Send each student their setup code privately, for example as a Canvas
+message. Codes are not case sensitive and can be typed with or without a dash.
+
 While signed in to the admin page you can also read the book (instructors
 count as approved), and your own page visits aren't recorded as progress.
-
 Every button calls an `admin_*` function in Supabase that refuses to run
 unless you're signed in as an instructor, so the page being public doesn't let
 anyone else see or change anything.
 
-## Everyday tasks
+To fix a typo in a student's email before they've set up their password,
+delete them and add them again (they get a new code).
 
-The admin page does all of these. You can also run them in **SQL Editor**,
-or browse and edit the `roster` table in **Table Editor**.
+## Everyday tasks in SQL
 
-**Add students** (each gets a random 8-character code, like `K7MQ2XHP`):
-
-```sql
-insert into public.roster (student_name, note) values
-  ('Ada Lovelace', 'Spring 2027'),
-  ('Grace Hopper', 'Spring 2027')
-returning student_name, code;
-```
-
-Copy the result and send each student their code privately, for example as a
-Canvas message or a private Canvas grade comment. Codes are not case
-sensitive, and students can type them with or without a dash.
-
-To add a whole class, export the Canvas roster to CSV, then import the names
-in **Table Editor > roster > Insert > Import data from CSV** (one column,
-`student_name`, plus `note` if you like). Codes fill in automatically.
-
-**See all codes and who has set up an account:**
+The admin page does all of these; they're here in case you prefer the
+**SQL Editor** (or **Table Editor > roster**).
 
 ```sql
-select student_name, note, code, claimed_at is not null as set_up, active
-from public.roster
-order by student_name;
-```
+-- Add students (each gets a random 8-character setup code, like K7MQ2XHP)
+insert into public.roster (student_name, email, note) values
+  ('Ada Lovelace', 'ada@unc.edu',   'Spring 2027'),
+  ('Grace Hopper', 'grace@unc.edu', 'Spring 2027')
+returning student_name, email, code;
 
-**Forgotten password.** Let the student choose a new one with the same code:
+-- Everyone, and whether they've set up a password
+select student_name, email, note, code, user_id is not null as set_up, active
+from public.roster order by student_name;
 
-```sql
-update public.roster set allow_reset = true where code = 'K7MQ2XHP';
-```
+-- Forgotten password: they use "First time here?" again with email + code
+update public.roster set allow_reset = true where email = 'ada@unc.edu';
 
-Tell them to use *First time here?* again. Their progress is kept.
+-- Lock out (next page load) / let back in
+update public.roster set active = false where email = 'ada@unc.edu';
+update public.roster set active = true  where email = 'ada@unc.edu';
 
-**Lock a student out** (takes effect on their next page load), or let them
-back in:
-
-```sql
-update public.roster set active = false where code = 'K7MQ2XHP';
-update public.roster set active = true  where code = 'K7MQ2XHP';
-```
-
-**Progress:**
-
-```sql
 -- Every page each student has opened
 select * from public.instructor_progress order by student_name, page;
-
--- How many pages each student has opened, and when they were last active
-select r.student_name,
-       count(p.page)     as pages_opened,
-       max(p.last_visit) as last_active
-from public.roster r
-left join public.page_progress p on p.user_id = r.user_id
-group by r.student_name
-order by r.student_name;
 ```
 
-**Start a new term:** add the new students with a new `note`, and set
-`active = false` for last term's codes. Deleting a student's account under
-**Authentication > Users** also deletes their progress.
+Emails must be lowercase. **New term:** add the new students with a new
+group/term, and lock out last term's.
 
 ## Security notes
 
-- The roster and everyone's progress can only be read from the dashboard.
-  Students can see only their own progress rows and can't edit them.
-- Like before, the gate hides pages in the browser but doesn't encrypt them.
-  The page text is still in the downloaded HTML.
-- Each student account's email is `<code>@students.geog215.org`. Nothing is
-  ever sent to it.
+- The roster, instructor list and everyone's progress can only be read by
+  instructors (admin page) or from the dashboard. Students see only their own
+  progress rows and can't edit them.
+- A setup code only works together with the matching email, and only before
+  the student has set a password (or after you allow a reset).
+- The gate hides pages in the browser but doesn't encrypt them: the page text
+  is still in the downloaded HTML, and the same book is public at
+  daveparr.com/geog215/.
+- Students who set up before email sign-in have accounts named
+  `<code>@students.geog215.org`; they show as **No email** on the admin page.
+  Delete and re-add them with their real email.

@@ -1,27 +1,28 @@
--- GEOG 215 textbook: students sign in with an instructor-issued access code.
+-- GEOG 215 textbook: students sign in with their email and a password.
 --
 -- Run once in the Supabase dashboard: SQL Editor > New query > paste > Run.
 -- Safe to re-run. Step-by-step setup is in supabase/README.md.
 --
 -- How it works
---   1. roster holds one random access code per student. Row-level security is
---      on with no policies, so the browser (anon or signed-in) can never read
---      it. Edit it from the dashboard (Table Editor) or the SQL editor.
---   2. The first time, a student enters their code and picks a password. The
---      redeem-code Edge Function (supabase/functions/redeem-code) checks the
---      code, creates a Supabase account for it with a made-up address
---      (<code>@students.geog215.org, already marked confirmed, so no email is
---      ever sent), and links that account to the roster row. After that the
---      student signs in with code + password.
+--   1. roster holds one row per student: name, email, and a random one-time
+--      setup code. Row-level security is on with no policies, so the browser
+--      (anon or signed-in) can never read it. Add students on the admin page
+--      (geog215.org/admin/), in Table Editor, or with SQL.
+--   2. The first time, a student enters their email, their setup code and a
+--      new password. The redeem-code Edge Function
+--      (supabase/functions/redeem-code) checks that the email and code match,
+--      creates a Supabase account with that email (already marked confirmed,
+--      so no email is ever sent), and links it to the roster row. After that
+--      the student signs in with email + password.
 --   3. A trigger on auth.users refuses any new account that the redeem
---      function did not set up for a roster code, so nobody can sign up
---      around it.
+--      function did not set up for a roster row (or that isn't an
+--      instructor), so nobody can sign up around it.
 --   4. is_current_user_approved() lets a signed-in student ask "am I still an
 --      active student?" (only about themselves). The book calls it on every
 --      page load, so setting active = false locks someone out.
 --   5. page_progress records which pages each student has opened, keyed by
 --      their Supabase user id. Students can only see their own rows; the
---      instructor_progress view joins it to student names for you.
+--      instructor_progress view and the admin page show it with names.
 
 create extension if not exists pgcrypto with schema extensions;
 
@@ -63,6 +64,8 @@ create table if not exists public.roster (
   code         text primary key default public.new_access_code()
                check (code ~ '^[A-Z0-9]{6,16}$'),
   student_name text not null,
+  email        text unique                   -- the student's sign-in email
+               check (email = lower(btrim(email))),
   note         text,                         -- e.g. section, term, onyen
   active       boolean not null default true, -- false = locked out
   allow_reset  boolean not null default false,-- true = may pick a new password
@@ -70,6 +73,21 @@ create table if not exists public.roster (
   claimed_at   timestamptz,                  -- when the code was first used
   added_at     timestamptz not null default now()
 );
+
+-- Rosters created before email sign-in: add the email column.
+alter table public.roster add column if not exists email text;
+do $$
+begin
+  if not exists (select 1 from pg_constraint
+                 where conrelid = 'public.roster'::regclass and conname = 'roster_email_key') then
+    alter table public.roster add constraint roster_email_key unique (email);
+  end if;
+  if not exists (select 1 from pg_constraint
+                 where conrelid = 'public.roster'::regclass and conname = 'roster_email_check') then
+    alter table public.roster add constraint roster_email_check check (email = lower(btrim(email)));
+  end if;
+end;
+$$;
 
 alter table public.roster enable row level security;
 revoke all on table public.roster from anon, authenticated;
@@ -125,12 +143,12 @@ begin
 
   if not exists (
     select 1 from public.roster r
-    where lower(btrim(new.email)) = lower(r.code) || '@students.geog215.org'
+    where r.email = lower(btrim(new.email))
       and r.active
       and r.user_id is null
       and r.claimed_at is not null
   ) then
-    raise exception 'Accounts for the GEOG 215 textbook are created from an access code.';
+    raise exception 'Accounts for the GEOG 215 textbook are created from a setup code.';
   end if;
   return new;
 end;
@@ -261,9 +279,11 @@ as $$
 $$;
 
 -- Every student with their status and activity totals.
+-- (Dropped first because its columns changed when email sign-in was added.)
+drop function if exists public.admin_roster();
 create or replace function public.admin_roster()
 returns table (
-  code text, student_name text, note text, active boolean, allow_reset boolean,
+  code text, student_name text, email text, note text, active boolean, allow_reset boolean,
   set_up boolean, claimed_at timestamptz, added_at timestamptz,
   pages_opened bigint, total_visits bigint, last_active timestamptz
 )
@@ -276,7 +296,7 @@ as $$
 begin
   perform public.require_instructor();
   return query
-    select r.code, r.student_name, r.note, r.active, r.allow_reset,
+    select r.code, r.student_name, r.email, r.note, r.active, r.allow_reset,
            r.user_id is not null, r.claimed_at, r.added_at,
            count(distinct public.normalize_page(p.page)) filter (where p.page is not null),
            coalesce(sum(p.visits), 0)::bigint,
@@ -288,27 +308,50 @@ begin
 end;
 $$;
 
--- Add students (one name per array item); returns each new code.
-create or replace function public.admin_add_students(p_names text[], p_note text default null)
-returns table (student_name text, code text)
+-- Add students. p_students is a JSON array like
+--   [{"name": "Ada Lovelace", "email": "ada@unc.edu"}, ...]
+-- Returns each new student with their setup code. Emails already on the
+-- roster are skipped (not returned).
+drop function if exists public.admin_add_students(text[], text);
+create or replace function public.admin_add_students(p_students jsonb, p_note text default null)
+returns table (student_name text, email text, code text)
 language plpgsql
 volatile
 security definer
 set search_path = ''
 as $$
 #variable_conflict use_column
+declare
+  bad text;
 begin
   perform public.require_instructor();
-  if coalesce(array_length(p_names, 1), 0) > 500 then
+  if jsonb_typeof(p_students) is distinct from 'array' then
+    raise exception 'Send a list of students.';
+  end if;
+  if jsonb_array_length(p_students) > 500 then
     raise exception 'Add at most 500 students at a time.';
   end if;
+
+  select x.e into bad
+  from (
+    select lower(btrim(coalesce(el ->> 'email', ''))) as e
+    from jsonb_array_elements(p_students) as el
+  ) x
+  where x.e !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$'
+  limit 1;
+  if found then
+    raise exception 'Not a valid email address: "%".', bad;
+  end if;
+
   return query
-    insert into public.roster as r (student_name, note)
-    select btrim(t.n), nullif(btrim(coalesce(p_note, '')), '')
-    from unnest(p_names) with ordinality as t(n, ord)
-    where btrim(coalesce(t.n, '')) <> ''
+    insert into public.roster as r (student_name, email, note)
+    select coalesce(nullif(btrim(t.el ->> 'name'), ''), split_part(lower(btrim(t.el ->> 'email')), '@', 1)),
+           lower(btrim(t.el ->> 'email')),
+           nullif(btrim(coalesce(p_note, '')), '')
+    from jsonb_array_elements(p_students) with ordinality as t(el, ord)
     order by t.ord
-    returning r.student_name, r.code;
+    on conflict (email) do nothing
+    returning r.student_name, r.email, r.code;
 end;
 $$;
 
@@ -415,7 +458,7 @@ do $$
 declare f text;
 begin
   foreach f in array array[
-    'admin_roster()', 'admin_add_students(text[], text)',
+    'admin_roster()', 'admin_add_students(jsonb, text)',
     'admin_set_active(text, boolean)', 'admin_allow_reset(text, boolean)',
     'admin_delete_student(text)', 'admin_activity(integer)', 'admin_pages()'
   ] loop
@@ -425,28 +468,28 @@ begin
 end;
 $$;
 
--- Everyday tasks (copy into the SQL editor) ------------------------------------
+-- Everyday tasks (the admin page at geog215.org/admin/ does all of these) ---
 --
--- Add students; each gets a random code. Copy the result into Canvas:
+-- Add students; each gets a random setup code. Send each student their code:
 --
---   insert into public.roster (student_name, note) values
---     ('Ada Lovelace', 'Spring 2027'),
---     ('Grace Hopper', 'Spring 2027')
---   returning student_name, code;
+--   insert into public.roster (student_name, email, note) values
+--     ('Ada Lovelace', 'ada@unc.edu',   'Spring 2027'),
+--     ('Grace Hopper', 'grace@unc.edu', 'Spring 2027')
+--   returning student_name, email, code;
 --
--- See every code and whether it has been used:
+-- See everyone and whether they have set up a password:
 --
---   select student_name, note, code, claimed_at is not null as set_up, active
+--   select student_name, email, note, code, user_id is not null as set_up, active
 --   from public.roster order by student_name;
 --
--- Forgotten password: let the student pick a new one with the same code
--- ("First time here?" on the sign-in page):
+-- Forgotten password: let the student pick a new one with their email and
+-- setup code ("First time here?" on the sign-in page):
 --
---   update public.roster set allow_reset = true where code = 'ABCD2345';
+--   update public.roster set allow_reset = true where email = 'ada@unc.edu';
 --
 -- Lock a student out (on their next page load) / let them back in:
 --
---   update public.roster set active = false where code = 'ABCD2345';
+--   update public.roster set active = false where email = 'ada@unc.edu';
 --
 -- Who has opened what:
 --

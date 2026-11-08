@@ -1,18 +1,17 @@
 <!--
-  GEOG 215 sign-in gate (instructor-issued access codes; no email).
+  GEOG 215 sign-in gate (email + password; no email is ever sent).
   Included in every HTML page's <head> only for geog215.org, by the `geog215`
   profile (_quarto-geog215.yml); daveparr.com/geog215/ has no gate. Database
   setup is in supabase/setup.sql, the first-time sign-up runs in the
   redeem-code Edge Function (supabase/functions/redeem-code), and the
   instructor steps are in supabase/README.md.
 
-  First visit: the student enters their access code and picks a password
-  ("First time here?"). After that they sign in with code + password. Behind
-  the scenes the account's email is <code>@students.geog215.org, which never
-  receives mail.
+  First visit ("First time here?"): the student enters their email, the
+  one-time setup code their instructor gave them, and a new password. After
+  that they sign in with email + password. Accounts are created already
+  confirmed, so Supabase never emails students.
 
-  This hides the page in the browser until the student signs in with an
-  active code. It is a front door, not encryption: the page text is still in
+  This hides the page in the browser until an active student signs in. It is a front door, not encryption: the page text is still in
   the HTML that is downloaded.
 -->
 <style>
@@ -71,8 +70,6 @@
   // Publishable key: safe to expose in frontend code (access is set by RLS).
   const SUPABASE_KEY = "sb_publishable_HIAkOd2ci4DGcgGMRMj-vQ_Ttu6WFqb";
 
-  // Keep in step with supabase/setup.sql and the redeem-code function.
-  const STUDENT_EMAIL_DOMAIN = "students.geog215.org";
   const REDEEM_URL = SUPABASE_URL + "/functions/v1/redeem-code";
   const MIN_PASSWORD = 8;
 
@@ -81,7 +78,7 @@
 
   // "abcd-2345 " -> "ABCD2345"
   const normalizeCode = (raw) => (raw || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-  const emailFor = (code) => code.toLowerCase() + "@" + STUDENT_EMAIL_DOMAIN;
+  const normalizeEmail = (raw) => (raw || "").trim().toLowerCase();
 
   function buildGate() {
     const gate = document.createElement("div");
@@ -91,10 +88,9 @@
         <h1 id="sds-title">Spatial Data Science</h1>
 
         <form id="sds-signin-step">
-          <p>GEOG 215 textbook. Sign in with the access code from your instructor.</p>
-          <label for="sds-code">Access code</label>
-          <input id="sds-code" autocomplete="username" autocapitalize="characters"
-                 spellcheck="false" required>
+          <p>GEOG 215 textbook. Sign in with your email and password.</p>
+          <label for="sds-email">Email</label>
+          <input id="sds-email" type="email" autocomplete="username" spellcheck="false" required>
           <label for="sds-password">Password</label>
           <input id="sds-password" type="password" autocomplete="current-password" required>
           <button type="submit">Sign in</button>
@@ -102,9 +98,11 @@
         </form>
 
         <form id="sds-setup-step" hidden>
-          <p>Enter the access code from your instructor and choose a password. You'll use both to sign in from now on.</p>
-          <label for="sds-new-code">Access code</label>
-          <input id="sds-new-code" autocomplete="username" autocapitalize="characters"
+          <p>Enter your email and the setup code from your instructor, then choose a password. After this you'll sign in with your email and password.</p>
+          <label for="sds-new-email">Email</label>
+          <input id="sds-new-email" type="email" autocomplete="username" spellcheck="false" required>
+          <label for="sds-new-code">Setup code</label>
+          <input id="sds-new-code" autocomplete="one-time-code" autocapitalize="characters"
                  spellcheck="false" required>
           <label for="sds-new-password">New password (at least ${MIN_PASSWORD} characters)</label>
           <input id="sds-new-password" type="password" autocomplete="new-password"
@@ -130,7 +128,7 @@
     $("sds-gate").hidden = false;
     $("sds-signin-step").hidden = step !== "signin";
     $("sds-setup-step").hidden = step !== "setup";
-    (step === "signin" ? $("sds-code") : $("sds-new-code")).focus();
+    (step === "signin" ? $("sds-email") : $("sds-new-email")).focus();
   }
 
   function say(text, isError) {
@@ -145,7 +143,7 @@
 
   function displayName(user) {
     const name = user.user_metadata && user.user_metadata.student_name;
-    return name || (user.email || "").split("@")[0].toUpperCase();
+    return name || user.email || "";
   }
 
   function unlock(user) {
@@ -182,16 +180,16 @@
     } else {
       await sb.auth.signOut();
       showStep("signin");
-      say("That access code is no longer active for this textbook. Contact your instructor.", true);
+      say("Your access to this textbook is no longer active. Contact your instructor.", true);
     }
   }
 
-  async function signIn(code, password) {
-    const { data, error } = await sb.auth.signInWithPassword({ email: emailFor(code), password });
+  async function signIn(email, password) {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
     if (error) {
       const wrong = /invalid login credentials/i.test(error.message || "");
       say(wrong
-        ? "That code and password don't match. If this is your first visit, use \"First time here?\" below."
+        ? "That email and password don't match. If this is your first visit, use \"First time here?\" below."
         : "Couldn't sign in: " + error.message, true);
       return false;
     }
@@ -202,12 +200,12 @@
   async function onSignIn(event) {
     event.preventDefault();
     const form = event.currentTarget;
-    const code = normalizeCode($("sds-code").value);
-    if (!code) return;
+    const email = normalizeEmail($("sds-email").value);
+    if (!email) return;
     busy(form, true);
     say("Signing in…");
     try {
-      await signIn(code, $("sds-password").value);
+      await signIn(email, $("sds-password").value);
     } catch (e) {
       say("Signed in, but couldn't confirm your access: " + e.message, true);
     }
@@ -217,9 +215,10 @@
   async function onSetup(event) {
     event.preventDefault();
     const form = event.currentTarget;
+    const email = normalizeEmail($("sds-new-email").value);
     const code = normalizeCode($("sds-new-code").value);
     const password = $("sds-new-password").value;
-    if (!code) return;
+    if (!email || !code) return;
     if (password.length < MIN_PASSWORD) {
       say("Choose a password of at least " + MIN_PASSWORD + " characters.", true);
       return;
@@ -234,7 +233,7 @@
       const res = await fetch(REDEEM_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY },
-        body: JSON.stringify({ code, password }),
+        body: JSON.stringify({ email, code, password }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -243,9 +242,9 @@
         return;
       }
       // Pre-fill the sign-in form so a browser can offer to save the password.
-      $("sds-code").value = code;
+      $("sds-email").value = email;
       $("sds-password").value = password;
-      if (!(await signIn(code, password))) showStep("signin");
+      if (!(await signIn(email, password))) showStep("signin");
     } catch (e) {
       say("Couldn't reach the sign-up service: " + e.message, true);
     }
