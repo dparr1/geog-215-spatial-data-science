@@ -160,8 +160,10 @@
     const { error } = await sb.auth.signInWithOtp({ email });
     busy(form, false);
     if (error) {
-      // The sign-up trigger rejects unapproved emails with a database error.
-      const notApproved = error.status === 500 || /database error/i.test(error.message);
+      // The sign-up trigger (supabase/setup.sql) rejects unapproved emails
+      // with "This email is not approved...". Anything else (e.g. the email
+      // provider failing) is shown as-is so it can be fixed.
+      const notApproved = /not approved/i.test(error.message || "");
       say(notApproved
         ? "That email isn't on the class list. Use your approved email, or contact your instructor."
         : "Couldn't send a code: " + error.message, true);
