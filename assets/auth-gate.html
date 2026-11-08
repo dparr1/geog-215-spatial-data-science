@@ -1,0 +1,226 @@
+<!--
+  GEOG 215 sign-in gate (Supabase email codes + approved-email list).
+  Included in every HTML page's <head> by _quarto.yml. Database setup is in
+  supabase/setup.sql.
+
+  This hides the page in the browser until the student signs in with an
+  approved email. It is a front door, not encryption: the page text is still
+  in the HTML that is downloaded.
+-->
+<style>
+  html.sds-locked body > :not(#sds-gate) { visibility: hidden !important; }
+  html.sds-locked body { overflow: hidden; }
+
+  #sds-gate {
+    position: fixed; inset: 0; z-index: 10000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px; background: #f4f6f8;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  #sds-gate[hidden] { display: none; }
+  #sds-gate .sds-card {
+    width: 100%; max-width: 380px; padding: 28px 24px;
+    background: #fff; border: 1px solid #d9dee3; border-radius: 10px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06); color: #1f2933;
+  }
+  #sds-gate h1 { font-size: 1.35rem; margin: 0 0 4px; }
+  #sds-gate p { margin: 0 0 16px; font-size: 0.95rem; color: #52606d; }
+  #sds-gate label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+  #sds-gate input {
+    width: 100%; box-sizing: border-box; padding: 10px 12px; margin-bottom: 12px;
+    font-size: 1rem; border: 1px solid #bcc5ce; border-radius: 6px;
+  }
+  #sds-gate button {
+    width: 100%; padding: 10px 12px; font-size: 1rem; font-weight: 600;
+    color: #fff; background: #2c5f8a; border: 0; border-radius: 6px; cursor: pointer;
+  }
+  #sds-gate button:disabled { opacity: 0.6; cursor: wait; }
+  #sds-gate .sds-link {
+    width: auto; padding: 0; margin-top: 12px; background: none;
+    color: #2c5f8a; font-weight: 400; font-size: 0.9rem; text-decoration: underline;
+  }
+  #sds-gate .sds-msg { min-height: 1.2em; margin: 12px 0 0; font-size: 0.9rem; }
+  #sds-gate .sds-msg.sds-error { color: #b42318; }
+
+  #sds-signout {
+    position: fixed; right: 12px; bottom: 12px; z-index: 9999;
+    padding: 6px 10px; font-size: 0.8rem; color: #52606d;
+    background: rgba(255, 255, 255, 0.92); border: 1px solid #d9dee3;
+    border-radius: 6px; cursor: pointer;
+  }
+</style>
+
+<!-- Lock first, so the page never flashes before the check runs. -->
+<script>document.documentElement.classList.add("sds-locked");</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
+
+<script>
+(function () {
+  "use strict";
+
+  const SUPABASE_URL = "https://liihdtyoqneslfbfgqml.supabase.co";
+  // Publishable key: safe to expose in frontend code (access is set by RLS).
+  const SUPABASE_KEY = "sb_publishable_HIAkOd2ci4DGcgGMRMj-vQ_Ttu6WFqb";
+
+  let sb = null;
+  let pendingEmail = "";
+  const $ = (id) => document.getElementById(id);
+
+  function buildGate() {
+    const gate = document.createElement("div");
+    gate.id = "sds-gate";
+    gate.innerHTML = `
+      <div class="sds-card" role="dialog" aria-labelledby="sds-title">
+        <h1 id="sds-title">Spatial Data Science</h1>
+        <p>GEOG 215 textbook. Sign in with the email your instructor approved.</p>
+
+        <form id="sds-email-step">
+          <label for="sds-email">Email</label>
+          <input id="sds-email" type="email" autocomplete="email" required>
+          <button type="submit">Email me a sign-in code</button>
+        </form>
+
+        <form id="sds-code-step" hidden>
+          <label for="sds-code">Code sent to <span id="sds-sent-to"></span></label>
+          <input id="sds-code" inputmode="numeric" autocomplete="one-time-code"
+                 pattern="[0-9]*" minlength="6" maxlength="10" required>
+          <button type="submit">Sign in</button>
+          <button type="button" class="sds-link" id="sds-back">Use a different email</button>
+        </form>
+
+        <p class="sds-msg" id="sds-msg" role="status"></p>
+      </div>`;
+    document.body.appendChild(gate);
+
+    $("sds-email-step").addEventListener("submit", onSendCode);
+    $("sds-code-step").addEventListener("submit", onVerifyCode);
+    $("sds-back").addEventListener("click", () => showStep("email"));
+  }
+
+  function showStep(step) {
+    $("sds-gate").hidden = false;
+    $("sds-email-step").hidden = step !== "email";
+    $("sds-code-step").hidden = step !== "code";
+    (step === "email" ? $("sds-email") : $("sds-code")).focus();
+  }
+
+  function say(text, isError) {
+    const el = $("sds-msg");
+    el.textContent = text || "";
+    el.classList.toggle("sds-error", !!isError);
+  }
+
+  function busy(form, on) {
+    form.querySelectorAll("button, input").forEach((el) => (el.disabled = on));
+  }
+
+  function unlock(email) {
+    $("sds-gate").hidden = true;
+    document.documentElement.classList.remove("sds-locked");
+    if (!$("sds-signout")) {
+      const btn = document.createElement("button");
+      btn.id = "sds-signout";
+      btn.type = "button";
+      btn.textContent = "Sign out (" + email + ")";
+      btn.addEventListener("click", async () => {
+        await sb.auth.signOut();
+        location.reload();
+      });
+      document.body.appendChild(btn);
+    }
+  }
+
+  // Ask Supabase whether the signed-in user's email is on the approved list.
+  async function isApproved() {
+    const { data, error } = await sb.rpc("is_current_user_approved");
+    if (error) throw error;
+    return data === true;
+  }
+
+  async function admitOrReject(user) {
+    if (await isApproved()) {
+      unlock(user.email);
+    } else {
+      await sb.auth.signOut();
+      showStep("email");
+      say("That email is no longer approved for this textbook. Contact your instructor.", true);
+    }
+  }
+
+  async function onSendCode(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const email = $("sds-email").value.trim().toLowerCase();
+    if (!email) return;
+    busy(form, true);
+    say("Sending code…");
+    const { error } = await sb.auth.signInWithOtp({ email });
+    busy(form, false);
+    if (error) {
+      // The sign-up trigger rejects unapproved emails with a database error.
+      const notApproved = error.status === 500 || /database error/i.test(error.message);
+      say(notApproved
+        ? "That email isn't on the class list. Use your approved email, or contact your instructor."
+        : "Couldn't send a code: " + error.message, true);
+      return;
+    }
+    pendingEmail = email;
+    $("sds-sent-to").textContent = email;
+    $("sds-code").value = "";
+    showStep("code");
+    say("Check your email for the code. It may take a minute.");
+  }
+
+  async function onVerifyCode(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    busy(form, true);
+    say("Checking…");
+    const { data, error } = await sb.auth.verifyOtp({
+      email: pendingEmail,
+      token: $("sds-code").value.trim(),
+      type: "email",
+    });
+    if (error) {
+      busy(form, false);
+      say("That code didn't work: " + error.message, true);
+      return;
+    }
+    try {
+      await admitOrReject(data.user);
+    } catch (e) {
+      say("Signed in, but couldn't confirm approval: " + e.message, true);
+    }
+    busy(form, false);
+  }
+
+  async function init() {
+    buildGate();
+    if (!window.supabase || !window.supabase.createClient) {
+      showStep("email");
+      busy($("sds-email-step"), true);
+      say("Sign-in is unavailable right now (couldn't load Supabase). Try reloading.", true);
+      return;
+    }
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        await admitOrReject(session.user);
+      } else {
+        showStep("email");
+      }
+    } catch (e) {
+      showStep("email");
+      say("Couldn't check your sign-in: " + e.message, true);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>
