@@ -1,5 +1,5 @@
 # geog215.org profile: `quarto render --profile geog215` adds the Supabase
-# sign-in gate (approved emails only; database setup in supabase/setup.sql).
+# sign-in gate (instructor-issued access codes; setup in supabase/README.md).
 # The default render, used for daveparr.com/geog215/, has no gate.
 format:
   html:
