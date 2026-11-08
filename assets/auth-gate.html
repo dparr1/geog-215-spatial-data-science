@@ -1,7 +1,9 @@
 <!--
   GEOG 215 sign-in gate (Supabase email codes + approved-email list).
-  Included in every HTML page's <head> by _quarto.yml. Database setup is in
-  supabase/setup.sql.
+  Included in every HTML page's <head> only for geog215.org, by the `geog215`
+  profile (_quarto-geog215.yml); daveparr.com/geog215/ has no gate. Database
+  setup is in supabase/setup.sql; sign-in emails are sent through Resend
+  (Supabase > Authentication > Emails > SMTP Settings).
 
   This hides the page in the browser until the student signs in with an
   approved email. It is a front door, not encryption: the page text is still

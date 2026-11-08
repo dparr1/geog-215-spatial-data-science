@@ -27,3 +27,7 @@ desktop.ini
 # Note: _freeze/ is intentionally committed (freeze: auto in _quarto.yml)
 **/*_files/
 **/*.knit.md
+
+# Wrangler (geog215.org deploy)
+.wrangler/
+node_modules/

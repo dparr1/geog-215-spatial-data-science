@@ -26,9 +26,8 @@ format:
     # webexercises::add_to_quarto(), copied to include/ by hand
     css: include/webex.css
     include-after-body: include/webex.js
-    # Sign-in gate: Supabase email codes, approved emails only
-    # (database setup in supabase/setup.sql)
-    include-in-header: assets/auth-gate.html
+    # The Supabase sign-in gate is added only for geog215.org, by the
+    # `geog215` profile (_quarto-geog215.yml). daveparr.com stays public.
 
 
   PrettyPDF-pdf:

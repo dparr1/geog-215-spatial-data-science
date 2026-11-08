@@ -1,8 +1,11 @@
 name: Render and Publish Quarto Book
 
-# Every push to main renders the book and commits it to dparr1/daveparr.com
-# under geog215/, which triggers Cloudflare's build of daveparr.com
-# (https://daveparr.com/geog215/).
+# Every push to main renders the book twice:
+#   1. Public copy -> committed to dparr1/daveparr.com under geog215/, which
+#      triggers Cloudflare's build of daveparr.com (https://daveparr.com/geog215/).
+#   2. Gated copy  -> the `geog215` profile adds the Supabase sign-in gate;
+#      deployed with wrangler to the geog215-org Worker (https://geog215.org).
+#      Skipped until the CLOUDFLARE_API_TOKEN secret is set on this repo.
 #
 # Only HTML is rendered: the PDF format needs R even when results are frozen,
 # and R is not installed on the runner. Code results come from _freeze/.
@@ -22,6 +25,8 @@ concurrency:
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+    env:
+      HAS_CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     steps:
       - name: Check out book
         uses: actions/checkout@v4
@@ -29,7 +34,8 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Render book
+      # ---- 1. Public copy for daveparr.com/geog215/ -------------------------
+      - name: Render public book
         run: quarto render --to html
 
       - name: Check out daveparr.com
@@ -55,3 +61,24 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Update GEOG 215 book from ${GITHUB_REPOSITORY}@${GITHUB_SHA::7}"
           git push origin HEAD:main
+
+      # Keeps the daveparr.com checkout out of the next render.
+      - name: Remove daveparr.com checkout
+        run: rm -rf daveparr.com
+
+      # ---- 2. Gated copy for geog215.org --------------------------------------
+      - name: Render gated book (geog215 profile)
+        if: env.HAS_CF_TOKEN == 'true'
+        run: quarto render --to html --profile geog215
+
+      - name: Deploy to geog215.org (Cloudflare Worker)
+        if: env.HAS_CF_TOKEN == 'true'
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          wranglerVersion: "4.152.0"
+          command: deploy   # reads wrangler.jsonc, uploads _book/
+
+      - name: Note skipped geog215.org deploy
+        if: env.HAS_CF_TOKEN != 'true'
+        run: echo "::notice::CLOUDFLARE_API_TOKEN is not set; skipped the geog215.org deploy."

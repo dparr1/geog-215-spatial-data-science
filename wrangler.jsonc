@@ -1,0 +1,25 @@
+// Cloudflare Worker that serves the gated book at https://geog215.org.
+// Deployed by .github/workflows/publish.yml after
+// `quarto render --to html --profile geog215` writes _book/.
+// Not used for daveparr.com/geog215/ (that copy is committed to the
+// daveparr.com repo and served by its own Worker).
+{
+  "name": "geog215-org",
+  "compatibility_date": "2026-10-01",
+  "account_id": "a5ef90c8a816d19afefdcf096c0712cd",
+  "assets": {
+    "directory": "./_book"
+  },
+  // Free *.workers.dev address, usable before geog215.org is set up.
+  "workers_dev": true
+
+  // Once geog215.org is registered and its DNS is on Cloudflare in this
+  // account, either add it in the dashboard (Workers & Pages > geog215-org >
+  // Settings > Domains & Routes > Add > Custom domain), or uncomment this
+  // (and add a comma after `true` above) so wrangler attaches it:
+  //
+  // "routes": [
+  //   { "pattern": "geog215.org", "custom_domain": true },
+  //   { "pattern": "www.geog215.org", "custom_domain": true }
+  // ]
+}
