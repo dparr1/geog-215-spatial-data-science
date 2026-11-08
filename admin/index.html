@@ -1,0 +1,649 @@
+<!doctype html>
+<!--
+  GEOG 215 instructor admin page: https://geog215.org/admin/
+
+  Only the geog215.org build includes this page (scripts/cloudflare-build.sh
+  copies admin/ into _book/admin/ after Quarto renders the book). It is not
+  part of the Quarto book and is never published to daveparr.com.
+
+  Sign in with your instructor email and password (see supabase/README.md).
+  Every action calls an admin_* function in Supabase (supabase/setup.sql), and
+  each of those refuses to run unless you are signed in as an instructor, so
+  this page being public does not let anyone else see or change the roster.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>GEOG 215 Admin</title>
+<style>
+  :root {
+    --bg: #f4f6f8; --surface: #ffffff; --surface-2: #f8fafb;
+    --text: #1f2933; --muted: #52606d; --border: #d9dee3;
+    --accent: #2c5f8a; --accent-text: #ffffff;
+    --ok: #1e7b4f; --ok-bg: #e6f4ec;
+    --warn: #8a5a00; --warn-bg: #fdf3dc;
+    --danger: #b42318; --danger-bg: #fdecea;
+    --neutral-bg: #eef1f4;
+    --bar: #9cb9d3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12171c; --surface: #1b2229; --surface-2: #212a32;
+      --text: #e4e9ee; --muted: #9aa6b2; --border: #33404c;
+      --accent: #6aa3d5; --accent-text: #0d1a26;
+      --ok: #6fd3a0; --ok-bg: #173327;
+      --warn: #f0c46b; --warn-bg: #3a2e12;
+      --danger: #ff8a7a; --danger-bg: #3d1d1a;
+      --neutral-bg: #26303a;
+      --bar: #3f6e96;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  [hidden] { display: none !important; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  a { color: var(--accent); }
+
+  /* Sign-in */
+  .center { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .card {
+    width: 100%; max-width: 380px; padding: 28px 24px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+  }
+  .card h1 { font-size: 1.3rem; margin: 0 0 4px; }
+  .card p { margin: 0 0 16px; color: var(--muted); }
+  label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+  input, select, textarea {
+    width: 100%; padding: 9px 11px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  .card input { margin-bottom: 12px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 6px;
+    border: 1px solid var(--accent); background: var(--accent); color: var(--accent-text);
+    font-weight: 600; cursor: pointer; text-decoration: none; white-space: nowrap;
+  }
+  .btn.secondary { background: transparent; color: var(--accent); }
+  .btn.small { padding: 4px 9px; font-size: 0.82rem; font-weight: 500; }
+  .btn.danger { border-color: var(--danger); background: transparent; color: var(--danger); }
+  .btn:disabled { opacity: 0.55; cursor: wait; }
+  .card .btn { width: 100%; justify-content: center; }
+  .msg { min-height: 1.2em; margin: 12px 0 0; font-size: 0.9rem; }
+  .msg.error { color: var(--danger); }
+
+  /* Dashboard */
+  header {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+    padding: 14px 16px; background: var(--surface); border-bottom: 1px solid var(--border);
+  }
+  header h1 { font-size: 1.15rem; margin: 0; }
+  header .who { color: var(--muted); font-size: 0.85rem; }
+  header .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  #banner { margin-bottom: 12px; padding: 10px 12px; border-radius: 6px; }
+  #banner.error { background: var(--danger-bg); color: var(--danger); }
+  #banner.ok { background: var(--ok-bg); color: var(--ok); }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .stat { padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+  .stat .n { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .l { color: var(--muted); font-size: 0.85rem; }
+
+  .tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .tabs button {
+    padding: 8px 14px; border: 0; border-bottom: 2px solid transparent; background: none;
+    color: var(--muted); cursor: pointer; font-weight: 600;
+  }
+  .tabs button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-bottom: 12px; }
+  .toolbar > div { flex: 1 1 200px; }
+  .hint { color: var(--muted); font-size: 0.88rem; margin: 0 0 12px; }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  th { font-size: 0.8rem; color: var(--muted); font-weight: 600; background: var(--surface-2); white-space: nowrap; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.actions { white-space: nowrap; }
+  td.actions .btn { margin: 2px 0; }
+  code { font: 0.88rem ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: 0.03em; }
+  .linkish { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; text-align: left; }
+  .empty { padding: 18px; text-align: center; color: var(--muted); }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+  .badge.ok { background: var(--ok-bg); color: var(--ok); }
+  .badge.warn { background: var(--warn-bg); color: var(--warn); }
+  .badge.danger { background: var(--danger-bg); color: var(--danger); }
+  .badge.neutral { background: var(--neutral-bg); color: var(--muted); }
+
+  .bar { position: relative; min-width: 120px; height: 8px; background: var(--neutral-bg); border-radius: 4px; }
+  .bar span { position: absolute; inset: 0 auto 0 0; background: var(--bar); border-radius: 4px; }
+  textarea { min-height: 180px; resize: vertical; }
+  .row-gap { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+</style>
+</head>
+<body>
+
+<!-- Sign-in -->
+<section id="login" class="center" hidden>
+  <form class="card" id="login-form">
+    <h1>GEOG 215 admin</h1>
+    <p>Instructor sign-in.</p>
+    <label for="login-email">Email</label>
+    <input id="login-email" type="email" autocomplete="username" required>
+    <label for="login-password">Password</label>
+    <input id="login-password" type="password" autocomplete="current-password" required>
+    <button class="btn" type="submit">Sign in</button>
+    <p class="msg" id="login-msg" role="status"></p>
+  </form>
+</section>
+
+<!-- Signed in, but not an instructor -->
+<section id="not-instructor" class="center" hidden>
+  <div class="card">
+    <h1>Not an instructor account</h1>
+    <p id="not-instructor-text"></p>
+    <button class="btn" type="button" id="switch-account">Sign out and use another account</button>
+    <p class="msg"><a href="/">Back to the textbook</a></p>
+  </div>
+</section>
+
+<!-- Dashboard -->
+<section id="dashboard" hidden>
+  <header>
+    <div>
+      <h1>GEOG 215 admin</h1>
+      <div class="who" id="who"></div>
+    </div>
+    <div class="actions">
+      <button class="btn secondary small" type="button" id="refresh">Refresh</button>
+      <a class="btn secondary small" href="/" target="_blank" rel="noopener">Open textbook</a>
+      <button class="btn secondary small" type="button" id="signout">Sign out</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="banner" role="status" hidden></div>
+
+    <div class="stats">
+      <div class="stat"><div class="n" id="stat-students">–</div><div class="l">Students</div></div>
+      <div class="stat"><div class="n" id="stat-setup">–</div><div class="l">Have set up a password</div></div>
+      <div class="stat"><div class="n" id="stat-week">–</div><div class="l">Active in the last 7 days</div></div>
+      <div class="stat"><div class="n" id="stat-locked">–</div><div class="l">Locked out</div></div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="students" aria-selected="true">Students</button>
+      <button role="tab" data-tab="add" aria-selected="false">Add students</button>
+      <button role="tab" data-tab="activity" aria-selected="false">Activity</button>
+      <button role="tab" data-tab="pages" aria-selected="false">Pages</button>
+    </div>
+
+    <!-- Students -->
+    <div class="panel" data-panel="students">
+      <div class="toolbar">
+        <div>
+          <label for="student-search">Search</label>
+          <input id="student-search" type="search" placeholder="Name or code">
+        </div>
+        <div>
+          <label for="student-note">Group / term</label>
+          <select id="student-note"><option value="">All</option></select>
+        </div>
+        <div>
+          <label for="student-status">Status</label>
+          <select id="student-status">
+            <option value="">All</option>
+            <option value="setup">Set up</option>
+            <option value="new">Not set up yet</option>
+            <option value="reset">Password reset allowed</option>
+            <option value="locked">Locked out</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th><th>Group / term</th><th>Code</th><th>Status</th>
+              <th class="num">Pages opened</th><th>Last active</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="students-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Add students -->
+    <div class="panel" data-panel="add" hidden>
+      <p class="hint">One student per line. Each gets a random access code. Send each student their
+        code privately (for example a Canvas message). They go to geog215.org, choose
+        <em>First time here?</em>, enter the code and pick a password.</p>
+      <form id="add-form">
+        <div class="toolbar">
+          <div style="flex-basis: 100%">
+            <label for="add-names">Student names</label>
+            <textarea id="add-names" placeholder="Ada Lovelace&#10;Grace Hopper" required></textarea>
+          </div>
+          <div>
+            <label for="add-note">Group / term (optional)</label>
+            <input id="add-note" placeholder="Spring 2027" list="note-options">
+            <datalist id="note-options"></datalist>
+          </div>
+          <div style="flex: 0 0 auto">
+            <button class="btn" type="submit" id="add-submit">Add students</button>
+          </div>
+        </div>
+      </form>
+      <div id="add-result" hidden>
+        <h3 style="margin: 16px 0 4px">New codes</h3>
+        <div class="row-gap">
+          <button class="btn secondary small" type="button" id="copy-codes">Copy as CSV</button>
+          <button class="btn secondary small" type="button" id="download-codes">Download CSV</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Code</th></tr></thead>
+            <tbody id="add-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity -->
+    <div class="panel" data-panel="activity" hidden>
+      <div class="toolbar">
+        <div>
+          <label for="activity-student">Student</label>
+          <select id="activity-student"><option value="">Everyone</option></select>
+        </div>
+      </div>
+      <p class="hint">The most recent page opens, newest first (up to 500).</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Last opened</th><th>Student</th><th>Page</th><th class="num">Times opened</th><th>First opened</th></tr>
+          </thead>
+          <tbody id="activity-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pages -->
+    <div class="panel" data-panel="pages" hidden>
+      <p class="hint">How many students have opened each page of the textbook.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Page</th><th>Students who opened it</th><th class="num">Total opens</th><th>Last opened</th></tr>
+          </thead>
+          <tbody id="pages-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // Same project and publishable key as the sign-in gate (assets/auth-gate.html).
+  const SUPABASE_URL = "https://liihdtyoqneslfbfgqml.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_HIAkOd2ci4DGcgGMRMj-vQ_Ttu6WFqb";
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+  let sb = null;
+  const state = { roster: [], activity: [], pages: [], titles: {}, lastAdded: [] };
+
+  // ---- Formatting ----------------------------------------------------------
+  const DAY = 86400000;
+  function ago(ts) {
+    if (!ts) return "Never";
+    const ms = Date.now() - new Date(ts).getTime();
+    if (ms < 60000) return "Just now";
+    const min = Math.round(ms / 60000);
+    if (min < 60) return min + " min ago";
+    const hr = Math.round(min / 60);
+    if (hr < 24) return hr + (hr === 1 ? " hour ago" : " hours ago");
+    const d = Math.round(hr / 24);
+    if (d < 14) return d + (d === 1 ? " day ago" : " days ago");
+    return new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  }
+  const full = (ts) => (ts ? new Date(ts).toLocaleString() : "");
+  const when = (ts) => `<span title="${esc(full(ts))}">${esc(ago(ts))}</span>`;
+  const pageTitle = (p) => state.titles[p] || p;
+
+  function statusOf(r) {
+    if (!r.active) return { key: "locked", html: '<span class="badge danger">Locked out</span>' };
+    if (r.allow_reset) return { key: "reset", html: '<span class="badge warn">Reset allowed</span>' };
+    if (r.set_up) return { key: "setup", html: '<span class="badge ok">Set up</span>' };
+    return { key: "new", html: '<span class="badge neutral">Not set up yet</span>' };
+  }
+
+  // ---- Messages ------------------------------------------------------------
+  let bannerTimer = null;
+  function banner(text, isError) {
+    const el = $("banner");
+    el.textContent = text;
+    el.className = isError ? "error" : "ok";
+    el.hidden = false;
+    clearTimeout(bannerTimer);
+    if (!isError) bannerTimer = setTimeout(() => (el.hidden = true), 5000);
+  }
+
+  async function rpc(name, args) {
+    const { data, error } = await sb.rpc(name, args || {});
+    if (error) throw new Error(error.message);
+    return data;
+  }
+
+  // ---- Screens -------------------------------------------------------------
+  function show(screen) {
+    ["login", "not-instructor", "dashboard"].forEach((id) => ($(id).hidden = id !== screen));
+  }
+
+  async function enter(session) {
+    let instructor = false;
+    try {
+      instructor = await rpc("is_instructor");
+    } catch (e) {
+      show("login");
+      $("login-msg").textContent = "Couldn't check your account: " + e.message;
+      $("login-msg").className = "msg error";
+      return;
+    }
+    if (!instructor) {
+      $("not-instructor-text").textContent =
+        "You're signed in as " + session.user.email + ", which isn't on the instructor list.";
+      show("not-instructor");
+      return;
+    }
+    $("who").textContent = "Signed in as " + session.user.email;
+    show("dashboard");
+    loadTitles();
+    await refresh();
+  }
+
+  // ---- Data ----------------------------------------------------------------
+  async function refresh() {
+    $("refresh").disabled = true;
+    try {
+      const [roster, activity, pages] = await Promise.all([
+        rpc("admin_roster"),
+        rpc("admin_activity", { p_limit: 500 }),
+        rpc("admin_pages"),
+      ]);
+      state.roster = roster || [];
+      state.activity = activity || [];
+      state.pages = pages || [];
+      renderAll();
+    } catch (e) {
+      banner("Couldn't load data: " + e.message, true);
+    }
+    $("refresh").disabled = false;
+  }
+
+  // Page titles from the book's search index ("/intro" -> "1 Introduction").
+  async function loadTitles() {
+    try {
+      const res = await fetch("/search.json", { cache: "no-store" });
+      if (!res.ok) return;
+      for (const item of await res.json()) {
+        if (!item.href || item.href.includes("#")) continue;
+        let p = "/" + item.href.replace(/^\/+/, "").replace(/\.html$/, "");
+        p = p.replace(/(^|\/)index$/, "$1") || "/";
+        if (!state.titles[p] && item.title) state.titles[p] = item.title.replace(/\s+/g, " ").trim();
+      }
+      renderActivity();
+      renderPages();
+    } catch (_) { /* titles are optional */ }
+  }
+
+  function renderAll() {
+    renderStats();
+    renderFilters();
+    renderStudents();
+    renderActivity();
+    renderPages();
+  }
+
+  function renderStats() {
+    const r = state.roster;
+    const weekAgo = Date.now() - 7 * DAY;
+    $("stat-students").textContent = r.length;
+    $("stat-setup").textContent = r.filter((s) => s.set_up).length;
+    $("stat-week").textContent = r.filter((s) => s.last_active && new Date(s.last_active).getTime() > weekAgo).length;
+    $("stat-locked").textContent = r.filter((s) => !s.active).length;
+  }
+
+  function fillSelect(select, options, keepFirst) {
+    const current = select.value;
+    select.innerHTML = keepFirst + options.map(([v, label]) =>
+      `<option value="${esc(v)}">${esc(label)}</option>`).join("");
+    if ([...select.options].some((o) => o.value === current)) select.value = current;
+  }
+
+  function renderFilters() {
+    const notes = [...new Set(state.roster.map((s) => s.note).filter(Boolean))].sort();
+    fillSelect($("student-note"), notes.map((n) => [n, n]), '<option value="">All</option>');
+    $("note-options").innerHTML = notes.map((n) => `<option value="${esc(n)}">`).join("");
+    fillSelect($("activity-student"),
+      state.roster.map((s) => [s.code, s.student_name + " (" + s.code + ")"]),
+      '<option value="">Everyone</option>');
+  }
+
+  function renderStudents() {
+    const q = $("student-search").value.trim().toLowerCase();
+    const note = $("student-note").value;
+    const status = $("student-status").value;
+    const rows = state.roster.filter((s) =>
+      (!q || s.student_name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q)) &&
+      (!note || s.note === note) &&
+      (!status || statusOf(s).key === status));
+
+    $("students-body").innerHTML = rows.length ? rows.map((s) => {
+      const st = statusOf(s);
+      const lock = s.active
+        ? `<button class="btn secondary small" data-act="lock" data-code="${esc(s.code)}">Lock out</button>`
+        : `<button class="btn secondary small" data-act="unlock" data-code="${esc(s.code)}">Let back in</button>`;
+      const reset = !s.set_up ? "" : s.allow_reset
+        ? `<button class="btn secondary small" data-act="noreset" data-code="${esc(s.code)}">Cancel reset</button>`
+        : `<button class="btn secondary small" data-act="reset" data-code="${esc(s.code)}">Allow password reset</button>`;
+      return `<tr>
+        <td><button class="linkish" data-act="history" data-code="${esc(s.code)}">${esc(s.student_name)}</button></td>
+        <td>${esc(s.note || "")}</td>
+        <td><code>${esc(s.code)}</code></td>
+        <td>${st.html}</td>
+        <td class="num">${Number(s.pages_opened)}</td>
+        <td>${when(s.last_active)}</td>
+        <td class="actions">${lock} ${reset}
+          <button class="btn danger small" data-act="delete" data-code="${esc(s.code)}">Delete</button></td>
+      </tr>`;
+    }).join("") : `<tr><td colspan="7" class="empty">${state.roster.length
+      ? "No students match these filters." : "No students yet. Use Add students."}</td></tr>`;
+  }
+
+  function renderActivity() {
+    const code = $("activity-student").value;
+    const rows = state.activity.filter((a) => !code || a.code === code);
+    $("activity-body").innerHTML = rows.length ? rows.map((a) => `<tr>
+        <td>${when(a.last_visit)}</td>
+        <td>${esc(a.student_name)}</td>
+        <td title="${esc(a.page)}">${esc(pageTitle(a.page))}</td>
+        <td class="num">${Number(a.visits)}</td>
+        <td>${when(a.first_visit)}</td>
+      </tr>`).join("")
+      : `<tr><td colspan="5" class="empty">No activity yet.</td></tr>`;
+  }
+
+  function renderPages() {
+    const total = state.roster.length || 1;
+    $("pages-body").innerHTML = state.pages.length ? state.pages.map((p) => {
+      const n = Number(p.students);
+      const pct = Math.min(100, Math.round((n / total) * 100));
+      return `<tr>
+        <td title="${esc(p.page)}">${esc(pageTitle(p.page))}</td>
+        <td><div style="display:flex;align-items:center;gap:8px">
+          <div class="bar" style="flex:1"><span style="width:${pct}%"></span></div>
+          <span style="white-space:nowrap">${n} of ${state.roster.length}</span></div></td>
+        <td class="num">${Number(p.visits)}</td>
+        <td>${when(p.last_visit)}</td>
+      </tr>`;
+    }).join("") : `<tr><td colspan="4" class="empty">No pages opened yet.</td></tr>`;
+  }
+
+  // ---- Actions -------------------------------------------------------------
+  async function onStudentAction(event) {
+    const btn = event.target.closest("button[data-act]");
+    if (!btn) return;
+    const code = btn.dataset.code;
+    const s = state.roster.find((r) => r.code === code);
+    const name = s ? s.student_name : code;
+    const act = btn.dataset.act;
+
+    if (act === "history") {
+      $("activity-student").value = code;
+      selectTab("activity");
+      renderActivity();
+      return;
+    }
+
+    const plan = {
+      lock: ["admin_set_active", { p_code: code, p_active: false },
+        `Lock ${name} out? They'll be signed out on their next page load.`, `${name} is locked out.`],
+      unlock: ["admin_set_active", { p_code: code, p_active: true }, null, `${name} can sign in again.`],
+      reset: ["admin_allow_reset", { p_code: code, p_allow: true }, null,
+        `${name} can now choose a new password: tell them to use "First time here?" with code ${code}.`],
+      noreset: ["admin_allow_reset", { p_code: code, p_allow: false }, null, `Password reset cancelled for ${name}.`],
+      delete: ["admin_delete_student", { p_code: code },
+        `Delete ${name} (${code})? This removes their account and all of their progress, and can't be undone.`,
+        `${name} was deleted.`],
+    }[act];
+    if (!plan) return;
+    const [fn, args, confirmText, done] = plan;
+    if (confirmText && !window.confirm(confirmText)) return;
+
+    btn.disabled = true;
+    try {
+      await rpc(fn, args);
+      banner(done);
+      await refresh();
+    } catch (e) {
+      banner("Couldn't do that: " + e.message, true);
+      btn.disabled = false;
+    }
+  }
+
+  async function onAdd(event) {
+    event.preventDefault();
+    const names = $("add-names").value.split(/\r?\n/).map((n) => n.trim()).filter(Boolean);
+    if (!names.length) return;
+    const note = $("add-note").value.trim();
+    $("add-submit").disabled = true;
+    try {
+      const added = await rpc("admin_add_students", { p_names: names, p_note: note || null });
+      state.lastAdded = added || [];
+      $("add-body").innerHTML = state.lastAdded.map((a) =>
+        `<tr><td>${esc(a.student_name)}</td><td><code>${esc(a.code)}</code></td></tr>`).join("");
+      $("add-result").hidden = false;
+      $("add-names").value = "";
+      banner(`Added ${state.lastAdded.length} student${state.lastAdded.length === 1 ? "" : "s"}.`);
+      await refresh();
+    } catch (e) {
+      banner("Couldn't add students: " + e.message, true);
+    }
+    $("add-submit").disabled = false;
+  }
+
+  function codesCsv() {
+    const q = (v) => '"' + String(v).replace(/"/g, '""') + '"';
+    return "name,code\n" + state.lastAdded.map((a) => q(a.student_name) + "," + q(a.code)).join("\n") + "\n";
+  }
+
+  // ---- Tabs ----------------------------------------------------------------
+  function selectTab(tab) {
+    document.querySelectorAll(".tabs button").forEach((b) =>
+      b.setAttribute("aria-selected", String(b.dataset.tab === tab)));
+    document.querySelectorAll("[data-panel]").forEach((p) => (p.hidden = p.dataset.panel !== tab));
+  }
+
+  // ---- Start ---------------------------------------------------------------
+  function wire() {
+    $("login-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const btn = event.currentTarget.querySelector("button");
+      btn.disabled = true;
+      $("login-msg").className = "msg";
+      $("login-msg").textContent = "Signing in…";
+      const { data, error } = await sb.auth.signInWithPassword({
+        email: $("login-email").value.trim().toLowerCase(),
+        password: $("login-password").value,
+      });
+      btn.disabled = false;
+      if (error) {
+        $("login-msg").className = "msg error";
+        $("login-msg").textContent = /invalid login credentials/i.test(error.message)
+          ? "That email and password don't match." : "Couldn't sign in: " + error.message;
+        return;
+      }
+      $("login-msg").textContent = "";
+      await enter(data.session);
+    });
+
+    const signOut = async () => { await sb.auth.signOut(); location.reload(); };
+    $("signout").addEventListener("click", signOut);
+    $("switch-account").addEventListener("click", signOut);
+    $("refresh").addEventListener("click", refresh);
+
+    document.querySelectorAll(".tabs button").forEach((b) =>
+      b.addEventListener("click", () => selectTab(b.dataset.tab)));
+    $("students-body").addEventListener("click", onStudentAction);
+    ["student-search", "student-note", "student-status"].forEach((id) =>
+      $(id).addEventListener("input", renderStudents));
+    $("activity-student").addEventListener("input", renderActivity);
+    $("add-form").addEventListener("submit", onAdd);
+
+    $("copy-codes").addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(codesCsv()); banner("Copied the new codes."); }
+      catch (_) { banner("Couldn't copy; use Download CSV instead.", true); }
+    });
+    $("download-codes").addEventListener("click", () => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([codesCsv()], { type: "text/csv" }));
+      a.download = "geog215-codes-" + new Date().toISOString().slice(0, 10) + ".csv";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+  }
+
+  async function init() {
+    if (!window.supabase || !window.supabase.createClient) {
+      show("login");
+      $("login-msg").className = "msg error";
+      $("login-msg").textContent = "Couldn't load Supabase. Check your connection and reload.";
+      return;
+    }
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    wire();
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) await enter(session);
+    else show("login");
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

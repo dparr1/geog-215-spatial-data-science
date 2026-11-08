@@ -17,6 +17,7 @@ doesn't matter.
 | `supabase/setup.sql` | Tables, security rules, and progress tracking. Run in the SQL Editor. |
 | `supabase/functions/redeem-code/index.ts` | First-time sign-up and password resets. Deployed as an Edge Function. |
 | `assets/auth-gate.html` | The sign-in screen on every geog215.org page. |
+| `admin/index.html` | Your admin page at https://geog215.org/admin/ (geog215.org only, never daveparr.com). |
 
 ## One-time setup
 
@@ -78,10 +79,50 @@ deploys, click *First time here?*, and use the test code. Then run
 opened. Lock the test code afterwards
 (`update public.roster set active = false where student_name = 'Test';`).
 
+## Admin page (https://geog215.org/admin/)
+
+A page for you to add, lock, reset and delete students and to see their
+activity, without writing SQL. Only the geog215.org build includes it.
+
+### One-time setup
+
+1. **Re-run the database setup.** Paste all of `supabase/setup.sql` into the
+   SQL Editor again and run it. It adds the `instructors` table and the
+   `admin_*` functions the page uses; nothing else changes.
+2. **Add yourself as an instructor** (lowercase email):
+   ```sql
+   insert into public.instructors (email) values ('you@unc.edu');
+   ```
+3. **Create your account:** **Authentication > Users > Add user > Create new
+   user**, enter the same email and a strong password, and tick **Auto Confirm
+   User**. No email is sent. (Sign-ups are off, and the database only accepts
+   new accounts for roster codes or emails on the instructor list.)
+4. Open https://geog215.org/admin/ and sign in with that email and password.
+
+To add another instructor, repeat steps 2 and 3 with their email. To change
+your password, use **Authentication > Users**, open your user, and send a
+password recovery or set a new password there.
+
+### What it does
+
+| Tab | |
+| --- | --- |
+| **Students** | Every student with their code, status, pages opened and last activity. Search and filter by group/term or status. **Lock out** / **Let back in**, **Allow password reset**, **Delete** (removes their account and progress). Click a name to see their activity. |
+| **Add students** | Paste names, one per line, plus an optional group/term. Each gets a code; copy or download them as CSV to send through Canvas. |
+| **Activity** | The latest page opens, for everyone or one student. |
+| **Pages** | How many students have opened each page. |
+
+While signed in to the admin page you can also read the book (instructors
+count as approved), and your own page visits aren't recorded as progress.
+
+Every button calls an `admin_*` function in Supabase that refuses to run
+unless you're signed in as an instructor, so the page being public doesn't let
+anyone else see or change anything.
+
 ## Everyday tasks
 
-Run these in **SQL Editor**. You can also browse and edit the `roster` table
-in **Table Editor**.
+The admin page does all of these. You can also run them in **SQL Editor**,
+or browse and edit the `roster` table in **Table Editor**.
 
 **Add students** (each gets a random 8-character code, like `K7MQ2XHP`):
 

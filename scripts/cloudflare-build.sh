@@ -22,3 +22,8 @@ fi
 
 quarto --version
 quarto render --to html --profile geog215
+
+# Instructor admin page (geog215.org/admin/). Copied in only here, so it is
+# never part of the public daveparr.com copy rendered by the GitHub Action.
+rm -rf _book/admin
+cp -R admin _book/admin

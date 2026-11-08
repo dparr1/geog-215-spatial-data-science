@@ -74,6 +74,36 @@ create table if not exists public.roster (
 alter table public.roster enable row level security;
 revoke all on table public.roster from anon, authenticated;
 
+-- 2b. Instructors (the admin page at geog215.org/admin/) ----------------------
+-- Add your email here, then create your account in the dashboard
+-- (Authentication > Users > Add user > Create new user, with "Auto Confirm
+-- User" ticked). See supabase/README.md.
+create table if not exists public.instructors (
+  email    text primary key check (email = lower(btrim(email))),
+  added_at timestamptz not null default now()
+);
+
+alter table public.instructors enable row level security;
+revoke all on table public.instructors from anon, authenticated;
+
+-- "Am I an instructor?" for the signed-in user. Every admin function below
+-- checks this, so the admin page can't do anything for anyone else.
+create or replace function public.is_instructor()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select auth.uid() is not null and exists (
+    select 1 from public.instructors i
+    where i.email = lower(btrim(auth.jwt() ->> 'email'))
+  );
+$$;
+
+revoke all on function public.is_instructor() from public, anon;
+grant execute on function public.is_instructor() to authenticated;
+
 -- 3. Only the redeem function can create accounts -----------------------------
 -- The redeem function marks the roster row (claimed_at set, user_id still
 -- empty) just before it creates the account. Any other insert into
@@ -85,6 +115,14 @@ security definer
 set search_path = ''
 as $$
 begin
+  -- Instructor accounts, created by you in the dashboard.
+  if exists (
+    select 1 from public.instructors i
+    where i.email = lower(btrim(new.email))
+  ) then
+    return new;
+  end if;
+
   if not exists (
     select 1 from public.roster r
     where lower(btrim(new.email)) = lower(r.code) || '@students.geog215.org'
@@ -104,6 +142,7 @@ create trigger enforce_roster_signup
   for each row execute function public.enforce_roster_signup();
 
 -- 4. "Am I an active student?" for the signed-in user only --------------------
+-- Instructors count too, so you can read the book while signed in to /admin/.
 create or replace function public.is_current_user_approved()
 returns boolean
 language sql
@@ -114,7 +153,7 @@ as $$
   select exists (
     select 1 from public.roster r
     where r.user_id = auth.uid() and r.active
-  );
+  ) or public.is_instructor();
 $$;
 
 revoke all on function public.is_current_user_approved() from public, anon;
@@ -150,12 +189,21 @@ volatile
 security definer
 set search_path = ''
 as $$
+declare
+  -- One name per page: "/intro.html" and "/intro" are the same page, and so
+  -- are "/index.html" and "/".
+  v_page text := regexp_replace(
+    regexp_replace(left(coalesce(p_page, '/'), 300), '\.html$', ''),
+    '(^|/)index$', '\1');
 begin
-  if auth.uid() is null or not public.is_current_user_approved() then
+  -- Only active students; your own visits as instructor aren't recorded.
+  if auth.uid() is null or public.is_instructor()
+     or not public.is_current_user_approved() then
     return;
   end if;
+  if v_page = '' then v_page := '/'; end if;
   insert into public.page_progress as p (user_id, page)
-  values (auth.uid(), left(p_page, 300))
+  values (auth.uid(), v_page)
   on conflict (user_id, page) do update
     set last_visit = now(), visits = p.visits + 1;
 end;
@@ -178,6 +226,204 @@ from public.roster r
 join public.page_progress p on p.user_id = r.user_id;
 
 revoke all on table public.instructor_progress from anon, authenticated;
+
+-- 6. Admin page functions (instructors only) ------------------------------------
+-- Used by geog215.org/admin/. Each one stops with "Instructors only." unless
+-- the caller is signed in as an instructor, so the admin page can't be used by
+-- anyone else even though the page itself is public.
+
+create or replace function public.require_instructor()
+returns void
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.is_instructor() then
+    raise exception 'Instructors only.' using errcode = '42501';
+  end if;
+end;
+$$;
+
+revoke all on function public.require_instructor() from public, anon, authenticated;
+
+-- Same page naming as record_page_visit (older rows may still end in .html).
+create or replace function public.normalize_page(p_page text)
+returns text
+language sql
+immutable
+set search_path = ''
+as $$
+  select coalesce(nullif(
+    regexp_replace(regexp_replace(coalesce(p_page, '/'), '\.html$', ''),
+                   '(^|/)index$', '\1'), ''), '/');
+$$;
+
+-- Every student with their status and activity totals.
+create or replace function public.admin_roster()
+returns table (
+  code text, student_name text, note text, active boolean, allow_reset boolean,
+  set_up boolean, claimed_at timestamptz, added_at timestamptz,
+  pages_opened bigint, total_visits bigint, last_active timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+begin
+  perform public.require_instructor();
+  return query
+    select r.code, r.student_name, r.note, r.active, r.allow_reset,
+           r.user_id is not null, r.claimed_at, r.added_at,
+           count(distinct public.normalize_page(p.page)) filter (where p.page is not null),
+           coalesce(sum(p.visits), 0)::bigint,
+           max(p.last_visit)
+    from public.roster r
+    left join public.page_progress p on p.user_id = r.user_id
+    group by r.code
+    order by r.student_name, r.code;
+end;
+$$;
+
+-- Add students (one name per array item); returns each new code.
+create or replace function public.admin_add_students(p_names text[], p_note text default null)
+returns table (student_name text, code text)
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+begin
+  perform public.require_instructor();
+  if coalesce(array_length(p_names, 1), 0) > 500 then
+    raise exception 'Add at most 500 students at a time.';
+  end if;
+  return query
+    insert into public.roster as r (student_name, note)
+    select btrim(t.n), nullif(btrim(coalesce(p_note, '')), '')
+    from unnest(p_names) with ordinality as t(n, ord)
+    where btrim(coalesce(t.n, '')) <> ''
+    order by t.ord
+    returning r.student_name, r.code;
+end;
+$$;
+
+-- Lock a student out (false) or let them back in (true).
+create or replace function public.admin_set_active(p_code text, p_active boolean)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.require_instructor();
+  update public.roster r set active = p_active where r.code = upper(btrim(p_code));
+  if not found then raise exception 'No student has the code %.', p_code; end if;
+end;
+$$;
+
+-- Let a student choose a new password with their code ("First time here?").
+create or replace function public.admin_allow_reset(p_code text, p_allow boolean default true)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.require_instructor();
+  update public.roster r set allow_reset = p_allow where r.code = upper(btrim(p_code));
+  if not found then raise exception 'No student has the code %.', p_code; end if;
+end;
+$$;
+
+-- Remove a student completely: roster row, account, and progress.
+create or replace function public.admin_delete_student(p_code text)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_user uuid;
+begin
+  perform public.require_instructor();
+  delete from public.roster r
+  where r.code = upper(btrim(p_code))
+  returning r.user_id into v_user;
+  if not found then raise exception 'No student has the code %.', p_code; end if;
+  if v_user is not null then
+    delete from auth.users u where u.id = v_user;   -- also deletes their progress
+  end if;
+end;
+$$;
+
+-- Most recent page visits across the class.
+create or replace function public.admin_activity(p_limit integer default 200)
+returns table (
+  student_name text, code text, page text,
+  first_visit timestamptz, last_visit timestamptz, visits integer
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+begin
+  perform public.require_instructor();
+  return query
+    select r.student_name, r.code, public.normalize_page(p.page),
+           p.first_visit, p.last_visit, p.visits
+    from public.page_progress p
+    join public.roster r on r.user_id = p.user_id
+    order by p.last_visit desc
+    limit least(greatest(coalesce(p_limit, 200), 1), 2000);
+end;
+$$;
+
+-- Each page: how many students have opened it, and how often.
+create or replace function public.admin_pages()
+returns table (page text, students bigint, visits bigint, last_visit timestamptz)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+begin
+  perform public.require_instructor();
+  return query
+    select public.normalize_page(p.page) as pg,
+           count(distinct p.user_id),
+           sum(p.visits)::bigint,
+           max(p.last_visit)
+    from public.page_progress p
+    join public.roster r on r.user_id = p.user_id
+    group by pg
+    order by pg;
+end;
+$$;
+
+do $$
+declare f text;
+begin
+  foreach f in array array[
+    'admin_roster()', 'admin_add_students(text[], text)',
+    'admin_set_active(text, boolean)', 'admin_allow_reset(text, boolean)',
+    'admin_delete_student(text)', 'admin_activity(integer)', 'admin_pages()'
+  ] loop
+    execute format('revoke all on function public.%s from public, anon', f);
+    execute format('grant execute on function public.%s to authenticated', f);
+  end loop;
+end;
+$$;
 
 -- Everyday tasks (copy into the SQL editor) ------------------------------------
 --
