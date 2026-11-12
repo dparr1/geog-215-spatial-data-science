@@ -4,3 +4,8 @@
 format:
   html:
     include-in-header: assets/auth-gate.html
+
+# GA4 for geog215.org only. daveparr.com/geog215/ gets daveparr.com's own tag
+# from that site's build, so this stays out of the default _quarto.yml.
+book:
+  google-analytics: "G-E3QTGKCHDQ"
