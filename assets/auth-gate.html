@@ -1,18 +1,22 @@
 <!--
-  GEOG 215 sign-in gate (email + password; no email is ever sent).
+  GEOG 215 sign-in gate (email sign-in: a one-time code or link, no passwords).
   Included in every HTML page's <head> only for geog215.org, by the `geog215`
   profile (_quarto-geog215.yml); daveparr.com/geog215/ has no gate. Database
-  setup is in supabase/setup.sql, the first-time sign-up runs in the
-  redeem-code Edge Function (supabase/functions/redeem-code), and the
-  instructor steps are in supabase/README.md.
+  setup is in supabase/setup.sql and the instructor steps (Resend, email
+  templates) are in supabase/README.md.
 
-  First visit ("First time here?"): the student enters their email, the
-  one-time setup code their instructor gave them, and a new password. After
-  that they sign in with email + password. Accounts are created already
-  confirmed, so Supabase never emails students.
+  The student enters their email. Supabase emails them (through Resend) a
+  6-digit code and a link. They either type the code here, or open the link,
+  which brings them back to this page with #token_hash=... and a "Continue"
+  button. The button matters: UNC's mail scanner opens every link in an email,
+  so the link must not sign anyone in until a person clicks.
 
-  This hides the page in the browser until an active student signs in. It is a front door, not encryption: the page text is still in
-  the HTML that is downloaded.
+  Only emails on the active roster (or the instructor list) can get an
+  account; the database refuses anyone else.
+
+  This hides the page in the browser until an active student signs in. It is a
+  front door, not encryption: the page text is still in the HTML that is
+  downloaded.
 -->
 <style>
   html.sds-locked body > :not(#sds-gate) { visibility: hidden !important; }
@@ -37,13 +41,14 @@
     width: 100%; box-sizing: border-box; padding: 10px 12px; margin-bottom: 12px;
     font-size: 1rem; border: 1px solid #bcc5ce; border-radius: 6px;
   }
+  #sds-gate #sds-code { font-size: 1.3rem; letter-spacing: 0.25em; text-align: center; }
   #sds-gate button {
     width: 100%; padding: 10px 12px; font-size: 1rem; font-weight: 600;
     color: #fff; background: #2c5f8a; border: 0; border-radius: 6px; cursor: pointer;
   }
   #sds-gate button:disabled { opacity: 0.6; cursor: wait; }
   #sds-gate .sds-link {
-    width: auto; padding: 0; margin-top: 12px; background: none;
+    display: block; width: auto; padding: 0; margin-top: 12px; background: none;
     color: #2c5f8a; font-weight: 400; font-size: 0.9rem; text-decoration: underline;
   }
   #sds-gate .sds-msg { min-height: 1.2em; margin: 12px 0 0; font-size: 0.9rem; }
@@ -70,15 +75,21 @@
   // Publishable key: safe to expose in frontend code (access is set by RLS).
   const SUPABASE_KEY = "sb_publishable_HIAkOd2ci4DGcgGMRMj-vQ_Ttu6WFqb";
 
-  const REDEEM_URL = SUPABASE_URL + "/functions/v1/redeem-code";
-  const MIN_PASSWORD = 8;
-
   let sb = null;
+  let pendingEmail = "";
   const $ = (id) => document.getElementById(id);
-
-  // "abcd-2345 " -> "ABCD2345"
-  const normalizeCode = (raw) => (raw || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   const normalizeEmail = (raw) => (raw || "").trim().toLowerCase();
+
+  // The sign-in link in the email ends in #token_hash=...&type=email (see the
+  // email templates in supabase/README.md). Read it, then remove it from the
+  // address bar so it isn't bookmarked or shared.
+  function takeLinkToken() {
+    const params = new URLSearchParams(location.hash.replace(/^#/, ""));
+    const tokenHash = params.get("token_hash");
+    if (!tokenHash) return null;
+    history.replaceState(null, "", location.pathname + location.search);
+    return { token_hash: tokenHash, type: params.get("type") || "email" };
+  }
 
   function buildGate() {
     const gate = document.createElement("div");
@@ -87,48 +98,43 @@
       <div class="sds-card" role="dialog" aria-labelledby="sds-title">
         <h1 id="sds-title">Spatial Data Science</h1>
 
-        <form id="sds-signin-step">
-          <p>GEOG 215 textbook. Sign in with your email and password.</p>
+        <form id="sds-email-step">
+          <p>GEOG 215 textbook. Enter your email and we'll send you a sign-in code.</p>
           <label for="sds-email">Email</label>
-          <input id="sds-email" type="email" autocomplete="username" spellcheck="false" required>
-          <label for="sds-password">Password</label>
-          <input id="sds-password" type="password" autocomplete="current-password" required>
-          <button type="submit">Sign in</button>
-          <button type="button" class="sds-link" id="sds-to-setup">First time here? Set up your password</button>
+          <input id="sds-email" type="email" autocomplete="email" spellcheck="false" required>
+          <button type="submit">Email me a sign-in code</button>
         </form>
 
-        <form id="sds-setup-step" hidden>
-          <p>Enter your email and the setup code from your instructor, then choose a password. After this you'll sign in with your email and password.</p>
-          <label for="sds-new-email">Email</label>
-          <input id="sds-new-email" type="email" autocomplete="username" spellcheck="false" required>
-          <label for="sds-new-code">Setup code</label>
-          <input id="sds-new-code" autocomplete="one-time-code" autocapitalize="characters"
-                 spellcheck="false" required>
-          <label for="sds-new-password">New password (at least ${MIN_PASSWORD} characters)</label>
-          <input id="sds-new-password" type="password" autocomplete="new-password"
-                 minlength="${MIN_PASSWORD}" maxlength="72" required>
-          <label for="sds-new-password2">Type it again</label>
-          <input id="sds-new-password2" type="password" autocomplete="new-password"
-                 minlength="${MIN_PASSWORD}" maxlength="72" required>
-          <button type="submit">Set password and sign in</button>
-          <button type="button" class="sds-link" id="sds-to-signin">Already set up? Sign in</button>
+        <form id="sds-code-step" hidden>
+          <p id="sds-code-intro"></p>
+          <label for="sds-code">Sign-in code</label>
+          <input id="sds-code" inputmode="numeric" autocomplete="one-time-code"
+                 pattern="[0-9 ]{6,12}" spellcheck="false" required>
+          <button type="submit">Sign in</button>
+          <button type="button" class="sds-link" id="sds-resend">Send a new code</button>
+          <button type="button" class="sds-link" id="sds-change-email">Use a different email</button>
+        </form>
+
+        <form id="sds-link-step" hidden>
+          <p>Click Continue to finish signing in.</p>
+          <button type="submit">Continue</button>
         </form>
 
         <p class="sds-msg" id="sds-msg" role="status"></p>
       </div>`;
     document.body.appendChild(gate);
 
-    $("sds-signin-step").addEventListener("submit", onSignIn);
-    $("sds-setup-step").addEventListener("submit", onSetup);
-    $("sds-to-setup").addEventListener("click", () => { say(""); showStep("setup"); });
-    $("sds-to-signin").addEventListener("click", () => { say(""); showStep("signin"); });
+    $("sds-email-step").addEventListener("submit", onSendCode);
+    $("sds-code-step").addEventListener("submit", onEnterCode);
+    $("sds-resend").addEventListener("click", () => sendCode(pendingEmail));
+    $("sds-change-email").addEventListener("click", () => { say(""); showStep("email"); });
   }
 
   function showStep(step) {
     $("sds-gate").hidden = false;
-    $("sds-signin-step").hidden = step !== "signin";
-    $("sds-setup-step").hidden = step !== "setup";
-    (step === "signin" ? $("sds-email") : $("sds-new-email")).focus();
+    ["email", "code", "link"].forEach((s) => ($("sds-" + s + "-step").hidden = s !== step));
+    const focus = { email: "sds-email", code: "sds-code" }[step];
+    if (focus) $(focus).focus();
   }
 
   function say(text, isError) {
@@ -137,8 +143,8 @@
     el.classList.toggle("sds-error", !!isError);
   }
 
-  function busy(form, on) {
-    form.querySelectorAll("button, input").forEach((el) => (el.disabled = on));
+  function busy(on) {
+    $("sds-gate").querySelectorAll("button, input").forEach((el) => (el.disabled = on));
   }
 
   function displayName(user) {
@@ -167,7 +173,7 @@
     );
   }
 
-  // Ask Supabase whether the signed-in user's code is still active.
+  // Ask Supabase whether the signed-in user is still an active student.
   async function isApproved() {
     const { data, error } = await sb.rpc("is_current_user_approved");
     if (error) throw error;
@@ -179,83 +185,92 @@
       unlock(user);
     } else {
       await sb.auth.signOut();
-      showStep("signin");
+      showStep("email");
       say("Your access to this textbook is no longer active. Contact your instructor.", true);
     }
   }
 
-  async function signIn(email, password) {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
-    if (error) {
-      const wrong = /invalid login credentials/i.test(error.message || "");
-      say(wrong
-        ? "That email and password don't match. If this is your first visit, use \"First time here?\" below."
-        : "Couldn't sign in: " + error.message, true);
-      return false;
+  // Email a code + link. The database refuses to create an account for an
+  // email that isn't on the roster; that refusal gets the same reply as a
+  // success, so this form can't be used to find out who is in the class.
+  async function sendCode(email) {
+    busy(true);
+    say("Sending…");
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname },
+    });
+    busy(false);
+    if (error && !/database error/i.test(error.message || "")) {
+      say(error.status === 429
+        ? "Too many emails requested. Wait a minute, then try again."
+        : "Couldn't send the email: " + error.message, true);
+      return;
     }
-    await admitOrReject(data.user);
-    return true;
+    pendingEmail = email;
+    $("sds-code-intro").textContent =
+      "If " + email + " is on the class list, we've emailed it a sign-in code. " +
+      "Enter the code below, or open the link in the email.";
+    $("sds-code").value = "";
+    showStep("code");
+    say("No email after a few minutes? Check your junk folder, and that this is the email your instructor has on file.");
   }
 
-  async function onSignIn(event) {
+  async function onSendCode(event) {
     event.preventDefault();
-    const form = event.currentTarget;
     const email = normalizeEmail($("sds-email").value);
-    if (!email) return;
-    busy(form, true);
+    if (email) await sendCode(email);
+  }
+
+  async function onEnterCode(event) {
+    event.preventDefault();
+    const token = $("sds-code").value.replace(/\D/g, "");
+    if (!token || !pendingEmail) return;
+    busy(true);
     say("Signing in…");
     try {
-      await signIn(email, $("sds-password").value);
+      const { data, error } = await sb.auth.verifyOtp({ email: pendingEmail, token, type: "email" });
+      if (error) {
+        say("That code didn't work. It may have expired, or a newer one was sent. " +
+            "Check it, or send a new code.", true);
+      } else {
+        say("");
+        await admitOrReject(data.user);
+      }
     } catch (e) {
       say("Signed in, but couldn't confirm your access: " + e.message, true);
     }
-    busy(form, false);
+    busy(false);
   }
 
-  async function onSetup(event) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const email = normalizeEmail($("sds-new-email").value);
-    const code = normalizeCode($("sds-new-code").value);
-    const password = $("sds-new-password").value;
-    if (!email || !code) return;
-    if (password.length < MIN_PASSWORD) {
-      say("Choose a password of at least " + MIN_PASSWORD + " characters.", true);
-      return;
-    }
-    if (password !== $("sds-new-password2").value) {
-      say("The two passwords don't match.", true);
-      return;
-    }
-    busy(form, true);
-    say("Setting up…");
-    try {
-      const res = await fetch(REDEEM_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY },
-        body: JSON.stringify({ email, code, password }),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        say(body.error || "Couldn't set up your account (error " + res.status + ").", true);
-        busy(form, false);
-        return;
+  function offerLinkSignIn(link) {
+    showStep("link");
+    $("sds-link-step").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      busy(true);
+      say("Signing in…");
+      try {
+        const { data, error } = await sb.auth.verifyOtp(link);
+        if (error) {
+          showStep("email");
+          say("That sign-in link has expired or was already used. Enter your email to get a new one.", true);
+        } else {
+          say("");
+          await admitOrReject(data.user);
+        }
+      } catch (e) {
+        say("Signed in, but couldn't confirm your access: " + e.message, true);
       }
-      // Pre-fill the sign-in form so a browser can offer to save the password.
-      $("sds-email").value = email;
-      $("sds-password").value = password;
-      if (!(await signIn(email, password))) showStep("signin");
-    } catch (e) {
-      say("Couldn't reach the sign-up service: " + e.message, true);
-    }
-    busy(form, false);
+      busy(false);
+    }, { once: true });
   }
 
   async function init() {
+    const link = takeLinkToken();
     buildGate();
     if (!window.supabase || !window.supabase.createClient) {
-      showStep("signin");
-      busy($("sds-signin-step"), true);
+      showStep("email");
+      busy(true);
       say("Sign-in is unavailable right now (couldn't load Supabase). Try reloading.", true);
       return;
     }
@@ -264,11 +279,13 @@
       const { data: { session } } = await sb.auth.getSession();
       if (session) {
         await admitOrReject(session.user);
+      } else if (link) {
+        offerLinkSignIn(link);
       } else {
-        showStep("signin");
+        showStep("email");
       }
     } catch (e) {
-      showStep("signin");
+      showStep("email");
       say("Couldn't check your sign-in: " + e.message, true);
     }
   }

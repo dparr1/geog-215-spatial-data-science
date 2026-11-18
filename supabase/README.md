@@ -1,138 +1,172 @@
-# geog215.org sign-in: email + password
+# geog215.org sign-in: emailed code or link
 
-Students sign in to https://geog215.org with **their own email and a password
-they choose**. You add each student (name and email), which gives them a
-one-time **setup code**; they use it once to choose their password. No email
-is ever sent, so the UNC mail server doesn't matter.
+Students sign in to https://geog215.org with **their email address**. There
+are no passwords. They type their email, and Supabase emails them (through
+Resend, from `mail.geog215.org`) a 6-digit code and a link:
 
-- **First visit:** the student clicks *First time here?*, enters their email,
-  their setup code and a new password. The `redeem-code` Edge Function checks
-  that the email and code belong to the same student and creates their
-  Supabase account (already confirmed, so no email goes out).
-- **After that:** they sign in with email + password.
-- **Forgotten password:** you allow a reset; they use *First time here?* again
-  with the same email and setup code.
-- **Progress:** every page a student opens is recorded in `page_progress`.
-  The admin page shows it.
+- **Code:** they type it into the sign-in screen.
+- **Link:** it opens the page they were on with a **Continue** button. The
+  button is deliberate. UNC's mail (Microsoft 365 Safe Links) opens every
+  link in an email to scan it, so a link that signed you in straight away
+  would be used up before the student ever clicked it.
+
+Only emails you've added to the roster (or the instructor list) can sign in.
+The database refuses to create an account for any other email. The sign-in
+screen shows the same "if this email is on the class list…" message either
+way, so it can't be used to find out who is in the class.
+
+Students stay signed in on that browser until they sign out. **Progress:**
+every page a student opens is recorded in `page_progress`, and the admin page
+shows it.
 
 | File | What it is |
 | --- | --- |
-| `supabase/setup.sql` | Tables, security rules, progress tracking and the admin functions. Run in the SQL Editor. |
-| `supabase/functions/redeem-code/index.ts` | First-time password setup and resets. Deployed as an Edge Function. |
+| `supabase/setup.sql` | Tables, the sign-up rules, progress tracking and the admin functions. Run in the SQL Editor. |
 | `assets/auth-gate.html` | The sign-in screen on every geog215.org page. |
 | `admin/index.html` | Your admin page at https://geog215.org/admin/ (geog215.org only, never daveparr.com). |
 
 ## One-time setup
 
-Do steps 1 to 3 **before** pushing changes to the sign-in screen: geog215.org
-rebuilds on every push and the new screen needs them.
+Do steps 1 to 5 **before** pushing changes to the sign-in screen, because
+geog215.org rebuilds on every push and the new screen needs them.
 
-### 1. Run the database setup
+### 1. Resend: send from geog215.org
 
-Supabase dashboard > **SQL Editor** > New query > paste all of
-`supabase/setup.sql` > **Run**. It's safe to re-run; it keeps your students,
-instructors and progress.
+1. resend.com > **Domains > Add Domain** > `mail.geog215.org`.
+2. Add the DNS records Resend lists in Cloudflare (or use Resend's
+   Cloudflare auto-configure). These are a DKIM `TXT` record, an SPF `TXT`
+   record and an `MX` record. Set each one to **DNS only** (grey cloud).
+   Also add a DMARC record (`TXT` at `_dmarc`, value `v=DMARC1; p=none;`),
+   which helps delivery to unc.edu.
+3. Wait until the domain shows **Verified**.
+4. **API Keys > Create API key**, choose *Sending access*, and limit it to
+   `mail.geog215.org`. Copy it.
 
-### 2. Deploy the Edge Function
+### 2. Supabase: send auth email through Resend
 
-Re-deploy it whenever `supabase/functions/redeem-code/index.ts` changes.
+**Authentication > Emails > SMTP Settings** > enable custom SMTP:
 
-**From the dashboard (no install):**
+| Field | Value |
+| --- | --- |
+| Sender email | `login@mail.geog215.org` |
+| Sender name | `GEOG 215` |
+| Host | `smtp.resend.com` |
+| Port | `465` |
+| Username | `resend` |
+| Password | the Resend API key |
 
-1. **Edge Functions** > `redeem-code` > **Code** (or, the first time,
-   **Deploy a new function** > **Via Editor** and name it exactly
-   `redeem-code`).
-2. Replace all of the code with `supabase/functions/redeem-code/index.ts`, then
-   **Deploy**.
-3. On the function's **Details** (settings) tab, make sure *Enforce JWT
-   verification* / *Verify JWT with legacy secret* is **off**. Students aren't
-   signed in yet when they call it. Save.
+Then go to **Authentication > Rate Limits** and raise *emails sent per hour*
+(for example to 200). The default is tiny, and a class signing in on the
+first day would hit it.
 
-**From a terminal with the Supabase CLI:**
+### 3. Supabase: URLs and providers
 
-```bash
-supabase login
-supabase functions deploy redeem-code --no-verify-jwt --project-ref liihdtyoqneslfbfgqml
-```
+**Authentication > URL Configuration**
 
-No secrets to add: Supabase gives every Edge Function `SUPABASE_URL` and
-`SUPABASE_SERVICE_ROLE_KEY` automatically.
-
-### 3. Check Authentication settings
+- **Site URL:** `https://geog215.org`
+- **Redirect URLs:** add `https://geog215.org/**` (and
+  `http://localhost:*/**` if you preview locally).
 
 **Authentication > Sign In / Providers**
 
-- **Email** provider: **enabled**. Everyone signs in with email + password, so
-  with it off nobody (students or you) can sign in ("Email logins are
-  disabled").
-- **Allow new users to sign up**: **off**. The function still creates
-  accounts (it uses the admin API), and the database also refuses any account
-  that isn't a roster student setting up with their code, or an instructor.
-- **Confirm email**: either setting is fine; accounts are created confirmed.
+- **Email** provider: **enabled**.
+- **Allow new users to sign up**: **on**. Each student's account is created
+  the first time they ask for a code. `setup.sql` makes the database refuse
+  anyone who isn't an active roster student or an instructor.
+- **Confirm email**: either setting is fine.
+- **Email OTP expiration**: 3600 seconds (1 hour) is a sensible value.
 
-Resend/SMTP settings and email templates aren't used.
+### 4. Supabase: email templates
 
-### 4. Set up your admin account
+**Authentication > Emails > Templates.** A student's *first* sign-in uses the
+**Confirm signup** template, and every sign-in after that uses **Magic Link**.
+Paste this into **both** (subject: `Your GEOG 215 sign-in code`):
+
+```html
+<h2>Sign in to the GEOG 215 textbook</h2>
+<p>Your sign-in code is:</p>
+<p style="font-size:28px;font-weight:bold;letter-spacing:6px">{{ .Token }}</p>
+<p>Type it into the sign-in screen, or
+  <a href="{{ .RedirectTo }}#token_hash={{ .TokenHash }}&type=email">open the textbook and click Continue</a>.</p>
+<p>The code and link work once and expire in an hour. If you didn't ask to
+  sign in, you can ignore this email.</p>
+```
+
+The link uses `#token_hash=…`, not Supabase's default `{{ .ConfirmationURL }}`.
+That way nothing signs in until the student clicks **Continue**, and the token
+never reaches Google Analytics or server logs.
+
+### 5. Run the database setup
+
+**SQL Editor** > New query > paste all of `supabase/setup.sql` > **Run**.
+It's safe to re-run, and it keeps your students, instructors and progress.
+It also:
+
+- replaces the old "setup code only" sign-up rule with "roster or instructor
+  email";
+- links any existing accounts to their roster rows by email;
+- removes the password-reset admin function.
+
+Then **Edge Functions** > `redeem-code` > delete it. Nothing uses it any more.
+
+### 6. Set up your admin account
 
 1. Add yourself as an instructor (lowercase email):
    ```sql
    insert into public.instructors (email) values ('you@unc.edu');
    ```
-2. **Authentication > Users > Add user > Create new user**: the same email, a
-   strong password, and tick **Auto Confirm User**. No email is sent.
-3. Sign in at https://geog215.org/admin/.
+2. Go to https://geog215.org/admin/, enter that email, and sign in with the
+   emailed code. Your account is created the first time.
 
-To add another instructor, repeat with their email. To change your password,
-open your user under **Authentication > Users**.
+To add another instructor, insert their email the same way.
 
-### 5. Test it yourself
+### 7. Test it yourself
 
-On the admin page, add a test student with an email you can type (it never
-receives mail), for example `Test Student, test@example.com`. Then, in a
-private/incognito window, open https://geog215.org, click *First time here?*,
-and use that email, its setup code and a password. Open a page or two; they
-appear on the admin page under **Activity**. Delete the test student
-afterwards.
+1. On the admin page, add a test student with **an address you can read**,
+   for example a personal Gmail address. In a private/incognito window, open
+   https://geog215.org, enter it, and sign in once with the code and once
+   with the link. Open a page or two; they should appear under **Activity**.
+2. Do the same with a **unc.edu** address. Check that the email arrives (not
+   in junk or quarantine) and that the link still works after UNC's scanner
+   has seen it.
+3. Delete the test students afterwards.
 
 ## Admin page (https://geog215.org/admin/)
 
 | Tab | |
 | --- | --- |
-| **Students** | Every student with their email, setup code, status, pages opened and last activity. Search by name, email or code; filter by group/term or status. **Lock out** / **Let back in**, **Allow password reset**, **Delete** (removes their account and progress). Click a name to see their activity. |
-| **Add students** | Paste one student per line as `Name, email` (comma or tab, so two columns pasted from a spreadsheet or Canvas export work too), plus an optional group/term. Each gets a setup code; copy or download `name,email,setup_code` as CSV. Emails already on the roster are skipped. |
+| **Students** | Every student with their email, status (*Has signed in* / *Not signed in yet* / *Locked out*), pages opened and last activity. Search by name or email, and filter by group/term or status. **Lock out** / **Let back in**, **Delete** (removes their account and progress). Click a name to see their activity. |
+| **Add students** | Paste one student per line as `Name, email` (comma or tab, so two columns pasted from a spreadsheet or Canvas export work too), plus an optional group/term. Emails already on the roster are skipped. Added students can sign in straight away. |
 | **Activity** | The latest page opens, for everyone or one student. |
 | **Pages** | How many students have opened each page. |
 
-Send each student their setup code privately, for example as a Canvas
-message. Codes are not case sensitive and can be typed with or without a dash.
+Tell students to go to geog215.org and sign in with **the email you added**.
+For most, that's their unc.edu address.
 
 While signed in to the admin page you can also read the book (instructors
 count as approved), and your own page visits aren't recorded as progress.
 Every button calls an `admin_*` function in Supabase that refuses to run
-unless you're signed in as an instructor, so the page being public doesn't let
-anyone else see or change anything.
+unless you're signed in as an instructor, so the page being public doesn't
+let anyone else see or change anything.
 
-To fix a typo in a student's email before they've set up their password,
-delete them and add them again (they get a new code).
+**Wrong email on the roster:** if the student hasn't signed in yet, delete
+them and add them again with the right email. If they have signed in, do the
+same; it also deletes their progress.
 
 ## Everyday tasks in SQL
 
-The admin page does all of these; they're here in case you prefer the
+The admin page does all of these. They're here in case you prefer the
 **SQL Editor** (or **Table Editor > roster**).
 
 ```sql
--- Add students (each gets a random 8-character setup code, like K7MQ2XHP)
+-- Add students (they can sign in with that email straight away)
 insert into public.roster (student_name, email, note) values
   ('Ada Lovelace', 'ada@unc.edu',   'Spring 2027'),
-  ('Grace Hopper', 'grace@unc.edu', 'Spring 2027')
-returning student_name, email, code;
+  ('Grace Hopper', 'grace@unc.edu', 'Spring 2027');
 
--- Everyone, and whether they've set up a password
-select student_name, email, note, code, user_id is not null as set_up, active
+-- Everyone, and whether they've signed in yet
+select student_name, email, note, user_id is not null as signed_in, active
 from public.roster order by student_name;
-
--- Forgotten password: they use "First time here?" again with email + code
-update public.roster set allow_reset = true where email = 'ada@unc.edu';
 
 -- Lock out (next page load) / let back in
 update public.roster set active = false where email = 'ada@unc.edu';
@@ -145,16 +179,28 @@ select * from public.instructor_progress order by student_name, page;
 Emails must be lowercase. **New term:** add the new students with a new
 group/term, and lock out last term's.
 
+## Troubleshooting
+
+- **"No email arrived":** check junk/quarantine, and check that the address
+  matches the roster exactly. In Resend, **Emails** shows each message and
+  whether it was delivered, bounced or blocked. In Supabase, **Logs > Auth**
+  shows the request.
+- **"That sign-in link has expired":** the link was already used, or it's
+  over an hour old. Ask for a new code. Typing the code always works, even
+  when the link doesn't.
+- **"Too many emails requested":** that's the Supabase rate limit (step 2),
+  or Supabase's 60-second wait between codes for the same email.
+
 ## Security notes
 
 - The roster, instructor list and everyone's progress can only be read by
   instructors (admin page) or from the dashboard. Students see only their own
   progress rows and can't edit them.
-- A setup code only works together with the matching email, and only before
-  the student has set a password (or after you allow a reset).
+- Anyone can ask for a code for any email, but only the owner of that inbox
+  receives it, and only roster or instructor emails get an account.
 - The gate hides pages in the browser but doesn't encrypt them: the page text
   is still in the downloaded HTML, and the same book is public at
   daveparr.com/geog215/.
-- Students who set up before email sign-in have accounts named
-  `<code>@students.geog215.org`; they show as **No email** on the admin page.
-  Delete and re-add them with their real email.
+- Students who set up with the very first version of the sign-in have
+  accounts named `<code>@students.geog215.org`; they show as **No email** on
+  the admin page. Delete and re-add them with their real email.
