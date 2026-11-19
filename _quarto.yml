@@ -9,6 +9,7 @@ book:
   date: last-modified
   chapters:
     - index.qmd
+    - chapters/intro-spatial-data-science.qmd
     - chapters/r-rstudio-rmarkdown.qmd
     - chapters/census-data-apis.qmd
 
