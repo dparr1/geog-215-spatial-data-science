@@ -270,6 +270,133 @@ join public.page_progress p on p.user_id = r.user_id;
 
 revoke all on table public.instructor_progress from anon, authenticated;
 
+-- 5b. Self-check quiz answers and code runs -------------------------------------
+-- The book's webexercises questions and webR code cells report here through
+-- record_quiz_answer() and record_code_run() (called by assets/auth-gate.html).
+-- Like page_progress: one row per student and question (or code cell) with
+-- running totals, keyed by Supabase user id; students only see their own rows.
+-- Whether an answer was correct is decided in the browser (the answers are in
+-- the page), so treat it as a self-check record, not a grade.
+
+create table if not exists public.quiz_responses (
+  user_id          uuid not null default auth.uid()
+                   references auth.users (id) on delete cascade,
+  page             text not null,
+  question         text not null,          -- id made in the browser from the question text
+  label            text,                   -- the question text, for the admin page
+  attempts         integer not null default 1,
+  correct          boolean not null,       -- was the latest answer right?
+  ever_correct     boolean not null,       -- right at least once
+  last_answer      text,
+  first_at         timestamptz not null default now(),
+  first_correct_at timestamptz,
+  last_at          timestamptz not null default now(),
+  primary key (user_id, page, question)
+);
+
+create table if not exists public.code_runs (
+  user_id    uuid not null default auth.uid()
+             references auth.users (id) on delete cascade,
+  page       text not null,
+  cell       text not null,                -- id made in the browser from the cell's starting code
+  label      text,                         -- section heading and first line of code
+  runs       integer not null default 1,
+  error_runs integer not null default 0,   -- runs that ended in an R error
+  last_code  text,                         -- the code as last run (first 4000 characters)
+  last_error boolean not null default false,
+  first_run  timestamptz not null default now(),
+  last_run   timestamptz not null default now(),
+  primary key (user_id, page, cell)
+);
+
+alter table public.quiz_responses enable row level security;
+alter table public.code_runs enable row level security;
+revoke all on table public.quiz_responses from anon, authenticated;
+revoke all on table public.code_runs from anon, authenticated;
+grant select on table public.quiz_responses to authenticated;
+grant select on table public.code_runs to authenticated;
+
+drop policy if exists "Students read their own quiz answers" on public.quiz_responses;
+create policy "Students read their own quiz answers"
+  on public.quiz_responses for select
+  to authenticated
+  using (user_id = (select auth.uid()));
+
+drop policy if exists "Students read their own code runs" on public.code_runs;
+create policy "Students read their own code runs"
+  on public.code_runs for select
+  to authenticated
+  using (user_id = (select auth.uid()));
+
+-- Same rule as record_page_visit: active students only, never instructors.
+create or replace function public.record_quiz_answer(
+  p_page text, p_question text, p_label text, p_answer text, p_correct boolean)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_page     text := public.normalize_page(left(p_page, 300));
+  v_question text := left(btrim(coalesce(p_question, '')), 100);
+  v_correct  boolean := coalesce(p_correct, false);
+begin
+  if auth.uid() is null or public.is_instructor()
+     or not public.is_current_user_approved() or v_question = '' then
+    return;
+  end if;
+  insert into public.quiz_responses as q
+    (user_id, page, question, label, correct, ever_correct, last_answer, first_correct_at)
+  values (auth.uid(), v_page, v_question, left(p_label, 500), v_correct, v_correct,
+          left(p_answer, 500), case when v_correct then now() end)
+  on conflict (user_id, page, question) do update
+    set attempts         = q.attempts + 1,
+        label            = coalesce(excluded.label, q.label),
+        correct          = excluded.correct,
+        ever_correct     = q.ever_correct or excluded.correct,
+        last_answer      = excluded.last_answer,
+        first_correct_at = coalesce(q.first_correct_at, excluded.first_correct_at),
+        last_at          = now();
+end;
+$$;
+
+create or replace function public.record_code_run(
+  p_page text, p_cell text, p_label text, p_code text, p_error boolean)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_page  text := public.normalize_page(left(p_page, 300));
+  v_cell  text := left(btrim(coalesce(p_cell, '')), 100);
+  v_error boolean := coalesce(p_error, false);
+begin
+  if auth.uid() is null or public.is_instructor()
+     or not public.is_current_user_approved() or v_cell = '' then
+    return;
+  end if;
+  insert into public.code_runs as c
+    (user_id, page, cell, label, error_runs, last_code, last_error)
+  values (auth.uid(), v_page, v_cell, left(p_label, 300), v_error::int,
+          left(p_code, 4000), v_error)
+  on conflict (user_id, page, cell) do update
+    set runs       = c.runs + 1,
+        error_runs = c.error_runs + excluded.error_runs,
+        label      = coalesce(excluded.label, c.label),
+        last_code  = excluded.last_code,
+        last_error = excluded.last_error,
+        last_run   = now();
+end;
+$$;
+
+revoke all on function public.record_quiz_answer(text, text, text, text, boolean) from public, anon;
+grant execute on function public.record_quiz_answer(text, text, text, text, boolean) to authenticated;
+revoke all on function public.record_code_run(text, text, text, text, boolean) from public, anon;
+grant execute on function public.record_code_run(text, text, text, text, boolean) to authenticated;
+
 -- 6. Admin page functions (instructors only) ------------------------------------
 -- Used by geog215.org/admin/. Each one stops with "Instructors only." unless
 -- the caller is signed in as an instructor, so the admin page can't be used by
@@ -304,13 +431,15 @@ as $$
 $$;
 
 -- Every student with their status and activity totals.
--- (Dropped first because its columns changed when passwords were retired.)
+-- (Dropped first because its columns change from time to time: passwords were
+-- retired, then quiz and code totals were added.)
 drop function if exists public.admin_roster();
 create or replace function public.admin_roster()
 returns table (
   code text, student_name text, email text, note text, active boolean,
   signed_in boolean, claimed_at timestamptz, added_at timestamptz,
-  pages_opened bigint, total_visits bigint, last_active timestamptz
+  pages_opened bigint, total_visits bigint, last_active timestamptz,
+  quiz_answered bigint, quiz_correct bigint, code_runs bigint, code_errors bigint
 )
 language plpgsql
 stable
@@ -325,7 +454,13 @@ begin
            r.user_id is not null, r.claimed_at, r.added_at,
            count(distinct public.normalize_page(p.page)) filter (where p.page is not null),
            coalesce(sum(p.visits), 0)::bigint,
-           max(p.last_visit)
+           greatest(max(p.last_visit),
+                    (select max(q.last_at) from public.quiz_responses q where q.user_id = r.user_id),
+                    (select max(c.last_run) from public.code_runs c where c.user_id = r.user_id)),
+           (select count(*) from public.quiz_responses q where q.user_id = r.user_id),
+           (select count(*) from public.quiz_responses q where q.user_id = r.user_id and q.ever_correct),
+           (select coalesce(sum(c.runs), 0) from public.code_runs c where c.user_id = r.user_id)::bigint,
+           (select coalesce(sum(c.error_runs), 0) from public.code_runs c where c.user_id = r.user_id)::bigint
     from public.roster r
     left join public.page_progress p on p.user_id = r.user_id
     group by r.code
@@ -467,13 +602,116 @@ begin
 end;
 $$;
 
+-- Each quiz question: how many students answered it and got it right.
+create or replace function public.admin_quiz()
+returns table (
+  page text, question text, label text, students bigint,
+  students_correct bigint, attempts bigint, last_at timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+begin
+  perform public.require_instructor();
+  return query
+    select q.page, q.question, max(q.label),
+           count(*), count(*) filter (where q.ever_correct),
+           sum(q.attempts)::bigint, max(q.last_at)
+    from public.quiz_responses q
+    join public.roster r on r.user_id = q.user_id
+    group by q.page, q.question
+    order by q.page, min(q.first_at);
+end;
+$$;
+
+-- Quiz answers, newest first: one student's (p_code) or everyone's.
+create or replace function public.admin_quiz_responses(p_code text default null, p_limit integer default 1000)
+returns table (
+  student_name text, code text, page text, question text, label text,
+  attempts integer, correct boolean, ever_correct boolean, last_answer text,
+  first_at timestamptz, last_at timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+begin
+  perform public.require_instructor();
+  return query
+    select r.student_name, r.code, q.page, q.question, q.label,
+           q.attempts, q.correct, q.ever_correct, q.last_answer, q.first_at, q.last_at
+    from public.quiz_responses q
+    join public.roster r on r.user_id = q.user_id
+    where p_code is null or r.code = upper(btrim(p_code))
+    order by q.last_at desc
+    limit least(greatest(coalesce(p_limit, 1000), 1), 5000);
+end;
+$$;
+
+-- Each code cell: how many students ran it, how often, and how often it errored.
+create or replace function public.admin_code()
+returns table (
+  page text, cell text, label text, students bigint,
+  runs bigint, error_runs bigint, last_run timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+begin
+  perform public.require_instructor();
+  return query
+    select c.page, c.cell, max(c.label), count(*),
+           sum(c.runs)::bigint, sum(c.error_runs)::bigint, max(c.last_run)
+    from public.code_runs c
+    join public.roster r on r.user_id = c.user_id
+    group by c.page, c.cell
+    order by c.page, min(c.first_run);
+end;
+$$;
+
+-- Code runs, newest first: one student's (p_code) or everyone's.
+create or replace function public.admin_code_runs(p_code text default null, p_limit integer default 1000)
+returns table (
+  student_name text, code text, page text, cell text, label text,
+  runs integer, error_runs integer, last_code text, last_error boolean,
+  first_run timestamptz, last_run timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+begin
+  perform public.require_instructor();
+  return query
+    select r.student_name, r.code, c.page, c.cell, c.label,
+           c.runs, c.error_runs, c.last_code, c.last_error, c.first_run, c.last_run
+    from public.code_runs c
+    join public.roster r on r.user_id = c.user_id
+    where p_code is null or r.code = upper(btrim(p_code))
+    order by c.last_run desc
+    limit least(greatest(coalesce(p_limit, 1000), 1), 5000);
+end;
+$$;
+
 do $$
 declare f text;
 begin
   foreach f in array array[
     'admin_roster()', 'admin_add_students(jsonb, text)',
     'admin_set_active(text, boolean)',
-    'admin_delete_student(text)', 'admin_activity(integer)', 'admin_pages()'
+    'admin_delete_student(text)', 'admin_activity(integer)', 'admin_pages()',
+    'admin_quiz()', 'admin_quiz_responses(text, integer)',
+    'admin_code()', 'admin_code_runs(text, integer)'
   ] loop
     execute format('revoke all on function public.%s from public, anon', f);
     execute format('grant execute on function public.%s to authenticated', f);

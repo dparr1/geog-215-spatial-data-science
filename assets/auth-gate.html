@@ -80,6 +80,222 @@
   const $ = (id) => document.getElementById(id);
   const normalizeEmail = (raw) => (raw || "").trim().toLowerCase();
 
+  // ---- Progress: quiz answers and code runs ---------------------------------
+  // Page visits are recorded in unlock(). Quiz answers (webexercises) and code
+  // runs (webR cells) are recorded here, but only once unlock() has let an
+  // active student in. The database ignores instructors' answers and runs, as
+  // it does their page visits.
+  let tracking = false;
+  let accessToken = "";
+
+  // Calls a record_* function in Supabase. A plain fetch with keepalive, so
+  // an answer given just before the student leaves the page is still saved.
+  function record(fn, args) {
+    if (!tracking || !accessToken) return;
+    fetch(SUPABASE_URL + "/rest/v1/rpc/" + fn, {
+      method: "POST",
+      keepalive: true,
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: "Bearer " + accessToken,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(args),
+    }).then(
+      (res) => { if (!res.ok) console.warn("Progress not saved (" + fn + "):", res.status); },
+      () => {}
+    );
+  }
+
+  const clean = (s, n) => String(s || "").replace(/\s+/g, " ").trim().slice(0, n);
+
+  // Short, stable id from text, so a question keeps its id when other
+  // questions are added or moved.
+  function shortHash(text) {
+    let h = 5381;
+    for (let i = 0; i < text.length; i++) h = ((h * 33) ^ text.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  }
+
+  // Quiz questions from webexercises: mcq()/torf() are <select>s, fitb() is an
+  // <input>, longmcq() is a group of radio buttons.
+  const QUIZ = ".webex-select, .webex-solveme, .webex-radiogroup";
+  let quizIds = null;
+
+  function questionText(q) {
+    let text = "";
+    if (q.classList.contains("webex-radiogroup")) {
+      text = q.previousElementSibling ? q.previousElementSibling.textContent : "";
+    } else {
+      const box = q.closest("li, p, td, dd");
+      if (box) {
+        const copy = box.cloneNode(true);
+        copy.querySelectorAll("select, input, .webex-icon, .webex-radiogroup").forEach((n) => n.remove());
+        text = copy.textContent;
+      }
+    }
+    return clean(text, 500) || "Question";
+  }
+
+  function quizInfo(q) {
+    if (!quizIds) {
+      quizIds = new Map();
+      const seen = {};
+      document.querySelectorAll(QUIZ).forEach((el) => {
+        const label = questionText(el);
+        const base = shortHash(label);
+        seen[base] = (seen[base] || 0) + 1;
+        quizIds.set(el, { id: "q-" + base + (seen[base] > 1 ? "-" + seen[base] : ""), label });
+      });
+    }
+    return quizIds.get(q);
+  }
+
+  const lastAnswer = new Map();
+  const typingTimers = new Map();
+
+  function onQuizAnswer(q) {
+    const info = quizInfo(q);
+    if (!info) return;
+    let answer, correct;
+    if (q.classList.contains("webex-select")) {
+      // Options are value="blank" (nothing chosen), "answer" (right) or ""
+      // (wrong), so the answer itself is the option's text.
+      const opt = q.options[q.selectedIndex];
+      if (!opt || q.value === "blank") return;
+      answer = opt.text;
+      correct = q.value === "answer";
+    } else if (q.classList.contains("webex-radiogroup")) {
+      const picked = q.querySelector("input[type=radio]:checked");
+      if (!picked) return;
+      answer = picked.parentElement.textContent;
+      correct = picked.value === "answer";
+    } else {
+      answer = q.value;
+      // webex.js has already marked the box right or wrong by now.
+      correct = q.classList.contains("webex-correct");
+    }
+    answer = clean(answer, 500);
+    if (!answer || lastAnswer.get(q) === answer) return;   // same answer again
+    lastAnswer.set(q, answer);
+    record("record_quiz_answer", {
+      p_page: location.pathname, p_question: info.id, p_label: info.label,
+      p_answer: answer, p_correct: correct,
+    });
+  }
+
+  // Listening on document means webex.js's own handlers on the question have
+  // already run (and marked fill-in-the-blank answers) when these run.
+  document.addEventListener("change", (event) => {
+    const q = event.target.closest && event.target.closest(QUIZ);
+    if (!q) return;
+    clearTimeout(typingTimers.get(q));
+    onQuizAnswer(q);
+  });
+  // Fill-in-the-blank: also save once the student stops typing, in case they
+  // never leave the box.
+  document.addEventListener("input", (event) => {
+    const q = event.target;
+    if (!q.classList || !q.classList.contains("webex-solveme")) return;
+    clearTimeout(typingTimers.get(q));
+    typingTimers.set(q, setTimeout(() => onQuizAnswer(q), 2000));
+  });
+
+  // webR code cells. Only runs a student starts count: a click on Run Code or
+  // Shift/Ctrl/Cmd+Enter in the editor. (Cells that run by themselves when the
+  // page loads don't, and webR's own "context" flag can't tell these apart,
+  // because it rewrites that flag on autorun cells.)
+  const startedByStudent = {};
+
+  function cellNumber(el, prefix) {
+    for (; el && el !== document; el = el.parentElement) {
+      const m = el.id && el.id.match(new RegExp("^" + prefix + "(\\d+)$"));
+      if (m) return m[1];
+    }
+    return null;
+  }
+
+  document.addEventListener("click", (event) => {
+    const n = cellNumber(event.target, "qwebr-button-run-");
+    if (n) startedByStudent[n] = Date.now();
+  }, true);
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || !(event.shiftKey || event.ctrlKey || event.metaKey)) return;
+    const n = cellNumber(event.target, "qwebr-editor-");
+    if (n) startedByStudent[n] = Date.now();
+  }, true);
+
+  function headingBefore(el) {
+    let found = null;
+    document.querySelectorAll("main h1, main h2, main h3, main h4").forEach((h) => {
+      if (h.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) found = h;
+    });
+    return found ? clean(found.textContent, 120) : "";
+  }
+
+  // Id and label for a cell, from the code it starts with (so editing the
+  // code doesn't make it a different cell).
+  function cellInfo(n) {
+    const cells = Array.isArray(globalThis.qwebrCellDetails) ? globalThis.qwebrCellDetails : [];
+    const entry = cells.find((c) => String(c.id) === String(n));
+    const start = entry && typeof entry.code === "string" ? entry.code : "";
+    let id = "cell-" + n;
+    if (start) {
+      const same = cells.filter((c) => c.code === start);
+      id = "cell-" + shortHash(start) + (same.length > 1 ? "-" + (same.indexOf(entry) + 1) : "");
+    }
+    const firstLine = (start.split("\n").find((l) => l.trim() && !/^\s*#/.test(l)) || "").trim();
+    const where = document.getElementById("qwebr-interactive-area-" + n) ||
+                  document.getElementById("qwebr-button-run-" + n);
+    const heading = where ? headingBefore(where) : "";
+    const label = [heading, firstLine ? clean(firstLine, 80) : "Code cell " + n].filter(Boolean).join(" · ");
+    return { id, label };
+  }
+
+  function onCodeRun(n, code, failed) {
+    const out = document.getElementById("qwebr-output-code-area-" + n);
+    const errored = failed || !!(out && Array.from(out.querySelectorAll(".qwebr-output-code-stderr"))
+      .some((c) => /^\s*Error\b/m.test(c.textContent)));
+    const cell = cellInfo(n);
+    record("record_code_run", {
+      p_page: location.pathname, p_cell: cell.id, p_label: cell.label,
+      p_code: String(code || "").slice(0, 4000), p_error: errored,
+    });
+  }
+
+  // webR's scripts set globalThis.qwebrExecuteCode later on this page, and
+  // every Run Code button and keyboard shortcut calls it. This catches that
+  // assignment and wraps the function so each run a student starts is counted.
+  function trackRuns(fn) {
+    if (typeof fn !== "function" || fn.sdsTracked) return fn;
+    const wrapped = async function (code, n) {
+      const started = startedByStudent[n];
+      const byStudent = !!started && Date.now() - started < 3000;
+      if (byStudent) delete startedByStudent[n];
+      let failed = false;
+      try {
+        return await fn.apply(this, arguments);
+      } catch (e) {
+        failed = true;
+        throw e;
+      } finally {
+        if (byStudent) { try { onCodeRun(n, code, failed); } catch (_) { /* never break a run */ } }
+      }
+    };
+    wrapped.sdsTracked = true;
+    return wrapped;
+  }
+
+  let executeCode = trackRuns(globalThis.qwebrExecuteCode);
+  try {
+    Object.defineProperty(globalThis, "qwebrExecuteCode", {
+      configurable: true,
+      enumerable: true,
+      get: () => executeCode,
+      set: (fn) => { executeCode = trackRuns(fn); },
+    });
+  } catch (_) { /* code runs just won't be counted */ }
+
   // The sign-in link in the email ends in #token_hash=...&type=email (see the
   // email templates in supabase/README.md). Read it, then remove it from the
   // address bar so it isn't bookmarked or shared.
@@ -166,7 +382,9 @@
       });
       document.body.appendChild(btn);
     }
-    // Progress: note that this student opened this page. Never blocks reading.
+    // Progress: note that this student opened this page, and start recording
+    // quiz answers and code runs. Never blocks reading.
+    tracking = true;
     sb.rpc("record_page_visit", { p_page: location.pathname }).then(
       ({ error }) => { if (error) console.warn("Progress not saved:", error.message); },
       () => {}
@@ -275,6 +493,10 @@
       return;
     }
     sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // Keep the current access token for record() (Supabase refreshes it).
+    sb.auth.onAuthStateChange((_event, session) => {
+      accessToken = session ? session.access_token : "";
+    });
     try {
       const { data: { session } } = await sb.auth.getSession();
       if (session) {
