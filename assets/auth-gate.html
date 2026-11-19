@@ -107,6 +107,11 @@
     );
   }
 
+  // The chapter quiz pages (assets/quiz/quiz.js) save results through this.
+  // It does nothing until an active student is let in, and it doesn't exist
+  // at all on the public daveparr.com copy, which has no gate.
+  window.sdsProgress = { record };
+
   const clean = (s, n) => String(s || "").replace(/\s+/g, " ").trim().slice(0, n);
 
   // Short, stable id from text, so a question keeps its id when other

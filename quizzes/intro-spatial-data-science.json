@@ -1,0 +1,231 @@
+{
+  "id": "intro-spatial-data-science",
+  "title": "Introduction to Spatial Data Science",
+  "perSession": 10,
+  "minR": 2,
+  "questions": [
+    {
+      "id": "dikw-information",
+      "type": "choice",
+      "prompt": "Organizing raw facts and figures into a table of average income by county turns data into...",
+      "choices": ["information", "wisdom", "knowledge", "metadata"],
+      "answer": 0,
+      "explain": "Information is data organized so that it is useful, like a table or a map."
+    },
+    {
+      "id": "dikw-knowledge",
+      "type": "choice",
+      "prompt": "An understanding of *why* income varies the way it does, built from many studies of many places, is...",
+      "choices": ["knowledge", "data", "information", "wisdom"],
+      "answer": 0,
+      "explain": "Knowledge is information accumulated and integrated over time and across many situations."
+    },
+    {
+      "id": "dikw-wisdom",
+      "type": "choice",
+      "prompt": "Deciding what a city should actually do about income differences between neighborhoods is an example of...",
+      "choices": ["wisdom", "knowledge", "information", "data"],
+      "answer": 0,
+      "explain": "Wisdom applies principles, reason, and knowledge to decide what is true and right."
+    },
+    {
+      "id": "dikw-data",
+      "type": "choice",
+      "prompt": "The pixel values of a satellite image, before anyone has analyzed them, are...",
+      "choices": ["data", "information", "knowledge", "wisdom"],
+      "answer": 0,
+      "explain": "Data are raw facts and figures: a column of numbers, a list of addresses, or pixel values."
+    },
+    {
+      "id": "dikw-order",
+      "type": "order",
+      "r": false,
+      "prompt": "Put the rungs of the ladder in order, from the bottom to the top.",
+      "answer": ["Data", "Information", "Knowledge", "Wisdom"],
+      "explain": "Each step adds organization, context, and judgment. This book focuses on the first step, from data to information."
+    },
+    {
+      "id": "book-focus",
+      "type": "choice",
+      "prompt": "Which step of the data–information–knowledge–wisdom ladder does most of this book focus on?",
+      "choices": ["Data to information", "Information to knowledge", "Knowledge to wisdom", "Wisdom to action"],
+      "answer": 0,
+      "explain": "Turning data into information is where code does the most work: no one can read a million rows, but anyone can read a good map."
+    },
+    {
+      "id": "word-data",
+      "type": "choice",
+      "prompt": "In the name *spatial data science*, which word covers *how* we handle the data: file formats, databases, organizing, and visualizing?",
+      "choices": ["Data", "Spatial", "Science", "None of them"],
+      "answer": 0,
+      "explain": "Spatial is what we study, data is how we handle it, and science is why: asking and answering questions."
+    },
+    {
+      "id": "word-science",
+      "type": "choice",
+      "prompt": "Asking a clear question, reporting the results, and critiquing them honestly all belong to which part of *spatial data science*?",
+      "choices": ["Science", "Spatial", "Data", "Visualization"],
+      "answer": 0,
+      "explain": "Science is the *why*: structuring an analysis to answer a question, reporting, and critiquing."
+    },
+    {
+      "id": "everything-somewhere",
+      "type": "choice",
+      "prompt": "Which phrase sums up why location deserves special attention?",
+      "choices": ["Everything happens somewhere.", "Correlation is not causation.", "All models are wrong.", "Data are never neutral."],
+      "answer": 0,
+      "explain": "Location is a fundamental attribute of almost everything we might study, and where something happens often explains why."
+    },
+    {
+      "id": "workflow-order",
+      "type": "order",
+      "r": false,
+      "prompt": "Put the stages of the spatial data science workflow in order.",
+      "answer": ["Question", "Get reliable data", "Process the data", "Communicate results"],
+      "explain": "A question leads to data, the data are processed, and the results are communicated. What you learn often raises a new question."
+    },
+    {
+      "id": "workflow-longest",
+      "type": "choice",
+      "prompt": "Which stage of the workflow usually takes the most time?",
+      "choices": ["Understanding and processing the data", "Getting reliable data", "Communicating results", "Writing the question"],
+      "answer": 0,
+      "explain": "Real data are rarely ready to use. Reading, cleaning, reshaping, and joining them takes the most time."
+    },
+    {
+      "id": "autocorrelation-def",
+      "type": "choice",
+      "prompt": "The tendency for things that are close together to be more alike than things that are far apart is called...",
+      "choices": ["spatial autocorrelation", "spatial heterogeneity", "scale", "the modifiable areal unit problem"],
+      "answer": 0,
+      "explain": "Neighboring homes tend to have similar values, and neighboring counties similar incomes: that is spatial autocorrelation."
+    },
+    {
+      "id": "tobler",
+      "type": "choice",
+      "prompt": "Who put forward the *first law of geography*: \"everything is related to everything else, but near things are more related than distant things\"?",
+      "choices": ["Waldo Tobler", "John Snow", "Herman Hollerith", "Edzer Pebesma"],
+      "answer": 0,
+      "explain": "The geographer Waldo Tobler stated it in a 1970 paper."
+    },
+    {
+      "id": "autocorrelation-problem",
+      "type": "truefalse",
+      "prompt": "Standard statistical tests assume observations are independent, so they can be overconfident when nearby observations are similar.",
+      "answer": true,
+      "explain": "That is why spatial autocorrelation is a problem. It is also an opportunity: clusters of high values are hotspots."
+    },
+    {
+      "id": "heterogeneity-def",
+      "type": "choice",
+      "prompt": "The link between distance to downtown and home prices is strong in one city but weak in another. This is an example of...",
+      "choices": ["spatial heterogeneity", "spatial autocorrelation", "scale", "a file format"],
+      "answer": 0,
+      "explain": "Spatial heterogeneity means relationships between variables change from place to place."
+    },
+    {
+      "id": "maup",
+      "type": "choice",
+      "prompt": "Grouping the same individual data into a different set of district boundaries changes the results of an analysis. What is this called?",
+      "choices": ["The modifiable areal unit problem", "Spatial autocorrelation", "The first law of geography", "Spatial heterogeneity"],
+      "answer": 0,
+      "explain": "The modifiable areal unit problem: how areas are drawn, not only their size, can change your results."
+    },
+    {
+      "id": "scale-tf",
+      "type": "truefalse",
+      "prompt": "A trend you find at the county level is guaranteed to hold within each neighborhood of that county.",
+      "answer": false,
+      "explain": "A pattern that is clear at one scale can vanish, or even reverse, at another."
+    },
+    {
+      "id": "three-questions",
+      "type": "choice",
+      "prompt": "\"Would the pattern look different with larger or smaller areas?\" checks for which idea?",
+      "choices": ["Scale", "Spatial autocorrelation", "Spatial heterogeneity", "Reproducibility"],
+      "answer": 0,
+      "explain": "Scale is the level of detail you work at, and patterns can change with it."
+    },
+    {
+      "id": "question-difference",
+      "type": "choice",
+      "prompt": "\"Are incomes **different** between Durham and Raleigh?\" calls for which kind of analysis?",
+      "choices": ["Comparing groups, for example with ANOVA", "Cluster detection", "Network analysis", "Change over time"],
+      "answer": 0,
+      "explain": "The key word *different* points to comparing groups."
+    },
+    {
+      "id": "question-factors",
+      "type": "choice",
+      "prompt": "\"What location **factors** contribute to housing prices in Charlotte?\" calls for which kind of analysis?",
+      "choices": ["Modeling relationships with regression", "Mapping and cluster detection", "Comparing data over time", "Distance and network analysis"],
+      "answer": 0,
+      "explain": "*Factors* means modeling how several variables relate to an outcome, which is regression."
+    },
+    {
+      "id": "question-access",
+      "type": "choice",
+      "prompt": "\"Which neighborhoods have less **access** to hospitals?\" calls for which kind of analysis?",
+      "choices": ["Distance and network analysis", "Regression", "ANOVA", "Comparing data over time"],
+      "answer": 0,
+      "explain": "Accessibility questions are answered by measuring distance, often along a road network."
+    },
+    {
+      "id": "question-where",
+      "type": "choice",
+      "prompt": "\"**Where** are there higher clusters of theft and burglary in Chapel Hill?\" calls for which kind of analysis?",
+      "choices": ["Mapping and cluster detection", "Regression", "Comparing groups", "Network analysis"],
+      "answer": 0,
+      "explain": "*Where* questions start with a map and a search for clusters."
+    },
+    {
+      "id": "good-question",
+      "type": "choice",
+      "prompt": "Which of these is **not** a feature of a good spatial data science question?",
+      "choices": ["It can be answered without any data", "It is specific about what and where", "It can be answered with data that exist or can be collected", "The answer would be useful to someone"],
+      "answer": 0,
+      "explain": "A spatial data science question is one where location is part of the answer and data can settle it."
+    },
+    {
+      "id": "pkg-sf-fill",
+      "type": "fill",
+      "prompt": "Complete the code to load the package that stores points, lines, and polygons.",
+      "code": "library(___)",
+      "answers": ["sf"],
+      "explain": "**sf** stores spatial vector data: points, lines, and polygons."
+    },
+    {
+      "id": "pkg-tmap",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which R package in our toolbox makes maps quickly, with sensible defaults?",
+      "choices": ["tmap", "sf", "tidyverse", "httr2"],
+      "answer": 0,
+      "explain": "**tmap** is the mapping package used throughout the book."
+    },
+    {
+      "id": "pkg-tidyverse",
+      "type": "choice",
+      "r": true,
+      "prompt": "What is the **tidyverse** used for in this book?",
+      "choices": ["Reading, cleaning, reshaping, and summarizing data", "Storing points, lines, and polygons", "Drawing maps", "Writing R Markdown documents"],
+      "answer": 0,
+      "explain": "The tidyverse handles general data work; sf handles spatial data and tmap draws maps."
+    },
+    {
+      "id": "tools-free",
+      "type": "truefalse",
+      "prompt": "R and RStudio are both free.",
+      "answer": true,
+      "explain": "Both are free, so everything you learn keeps working after the course."
+    },
+    {
+      "id": "unit-3",
+      "type": "choice",
+      "prompt": "Which topics make up Unit 3 of the course, *Spatial data science*?",
+      "choices": ["ANOVA, regression, clustering, and a project", "Getting started with R and the tidyverse", "Overlaying layers and joining tables", "Installing R and RStudio"],
+      "answer": 0,
+      "explain": "Unit 1 builds data skills, Unit 2 adds spatial data, and Unit 3 brings in statistical methods and your own project."
+    }
+  ]
+}

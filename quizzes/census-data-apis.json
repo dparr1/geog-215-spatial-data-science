@@ -1,0 +1,282 @@
+{
+  "id": "census-data-apis",
+  "title": "Census Data and APIs",
+  "perSession": 10,
+  "minR": 3,
+  "questions": [
+    {
+      "id": "decennial-vs-acs",
+      "type": "choice",
+      "prompt": "Which source is a full count of everyone, every ten years, with only a few questions?",
+      "choices": ["The decennial census", "The American Community Survey", "ACS 1-year estimates", "TIGER"],
+      "answer": 0,
+      "explain": "The decennial census counts everyone; the ACS samples households every year and asks many more questions."
+    },
+    {
+      "id": "acs-estimate",
+      "type": "truefalse",
+      "prompt": "Every number the American Community Survey publishes is an estimate with a margin of error.",
+      "answer": true,
+      "explain": "The ACS is a sample survey, so each value comes with a margin of error."
+    },
+    {
+      "id": "acs-2005",
+      "type": "choice",
+      "prompt": "In what year did the ACS replace the decennial \"long form\" for detailed questions like income and commuting?",
+      "choices": ["2005", "1990", "2010", "2020"],
+      "answer": 0,
+      "explain": "Since 2005 those questions have been asked every year on the ACS."
+    },
+    {
+      "id": "hollerith",
+      "type": "choice",
+      "prompt": "Herman Hollerith's punch-card machines, which led to the company that became IBM, were built for which census?",
+      "choices": ["1890", "1790", "1940", "1990"],
+      "answer": 0,
+      "explain": "The job of counting a growing country kept outgrowing the old tools."
+    },
+    {
+      "id": "tiger",
+      "type": "choice",
+      "prompt": "What did the 1990 census introduce?",
+      "choices": ["TIGER, a national digital map database", "Online responses", "Differential privacy", "Punch cards"],
+      "answer": 0,
+      "explain": "The boundary files you download with tidycensus and tigris descend directly from TIGER."
+    },
+    {
+      "id": "smallest-geo",
+      "type": "choice",
+      "prompt": "What is the smallest unit of Census geography?",
+      "choices": ["Census block", "Block group", "Census tract", "ZIP Code Tabulation Area"],
+      "answer": 0,
+      "explain": "Only the decennial census is published for blocks."
+    },
+    {
+      "id": "acs5-smallest",
+      "type": "choice",
+      "prompt": "What is the smallest geography for which ACS 5-year estimates are published?",
+      "choices": ["Block group", "Block", "Tract", "County"],
+      "answer": 0,
+      "explain": "Block groups give the finest detail for most social and economic variables, with large margins of error."
+    },
+    {
+      "id": "tract-size",
+      "type": "choice",
+      "prompt": "About how many people does a typical census tract hold?",
+      "choices": ["1,200 to 8,000 (about 4,000 on average)", "10 to 100", "600 to 3,000", "50,000 or more"],
+      "answer": 0,
+      "explain": "Tracts are drawn to be fairly similar in population, which makes them the workhorse unit for neighborhoods."
+    },
+    {
+      "id": "zcta-nest",
+      "type": "truefalse",
+      "prompt": "ZIP Code Tabulation Areas nest neatly inside counties, just like tracts do.",
+      "answer": false,
+      "explain": "Geographies off the central spine, like ZIP codes and places, can cross county and tract lines."
+    },
+    {
+      "id": "geoid-tract-digits",
+      "type": "choice",
+      "prompt": "How many digits does a census tract GEOID have?",
+      "choices": ["11", "5", "12", "15"],
+      "answer": 0,
+      "explain": "2 for the state, 3 for the county, and 6 for the tract: 11 in all."
+    },
+    {
+      "id": "geoid-read",
+      "type": "choice",
+      "r": true,
+      "prompt": "The tract GEOID `37135011600` is in which state and county?",
+      "choices": ["North Carolina (37), Orange County (135)", "North Carolina (37), County 011", "State 371, County 350", "State 3713, County 5011"],
+      "answer": 0,
+      "explain": "The first 2 digits are the state FIPS code, the next 3 the county."
+    },
+    {
+      "id": "geoid-text",
+      "type": "choice",
+      "prompt": "Why should you keep GEOIDs as text instead of numbers?",
+      "choices": [
+        "Leading zeros, like Alabama's `01`, would be dropped and joins would fail",
+        "Text uses less memory than numbers",
+        "R can't store numbers that long",
+        "Census tables only accept text"
+      ],
+      "answer": 0,
+      "explain": "Read as a number, `01` becomes `1` and every Alabama GEOID loses a digit."
+    },
+    {
+      "id": "fill-str-sub",
+      "type": "fill",
+      "prompt": "Complete the code to get the county part of a GEOID: the state and county digits.",
+      "code": "str_sub(GEOID, 1, ___)",
+      "answers": ["5"],
+      "explain": "2 state digits plus 3 county digits: characters 1 to 5."
+    },
+    {
+      "id": "fill-col-character",
+      "type": "fill",
+      "prompt": "Complete the code so `read_csv()` keeps GEOIDs as text.",
+      "code": "read_csv(file, col_types = cols(GEOID = ___()))",
+      "answers": ["col_character"],
+      "explain": "Setting the column type explicitly keeps leading zeros."
+    },
+    {
+      "id": "acs1-threshold",
+      "type": "choice",
+      "prompt": "ACS 1-year estimates are only published for areas with at least how many people?",
+      "choices": ["65,000", "20,000", "5,000", "1 million"],
+      "answer": 0,
+      "explain": "Smaller areas need the 5-year estimates, which pool 60 months of responses."
+    },
+    {
+      "id": "acs5-period",
+      "type": "choice",
+      "prompt": "A 5-year ACS estimate labeled 2022 describes which period?",
+      "choices": ["2018–2022", "2022 only", "2022–2026", "2017–2022"],
+      "answer": 0,
+      "explain": "Keep that in mind when you write about the results."
+    },
+    {
+      "id": "code-suffix",
+      "type": "choice",
+      "r": true,
+      "prompt": "In the raw Census API variable `B19013_001E`, what does the final `E` mean?",
+      "choices": ["Estimate", "Error", "Exact count", "Extra"],
+      "answer": 0,
+      "explain": "`E` is the estimate and `M` the margin of error. tidycensus adds these suffixes for you."
+    },
+    {
+      "id": "b03002",
+      "type": "choice",
+      "prompt": "Which ACS table gives mutually exclusive race and ethnicity groups that add up to the total?",
+      "choices": ["B03002", "B02001", "B01001", "B19013"],
+      "answer": 0,
+      "explain": "Hispanic origin is a separate question, so `B03002` splits Hispanic and non-Hispanic groups for you."
+    },
+    {
+      "id": "medians-add",
+      "type": "truefalse",
+      "prompt": "To get the median income of two tracts combined, you can add (or average) their two medians.",
+      "answer": false,
+      "explain": "Counts add up across areas, but medians don't. Download the median for the larger area directly."
+    },
+    {
+      "id": "api-def",
+      "type": "choice",
+      "prompt": "What is an API?",
+      "choices": [
+        "A set of rules for how one program asks another for data or services",
+        "A file format for spatial data",
+        "A type of Census geography",
+        "An R package for making maps"
+      ],
+      "answer": 0,
+      "explain": "Your R script sends a request, and the server sends back data."
+    },
+    {
+      "id": "url-question-mark",
+      "type": "choice",
+      "prompt": "In a REST request URL, which character separates the endpoint from the parameters?",
+      "choices": ["`?`", "`&`", "`=`", "`/`"],
+      "answer": 0,
+      "explain": "`?` comes after the endpoint, each parameter is `name=value`, and `&` separates parameters."
+    },
+    {
+      "id": "url-in-state",
+      "type": "choice",
+      "prompt": "In this request, what does `in=state:37` do?",
+      "code": "https://api.census.gov/data/2022/acs/acs5?get=NAME,B19013_001E&for=county:*&in=state:37",
+      "choices": ["Limits the request to North Carolina", "Asks for 37 counties", "Asks for the 2037 data", "Sets the API key"],
+      "answer": 0,
+      "explain": "`for=county:*` means every county, and `in=state:37` limits it to North Carolina."
+    },
+    {
+      "id": "order-url",
+      "type": "order",
+      "prompt": "Build the request for median household income in every North Carolina county. Put the tiles in order.",
+      "answer": ["https://api.census.gov/data/2022/acs/acs5", "?", "get=NAME,B19013_001E", "&", "for=county:*", "&", "in=state:37"],
+      "extra": ["#"],
+      "explain": "Endpoint, then `?`, then parameters separated by `&`."
+    },
+    {
+      "id": "json",
+      "type": "choice",
+      "prompt": "Web API responses, like the Census API's, usually come back as...",
+      "choices": ["JSON", "PDF", "Shapefiles", "Excel files"],
+      "answer": 0,
+      "explain": "JSON is structured text that R can turn into lists or data frames."
+    },
+    {
+      "id": "api-key",
+      "type": "choice",
+      "r": true,
+      "prompt": "Where should you keep your Census API key?",
+      "choices": [
+        "In your `.Renviron` file, for example with `census_api_key(\"KEY\", install = TRUE)`",
+        "At the top of every script",
+        "In a comment in your R Markdown file",
+        "In a file you push to GitHub"
+      ],
+      "answer": 0,
+      "explain": "Anyone who has your key can use it as you, so keep it out of scripts you share."
+    },
+    {
+      "id": "fill-geometry",
+      "type": "fill",
+      "prompt": "Complete the code so `get_acs()` also downloads the tract boundaries, ready to map.",
+      "code": "get_acs(\n  geography = \"tract\",\n  variables = \"B01001_001\",\n  state     = \"NC\",\n  ___ = TRUE\n)",
+      "answers": ["geometry"],
+      "explain": "`geometry = TRUE` returns an sf object joined on GEOID."
+    },
+    {
+      "id": "get-decennial",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which tidycensus function pulls full-count data from the decennial census?",
+      "choices": ["`get_decennial()`", "`get_acs()`", "`load_variables()`", "`get_pums()`"],
+      "answer": 0,
+      "explain": "`get_decennial()` returns counts, so there's no `moe` column."
+    },
+    {
+      "id": "moe-90",
+      "type": "choice",
+      "prompt": "ACS margins of error use which confidence level?",
+      "choices": ["90%", "95%", "99%", "50%"],
+      "answer": 0,
+      "explain": "There is a 90% chance that the true value lies within estimate ± MOE."
+    },
+    {
+      "id": "cv-cutoff",
+      "type": "choice",
+      "prompt": "A common rule of thumb treats ACS estimates as unreliable when the coefficient of variation is above about...",
+      "choices": ["30%", "5%", "50%", "90%"],
+      "answer": 0,
+      "explain": "Report such estimates with caution, or combine areas or years."
+    },
+    {
+      "id": "overlap-tf",
+      "type": "truefalse",
+      "prompt": "Comparing the 2017–2021 and 2018–2022 ACS 5-year estimates is a good way to measure change.",
+      "answer": false,
+      "explain": "They share four years of responses. Compare non-overlapping periods, such as 2013–2017 and 2018–2022."
+    },
+    {
+      "id": "code-cv",
+      "type": "code",
+      "prompt": "An ACS estimate is 52,000 with a margin of error of 4,935. Compute its coefficient of variation, as a percent, and store it in `cv`. (CV = (MOE / 1.645) / estimate × 100.)",
+      "starter": "estimate <- 52000\nmoe <- 4935\n",
+      "check": "isTRUE(all.equal(cv, (4935 / 1.645) / 52000 * 100, tolerance = 1e-4))",
+      "solution": "estimate <- 52000\nmoe <- 4935\ncv <- (moe / 1.645) / estimate * 100",
+      "explain": "4935 / 1.645 is a standard error of 3,000, so the CV is about 5.8%: a reliable estimate."
+    },
+    {
+      "id": "code-substr",
+      "type": "code",
+      "prompt": "`geoid` holds a 15-digit block GEOID. Use `substr()` to store its 11-digit tract GEOID in `tract`.",
+      "starter": "geoid <- \"371350116002004\"\n",
+      "check": "identical(tract, \"37135011600\")",
+      "solution": "geoid <- \"371350116002004\"\ntract <- substr(geoid, 1, 11)",
+      "explain": "The tract is the first 11 characters: state (2), county (3), and tract (6)."
+    }
+  ]
+}

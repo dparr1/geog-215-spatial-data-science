@@ -1,0 +1,249 @@
+{
+  "id": "r-rstudio-rmarkdown",
+  "title": "R, RStudio, and R Markdown",
+  "perSession": 10,
+  "minR": 4,
+  "questions": [
+    {
+      "id": "r-does-computing",
+      "type": "choice",
+      "prompt": "Which program does the actual computing when you run code?",
+      "choices": ["R", "RStudio", "R Markdown", "Quarto"],
+      "answer": 0,
+      "explain": "R is the engine; RStudio is the dashboard you drive it from."
+    },
+    {
+      "id": "three-tools",
+      "type": "choice",
+      "prompt": "Which sentence describes the three tools correctly?",
+      "choices": [
+        "R is the language, RStudio is the workspace, and R Markdown is the document format.",
+        "RStudio is the language, R is the workspace, and R Markdown is the document format.",
+        "R Markdown is the language, R is the workspace, and RStudio is the document format.",
+        "R, RStudio, and R Markdown are three names for the same program."
+      ],
+      "answer": 0,
+      "explain": "Keep this sentence in mind: R is the language, RStudio is the workspace, R Markdown is the document format."
+    },
+    {
+      "id": "install-order",
+      "type": "truefalse",
+      "prompt": "You can install RStudio first and R later, in either order.",
+      "answer": false,
+      "explain": "Install R first, then RStudio. RStudio can't run any code until R is installed."
+    },
+    {
+      "id": "pane-environment",
+      "type": "choice",
+      "prompt": "In which RStudio pane would you look to see the variables currently in memory?",
+      "choices": ["Environment", "Editor", "Console", "Files"],
+      "answer": 0,
+      "explain": "The Environment pane lists every variable you've created. It's the first place to look when debugging."
+    },
+    {
+      "id": "pane-console",
+      "type": "choice",
+      "prompt": "In which pane does R run a command the moment you press Enter, but nothing you type is saved?",
+      "choices": ["Console", "Editor", "Environment", "Help"],
+      "answer": 0,
+      "explain": "Experiment in the Console, and keep what works in the Editor."
+    },
+    {
+      "id": "pane-editor",
+      "type": "choice",
+      "prompt": "Where should you write code you want to keep and run again later?",
+      "choices": ["The Editor", "The Console", "The Environment pane", "The Plots pane"],
+      "answer": 0,
+      "explain": "Anything in the Editor can be saved in a file and run again."
+    },
+    {
+      "id": "rmd-extension",
+      "type": "choice",
+      "prompt": "What file extension does an R Markdown document have?",
+      "choices": ["`.Rmd`", "`.R`", "`.md`", "`.Rproj`"],
+      "answer": 0,
+      "explain": "R scripts end in `.R`; R Markdown documents end in `.Rmd` (Quarto files end in `.qmd`)."
+    },
+    {
+      "id": "yaml-header",
+      "type": "choice",
+      "prompt": "Which part of an R Markdown file holds the title, author, date, and output format?",
+      "choices": ["The YAML header", "The first code chunk", "A comment", "The Environment pane"],
+      "answer": 0,
+      "explain": "The YAML header sits at the top between two lines of three dashes and holds metadata about the document."
+    },
+    {
+      "id": "knit-does",
+      "type": "choice",
+      "prompt": "What happens when you **knit** an R Markdown file?",
+      "choices": [
+        "R reruns every code chunk from the top in a fresh session and builds a finished report.",
+        "R runs only the chunks you've changed since the last knit.",
+        "RStudio saves the file without running any code.",
+        "R copies the results from your Console into the document."
+      ],
+      "answer": 0,
+      "explain": "Because knitting starts fresh, a file that knits is a file anyone can reproduce from scratch."
+    },
+    {
+      "id": "knit-fresh",
+      "type": "truefalse",
+      "prompt": "A variable you created only by typing in the Console will still exist when you knit.",
+      "answer": false,
+      "explain": "Knitting runs in a fresh R session, so it only knows what the file itself creates."
+    },
+    {
+      "id": "markdown-bold",
+      "type": "choice",
+      "prompt": "In Markdown text, what does wrapping a word in double asterisks, like `**word**`, do?",
+      "choices": ["Makes it bold", "Makes it italic", "Turns it into a heading", "Turns it into a comment"],
+      "answer": 0,
+      "explain": "Single asterisks make italic, double asterisks make bold, and a line starting with `#` is a heading."
+    },
+    {
+      "id": "file-paths",
+      "type": "choice",
+      "prompt": "When you knit, where does R look for the data files your code reads?",
+      "choices": ["Relative to the folder where the `.Rmd` file is saved", "In your Downloads folder", "Wherever RStudio was installed", "On the CRAN website"],
+      "answer": 0,
+      "explain": "Keep all course files in one `geog215` folder so the `.Rmd` file and its data stay together."
+    },
+    {
+      "id": "quarto-same",
+      "type": "truefalse",
+      "prompt": "Quarto `.qmd` files use the same YAML header, Markdown text, and code chunks as R Markdown.",
+      "answer": true,
+      "explain": "Quarto is the newer successor to R Markdown, made by the same developers."
+    },
+    {
+      "id": "months-years",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does this code print?",
+      "code": "months <- 12\nyears <- 100\nmonths * years / 10",
+      "choices": ["`[1] 120`", "`[1] 1200`", "`[1] 12`", "An error"],
+      "answer": 0,
+      "explain": "`months * years` is 1200, and dividing by 10 gives 120."
+    },
+    {
+      "id": "case-sensitive",
+      "type": "choice",
+      "r": true,
+      "prompt": "What happens when you run this code?",
+      "code": "months <- 12\nMonths",
+      "choices": ["`Error: object 'Months' not found`", "`[1] 12`", "`[1] \"Months\"`", "Nothing is printed"],
+      "answer": 0,
+      "explain": "Variable names are case-sensitive: `Months` and `months` are different variables."
+    },
+    {
+      "id": "comment-char",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which character starts a comment in R?",
+      "choices": ["`#`", "`//`", "`--`", "`%`"],
+      "answer": 0,
+      "explain": "R ignores everything after `#` on a line."
+    },
+    {
+      "id": "named-argument",
+      "type": "choice",
+      "r": true,
+      "prompt": "In `round(3.14159, digits = 2)`, what is `digits = 2`?",
+      "choices": ["A named argument", "A variable", "A comment", "A function"],
+      "answer": 0,
+      "explain": "Arguments go inside the parentheses. Naming one, as in `digits = 2`, says which input you're setting."
+    },
+    {
+      "id": "fill-digits",
+      "type": "fill",
+      "prompt": "Complete the code so it rounds to 2 decimal places.",
+      "code": "round(3.14159, ___ = 2)",
+      "answers": ["digits"],
+      "explain": "The `digits` argument tells `round()` how many decimal places to keep. Type `?round` to see its help page."
+    },
+    {
+      "id": "fill-assign",
+      "type": "fill",
+      "prompt": "Complete the code to store 12 in a variable named `months`.",
+      "code": "months ___ 12",
+      "answers": ["<-", "="],
+      "explain": "`<-` is the assignment operator. Read it as \"gets\": months gets 12."
+    },
+    {
+      "id": "max-temps",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does this code print?",
+      "code": "temps <- c(71, 75, 68, 80, 77)\nmax(temps)",
+      "choices": ["`[1] 80`", "`[1] 68`", "`[1] 74.2`", "`[1] 5`"],
+      "answer": 0,
+      "explain": "`max()` returns the largest value in the vector."
+    },
+    {
+      "id": "c-function",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `c()` do in `c(71, 75, 68)`?",
+      "choices": ["Combines the values into a vector", "Counts the values", "Converts them to Celsius", "Creates a comment"],
+      "answer": 0,
+      "explain": "`c()` combines values into a vector, a sequence of values R stores together."
+    },
+    {
+      "id": "pipe-meaning",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does the pipe `|>` do?",
+      "choices": [
+        "Passes the result on its left as the first argument to the function on its right",
+        "Stores the value on its right in the name on its left",
+        "Starts a comment",
+        "Runs the line in the Console instead of the Editor"
+      ],
+      "answer": 0,
+      "explain": "Read the pipe as \"and then\". It lets you write nested steps from left to right."
+    },
+    {
+      "id": "order-pipe",
+      "type": "order",
+      "prompt": "Rewrite `round(sqrt(max(temps)), digits = 1)` with the pipe. Put the tiles in order.",
+      "answer": ["temps", "|>", "max()", "|>", "sqrt()", "|>", "round(digits = 1)"],
+      "extra": ["mean()"],
+      "explain": "Take `temps`, and then find the maximum, and then take the square root, and then round."
+    },
+    {
+      "id": "order-assign",
+      "type": "order",
+      "prompt": "Put the tiles in order to store three temperatures in a variable named `temps`.",
+      "answer": ["temps", "<-", "c(71, 75, 68)"],
+      "extra": ["->", "mean()"],
+      "explain": "The value on the right of `<-` is stored in the name on the left."
+    },
+    {
+      "id": "code-hours",
+      "type": "code",
+      "prompt": "Create a variable named `hours` that holds the number of hours in a week (7 days of 24 hours). Let R do the multiplication.",
+      "starter": "# hours in a week\n",
+      "check": "isTRUE(all.equal(hours, 168))",
+      "solution": "hours <- 7 * 24",
+      "explain": "`hours <- 7 * 24` stores 168. Storing values in well-named variables makes code easy to read."
+    },
+    {
+      "id": "code-mean-temps",
+      "type": "code",
+      "prompt": "`temps` holds five daily highs. Store their average in a variable named `avg_temp`.",
+      "starter": "temps <- c(71, 75, 68, 80, 77)\n",
+      "check": "isTRUE(all.equal(avg_temp, 74.2))",
+      "solution": "temps <- c(71, 75, 68, 80, 77)\navg_temp <- mean(temps)",
+      "explain": "`mean()` takes a vector and returns its average, 74.2."
+    },
+    {
+      "id": "code-pipe",
+      "type": "code",
+      "prompt": "Use the pipe `|>` to take the square root of the sum of `c(4, 9, 16)`, rounded to 2 decimal places. Store the result in `answer`.",
+      "starter": "answer <- c(4, 9, 16) |>\n",
+      "check": "isTRUE(all.equal(answer, 5.39)) && grepl(\"|>\", .sds_code, fixed = TRUE)",
+      "solution": "answer <- c(4, 9, 16) |>\n  sum() |>\n  sqrt() |>\n  round(digits = 2)",
+      "explain": "The sum is 29, its square root is 5.385..., and rounding gives 5.39."
+    }
+  ]
+}

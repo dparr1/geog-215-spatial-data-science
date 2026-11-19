@@ -128,6 +128,8 @@
   .bar span { position: absolute; inset: 0 auto 0 0; background: var(--bar); border-radius: 4px; }
   textarea { min-height: 180px; resize: vertical; }
   td.wrap { min-width: 220px; max-width: 420px; }
+  .section-title { font-size: 0.95rem; margin: 18px 0 8px; }
+  .section-title:first-of-type { margin-top: 4px; }
   tr.group td { background: var(--surface-2); font-weight: 600; }
   details summary { cursor: pointer; color: var(--accent); white-space: nowrap; }
   details pre {
@@ -204,7 +206,8 @@
       <button role="tab" data-tab="add" aria-selected="false">Add students</button>
       <button role="tab" data-tab="activity" aria-selected="false">Activity</button>
       <button role="tab" data-tab="pages" aria-selected="false">Pages</button>
-      <button role="tab" data-tab="quiz" aria-selected="false">Quizzes</button>
+      <button role="tab" data-tab="cq" aria-selected="false">Chapter quizzes</button>
+      <button role="tab" data-tab="quiz" aria-selected="false">Self-checks</button>
       <button role="tab" data-tab="code" aria-selected="false">Code</button>
     </div>
 
@@ -234,7 +237,9 @@
           <thead>
             <tr>
               <th>Name</th><th>Email</th><th>Group / term</th><th>Status</th>
-              <th class="num">Pages opened</th><th class="num" title="Questions answered correctly at least once, of those answered">Quiz right</th>
+              <th class="num">Pages opened</th>
+              <th class="num" title="Chapter quizzes: correct answers as a share of all answers">Quiz success</th>
+              <th class="num" title="Self-check questions answered correctly at least once, of those answered">Self-checks right</th>
               <th class="num">Code runs</th><th>Last active</th><th>Actions</th>
             </tr>
           </thead>
@@ -300,7 +305,55 @@
       </div>
     </div>
 
-    <!-- Quizzes -->
+    <!-- Chapter quizzes -->
+    <div class="panel" data-panel="cq" hidden>
+      <div class="toolbar">
+        <div>
+          <label for="cq-student">Student</label>
+          <select id="cq-student"><option value="">Everyone</option></select>
+        </div>
+        <div>
+          <label for="cq-chapter">Chapter</label>
+          <select id="cq-chapter"><option value="">All chapters</option></select>
+        </div>
+      </div>
+      <p class="hint">The quiz page after each chapter asks 10 random questions, then re-asks any a student
+        missed until all are right. <strong>Correct</strong> and <strong>incorrect</strong> count every answer,
+        re-asks included, and <strong>success</strong> is correct answers as a share of all answers.
+        <strong>Best first try</strong> is the highest share of a finished quiz's questions a student got right
+        the first time.</p>
+
+      <h3 class="section-title" id="cq-chapters-title">By chapter</h3>
+      <div class="table-wrap" id="cq-chapters-wrap">
+        <table>
+          <thead><tr><th>Chapter</th><th>Students who finished one</th><th class="num">Quizzes finished</th>
+            <th class="num">Correct</th><th class="num">Incorrect</th><th class="num">Success</th></tr></thead>
+          <tbody id="cq-chapters-body"></tbody>
+        </table>
+      </div>
+
+      <h3 class="section-title">By student</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Student</th><th>Chapter</th><th class="num">Finished</th><th class="num">Correct</th>
+            <th class="num">Incorrect</th><th class="num">Success</th><th class="num">Best first try</th>
+            <th>Last taken</th></tr></thead>
+          <tbody id="cq-students-body"></tbody>
+        </table>
+      </div>
+
+      <h3 class="section-title">Questions</h3>
+      <p class="hint" id="cq-questions-hint"></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Question</th><th class="num">Students</th><th class="num">Correct</th>
+            <th class="num">Incorrect</th><th class="num">Success</th><th class="num">Right first try</th></tr></thead>
+          <tbody id="cq-questions-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Self-checks (webexercises questions in the chapters) -->
     <div class="panel" data-panel="quiz" hidden>
       <div class="toolbar">
         <div>
@@ -352,6 +405,7 @@
   let sb = null;
   const state = {
     roster: [], activity: [], pages: [], quiz: [], code: [], titles: {},
+    cq: [], cqQuestions: [],   // chapter quizzes: per student and chapter, per question
     // One student's quiz answers / code runs, loaded when picked: { code, rows }
     quizFor: null, codeFor: null,
   };
@@ -429,18 +483,22 @@
   async function refresh() {
     $("refresh").disabled = true;
     try {
-      const [roster, activity, pages, quiz, code] = await Promise.all([
+      const [roster, activity, pages, quiz, code, cq, cqQuestions] = await Promise.all([
         rpc("admin_roster"),
         rpc("admin_activity", { p_limit: 500 }),
         rpc("admin_pages"),
         rpc("admin_quiz"),
         rpc("admin_code"),
+        rpc("admin_chapter_quizzes"),
+        rpc("admin_chapter_quiz_questions"),
       ]);
       state.roster = roster || [];
       state.activity = activity || [];
       state.pages = pages || [];
       state.quiz = quiz || [];
       state.code = code || [];
+      state.cq = cq || [];
+      state.cqQuestions = cqQuestions || [];
       state.quizFor = null;
       state.codeFor = null;
       renderAll();
@@ -475,6 +533,7 @@
     renderStudents();
     renderActivity();
     renderPages();
+    renderChapterQuizzes();
     renderQuiz();
     renderCode();
   }
@@ -500,8 +559,9 @@
     fillSelect($("student-note"), notes.map((n) => [n, n]), '<option value="">All</option>');
     $("note-options").innerHTML = notes.map((n) => `<option value="${esc(n)}">`).join("");
     const students = state.roster.map((s) => [s.code, s.student_name + " (" + (s.email || s.code) + ")"]);
-    ["activity-student", "quiz-student", "code-student"].forEach((id) =>
+    ["activity-student", "quiz-student", "code-student", "cq-student"].forEach((id) =>
       fillSelect($(id), students, '<option value="">Everyone</option>'));
+    fillSelect($("cq-chapter"), chapters().map((c) => [c.chapter, c.title]), '<option value="">All chapters</option>');
   }
 
   function renderStudents() {
@@ -524,13 +584,14 @@
         <td>${esc(s.note || "")}</td>
         <td>${st.html}</td>
         <td class="num">${Number(s.pages_opened)}</td>
+        <td class="num" title="${Number(s.cq_correct)} correct, ${Number(s.cq_incorrect)} incorrect, ${Number(s.cq_completed)} quizzes finished">${successBadge(s.cq_correct, s.cq_incorrect)}</td>
         <td class="num">${Number(s.quiz_answered) ? Number(s.quiz_correct) + " of " + Number(s.quiz_answered) : "0"}</td>
         <td class="num" title="${Number(s.code_errors)} ended in an error">${Number(s.code_runs)}</td>
         <td>${when(s.last_active)}</td>
         <td class="actions">${lock}
           <button class="btn danger small" data-act="delete" data-code="${esc(s.code)}">Delete</button></td>
       </tr>`;
-    }).join("") : `<tr><td colspan="9" class="empty">${state.roster.length
+    }).join("") : `<tr><td colspan="10" class="empty">${state.roster.length
       ? "No students match these filters." : "No students yet. Use Add students."}</td></tr>`;
   }
 
@@ -563,7 +624,82 @@
     }).join("") : `<tr><td colspan="4" class="empty">No pages opened yet.</td></tr>`;
   }
 
-  // ---- Quizzes and code ----------------------------------------------------
+  // ---- Chapter quizzes -----------------------------------------------------
+  // Success = correct / (correct + incorrect), as a colored badge.
+  function successBadge(correct, incorrect) {
+    const c = Number(correct) || 0, total = c + (Number(incorrect) || 0);
+    if (!total) return '<span class="muted-dash">–</span>';
+    const pct = Math.round((c / total) * 100);
+    const tone = pct >= 80 ? "ok" : pct >= 60 ? "warn" : "danger";
+    return `<span class="badge ${tone}">${pct}%</span>`;
+  }
+
+  // Chapters seen in the data, in the book's order where possible.
+  const BOOK_ORDER = ["intro-spatial-data-science", "r-rstudio-rmarkdown", "census-data-apis"];
+  function chapters() {
+    const titles = {};
+    state.cq.forEach((r) => { titles[r.chapter] = r.chapter_title || titles[r.chapter] || r.chapter; });
+    state.cqQuestions.forEach((r) => { if (!titles[r.chapter]) titles[r.chapter] = r.chapter; });
+    const rank = (c) => { const i = BOOK_ORDER.indexOf(c); return i < 0 ? 999 : i; };
+    return Object.keys(titles).sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
+      .map((chapter) => ({ chapter, title: titles[chapter] }));
+  }
+
+  function renderChapterQuizzes() {
+    const student = $("cq-student").value;
+    const chapter = $("cq-chapter").value;
+    const titleOf = Object.fromEntries(chapters().map((c) => [c.chapter, c.title]));
+    const rows = state.cq.filter((r) => (!student || r.code === student) && (!chapter || r.chapter === chapter));
+
+    // By chapter (class totals), only when looking at everyone.
+    $("cq-chapters-title").hidden = $("cq-chapters-wrap").hidden = !!student;
+    const total = state.roster.length;
+    const byChapter = chapters().filter((c) => !chapter || c.chapter === chapter).map((c) => {
+      const rs = state.cq.filter((r) => r.chapter === c.chapter);
+      const sum = (k) => rs.reduce((a, r) => a + Number(r[k]), 0);
+      return { ...c, finishers: rs.filter((r) => Number(r.completed) > 0).length,
+               completed: sum("completed"), correct: sum("correct"), incorrect: sum("incorrect") };
+    });
+    $("cq-chapters-body").innerHTML = byChapter.length ? byChapter.map((c) => `<tr>
+        <td>${esc(c.title)}</td>
+        <td>${share(c.finishers, total)}</td>
+        <td class="num">${c.completed}</td>
+        <td class="num">${c.correct}</td>
+        <td class="num">${c.incorrect}</td>
+        <td class="num">${successBadge(c.correct, c.incorrect)}</td>
+      </tr>`).join("") : `<tr><td colspan="6" class="empty">No chapter quizzes taken yet.</td></tr>`;
+
+    // By student
+    $("cq-students-body").innerHTML = rows.length ? rows.map((r) => `<tr>
+        <td>${esc(r.student_name)}</td>
+        <td>${esc(titleOf[r.chapter] || r.chapter)}</td>
+        <td class="num" title="${Number(r.started)} started">${Number(r.completed)} of ${Number(r.started)}</td>
+        <td class="num">${Number(r.correct)}</td>
+        <td class="num">${Number(r.incorrect)}</td>
+        <td class="num">${successBadge(r.correct, r.incorrect)}</td>
+        <td class="num">${r.best_first_try == null ? "–" : Math.round(Number(r.best_first_try)) + "%"}</td>
+        <td>${when(r.last_at)}</td>
+      </tr>`).join("") : `<tr><td colspan="8" class="empty">${student
+        ? "This student hasn't taken a chapter quiz yet." : "No chapter quizzes taken yet."}</td></tr>`;
+
+    // Questions, hardest first (class-wide).
+    $("cq-questions-hint").textContent = "Each question's totals for the whole class, hardest first" +
+      (chapter ? "." : ". Pick a chapter to narrow the list.");
+    const qs = state.cqQuestions.filter((q) => !chapter || q.chapter === chapter).map((q) => {
+      const c = Number(q.correct), n = c + Number(q.incorrect);
+      return { ...q, rate: n ? c / n : 1 };
+    }).sort((a, b) => a.rate - b.rate || Number(b.incorrect) - Number(a.incorrect));
+    $("cq-questions-body").innerHTML = qs.length ? qs.map((q) => `<tr>
+        <td class="wrap" title="${esc(titleOf[q.chapter] || q.chapter)} · ${esc(q.question)}">${esc(q.label || q.question)}</td>
+        <td class="num">${Number(q.students)}</td>
+        <td class="num">${Number(q.correct)}</td>
+        <td class="num">${Number(q.incorrect)}</td>
+        <td class="num">${successBadge(q.correct, q.incorrect)}</td>
+        <td class="num">${Number(q.first_try_total) ? Math.round(100 * Number(q.first_try_correct) / Number(q.first_try_total)) + "%" : "–"}</td>
+      </tr>`).join("") : `<tr><td colspan="6" class="empty">No answers yet.</td></tr>`;
+  }
+
+  // ---- Self-checks and code ------------------------------------------------
   // "n of total" with a bar, as on the Pages tab.
   function share(n, total) {
     const pct = total ? Math.min(100, Math.round((n / total) * 100)) : 0;
@@ -698,9 +834,10 @@
     const act = btn.dataset.act;
 
     if (act === "history") {
-      ["activity-student", "quiz-student", "code-student"].forEach((id) => ($(id).value = code));
+      ["activity-student", "quiz-student", "code-student", "cq-student"].forEach((id) => ($(id).value = code));
       selectTab("activity");
       renderActivity();
+      renderChapterQuizzes();
       renderQuiz();
       renderCode();
       loadQuizFor();
@@ -859,6 +996,7 @@
     ["student-search", "student-note", "student-status"].forEach((id) =>
       $(id).addEventListener("input", renderStudents));
     $("activity-student").addEventListener("input", renderActivity);
+    ["cq-student", "cq-chapter"].forEach((id) => $(id).addEventListener("input", renderChapterQuizzes));
     $("quiz-student").addEventListener("input", () => { renderQuiz(); loadQuizFor(); });
     $("code-student").addEventListener("input", () => { renderCode(); loadCodeFor(); });
     $("add-form").addEventListener("submit", onAdd);

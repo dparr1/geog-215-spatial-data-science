@@ -16,12 +16,13 @@ screen shows the same "if this email is on the class list…" message either
 way, so it can't be used to find out who is in the class.
 
 Students stay signed in on that browser until they sign out. **Progress:**
-the admin page shows three kinds of progress, all recorded by
-`assets/auth-gate.html` for active students only (never instructors):
+the admin page shows four kinds of progress, all recorded for active students
+only (never instructors) through `assets/auth-gate.html`:
 
 | What | Table | Recorded when |
 | --- | --- | --- |
 | Pages opened | `page_progress` | A student opens a page. |
+| Chapter quizzes | `chapter_quiz_sessions`, `chapter_quiz_answers` | A student answers a question on a chapter quiz page (see `quizzes/README.md`). Each run through a quiz is a session, with its correct answers, incorrect answers, and how many questions were right on the first try. The second table keeps each student's totals for each question. |
 | Self-check quiz answers | `quiz_responses` | A student picks or types an answer to a webexercises question (`mcq()`, `torf()`, `fitb()`, `longmcq()`). Typed answers are saved when they leave the box or stop typing for 2 seconds. It keeps the latest answer, the number of attempts, and whether they got it right at least once. |
 | Code runs | `code_runs` | A student runs a webR cell with **Run Code** or Shift/Ctrl+Enter. Cells that run by themselves when the page loads don't count. It keeps the number of runs, how many ended in an R error, and the code as they last ran it. |
 
@@ -146,11 +147,12 @@ To add another instructor, insert their email the same way.
 
 | Tab | |
 | --- | --- |
-| **Students** | Every student with their email, status (*Has signed in* / *Not signed in yet* / *Locked out*), pages opened, quiz questions right (of those answered), code runs and last activity. Search by name or email, and filter by group/term or status. **Lock out** / **Let back in**, **Delete** (removes their account and progress). Click a name to see their activity, quiz answers and code runs. |
+| **Students** | Every student with their email, status (*Has signed in* / *Not signed in yet* / *Locked out*), pages opened, chapter quiz success, self-check questions right (of those answered), code runs and last activity. Search by name or email, and filter by group/term or status. **Lock out** / **Let back in**, **Delete** (removes their account and progress). Click a name to see their activity, quiz answers and code runs. |
 | **Add students** | Paste one student per line as `Name, email` (comma or tab, so two columns pasted from a spreadsheet or Canvas export work too), plus an optional group/term. Emails already on the roster are skipped. Added students can sign in straight away. |
 | **Activity** | The latest page opens, for everyone or one student. |
 | **Pages** | How many students have opened each page. |
-| **Quizzes** | Each self-check question, by page: how many students answered it, how many got it right, and total attempts. Pick a student to see their last answer to each question. |
+| **Chapter quizzes** | Results from the quiz page after each chapter, for everyone or one student, and for all chapters or one. **Correct** and **incorrect** count every answer, including re-asks of missed questions, and **success** is correct answers as a share of all answers. *By chapter* gives class totals. *By student* gives each student's quizzes finished, correct and incorrect answers, success, and best first-try score. *Questions* lists every question, hardest first. |
+| **Self-checks** | Each self-check question in the chapters, by page: how many students answered it, how many got it right, and total attempts. Pick a student to see their last answer to each question. |
 | **Code** | Each webR code cell, by page: how many students ran it, total runs, and how many ended in an error. Pick a student to see the code they last ran in each cell. |
 
 Tell students to go to geog215.org and sign in with **the email you added**.
@@ -209,9 +211,10 @@ group/term, and lock out last term's.
 - The roster, instructor list and everyone's progress can only be read by
   instructors (admin page) or from the dashboard. Students see only their own
   progress rows and can't edit them.
-- Quiz answers are checked in the browser (the answers are in the page, as
-  webexercises works), so a student who knows how could report a wrong answer
-  as right. Treat the Quizzes tab as a record of practice, not a grade.
+- Self-check and chapter quiz answers are checked in the browser (the answers
+  are in the page and in `quizzes/*.json`), so a student who knows how could
+  report a wrong answer as right. Treat the Self-checks and Chapter quizzes
+  tabs as a record of practice, not a grade.
 - Anyone can ask for a code for any email, but only the owner of that inbox
   receives it, and only roster or instructor emails get an account.
 - The gate hides pages in the browser but doesn't encrypt them: the page text
