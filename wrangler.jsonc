@@ -18,5 +18,8 @@
   },
   "assets": {
     "directory": "./_book"
-  }
+  },
+  // Required by `npx wrangler preview`, which Workers Builds runs for
+  // non-production branches. Empty means previews use the settings above.
+  "previews": {}
 }
