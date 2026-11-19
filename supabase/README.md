@@ -16,8 +16,19 @@ screen shows the same "if this email is on the class list…" message either
 way, so it can't be used to find out who is in the class.
 
 Students stay signed in on that browser until they sign out. **Progress:**
-every page a student opens is recorded in `page_progress`, and the admin page
-shows it.
+the admin page shows three kinds of progress, all recorded by
+`assets/auth-gate.html` for active students only (never instructors):
+
+| What | Table | Recorded when |
+| --- | --- | --- |
+| Pages opened | `page_progress` | A student opens a page. |
+| Self-check quiz answers | `quiz_responses` | A student picks or types an answer to a webexercises question (`mcq()`, `torf()`, `fitb()`, `longmcq()`). Typed answers are saved when they leave the box or stop typing for 2 seconds. It keeps the latest answer, the number of attempts, and whether they got it right at least once. |
+| Code runs | `code_runs` | A student runs a webR cell with **Run Code** or Shift/Ctrl+Enter. Cells that run by themselves when the page loads don't count. It keeps the number of runs, how many ended in an R error, and the code as they last ran it. |
+
+Questions and code cells are identified by their text (the question, or the
+code a cell starts with), so adding or moving other questions doesn't mix up
+their results. Editing a question's wording or a cell's starting code makes it
+a new question or cell on the admin page.
 
 | File | What it is |
 | --- | --- |
@@ -135,10 +146,12 @@ To add another instructor, insert their email the same way.
 
 | Tab | |
 | --- | --- |
-| **Students** | Every student with their email, status (*Has signed in* / *Not signed in yet* / *Locked out*), pages opened and last activity. Search by name or email, and filter by group/term or status. **Lock out** / **Let back in**, **Delete** (removes their account and progress). Click a name to see their activity. |
+| **Students** | Every student with their email, status (*Has signed in* / *Not signed in yet* / *Locked out*), pages opened, quiz questions right (of those answered), code runs and last activity. Search by name or email, and filter by group/term or status. **Lock out** / **Let back in**, **Delete** (removes their account and progress). Click a name to see their activity, quiz answers and code runs. |
 | **Add students** | Paste one student per line as `Name, email` (comma or tab, so two columns pasted from a spreadsheet or Canvas export work too), plus an optional group/term. Emails already on the roster are skipped. Added students can sign in straight away. |
 | **Activity** | The latest page opens, for everyone or one student. |
 | **Pages** | How many students have opened each page. |
+| **Quizzes** | Each self-check question, by page: how many students answered it, how many got it right, and total attempts. Pick a student to see their last answer to each question. |
+| **Code** | Each webR code cell, by page: how many students ran it, total runs, and how many ended in an error. Pick a student to see the code they last ran in each cell. |
 
 Tell students to go to geog215.org and sign in with **the email you added**.
 For most, that's their unc.edu address.
@@ -196,6 +209,9 @@ group/term, and lock out last term's.
 - The roster, instructor list and everyone's progress can only be read by
   instructors (admin page) or from the dashboard. Students see only their own
   progress rows and can't edit them.
+- Quiz answers are checked in the browser (the answers are in the page, as
+  webexercises works), so a student who knows how could report a wrong answer
+  as right. Treat the Quizzes tab as a record of practice, not a grade.
 - Anyone can ask for a code for any email, but only the owner of that inbox
   receives it, and only roster or instructor emails get an account.
 - The gate hides pages in the browser but doesn't encrypt them: the page text

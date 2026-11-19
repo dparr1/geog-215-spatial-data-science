@@ -127,6 +127,14 @@
   .bar { position: relative; min-width: 120px; height: 8px; background: var(--neutral-bg); border-radius: 4px; }
   .bar span { position: absolute; inset: 0 auto 0 0; background: var(--bar); border-radius: 4px; }
   textarea { min-height: 180px; resize: vertical; }
+  td.wrap { min-width: 220px; max-width: 420px; }
+  tr.group td { background: var(--surface-2); font-weight: 600; }
+  details summary { cursor: pointer; color: var(--accent); white-space: nowrap; }
+  details pre {
+    margin: 6px 0 0; padding: 8px; max-width: 420px; max-height: 240px; overflow: auto;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px;
+    font: 0.82rem ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap;
+  }
   .row-gap { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
 </style>
 </head>
@@ -196,6 +204,8 @@
       <button role="tab" data-tab="add" aria-selected="false">Add students</button>
       <button role="tab" data-tab="activity" aria-selected="false">Activity</button>
       <button role="tab" data-tab="pages" aria-selected="false">Pages</button>
+      <button role="tab" data-tab="quiz" aria-selected="false">Quizzes</button>
+      <button role="tab" data-tab="code" aria-selected="false">Code</button>
     </div>
 
     <!-- Students -->
@@ -224,7 +234,8 @@
           <thead>
             <tr>
               <th>Name</th><th>Email</th><th>Group / term</th><th>Status</th>
-              <th class="num">Pages opened</th><th>Last active</th><th>Actions</th>
+              <th class="num">Pages opened</th><th class="num" title="Questions answered correctly at least once, of those answered">Quiz right</th>
+              <th class="num">Code runs</th><th>Last active</th><th>Actions</th>
             </tr>
           </thead>
           <tbody id="students-body"></tbody>
@@ -288,6 +299,40 @@
         </table>
       </div>
     </div>
+
+    <!-- Quizzes -->
+    <div class="panel" data-panel="quiz" hidden>
+      <div class="toolbar">
+        <div>
+          <label for="quiz-student">Student</label>
+          <select id="quiz-student"><option value="">Everyone</option></select>
+        </div>
+      </div>
+      <p class="hint" id="quiz-hint"></p>
+      <div class="table-wrap">
+        <table>
+          <thead id="quiz-head"></thead>
+          <tbody id="quiz-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Code -->
+    <div class="panel" data-panel="code" hidden>
+      <div class="toolbar">
+        <div>
+          <label for="code-student">Student</label>
+          <select id="code-student"><option value="">Everyone</option></select>
+        </div>
+      </div>
+      <p class="hint" id="code-hint"></p>
+      <div class="table-wrap">
+        <table>
+          <thead id="code-head"></thead>
+          <tbody id="code-body"></tbody>
+        </table>
+      </div>
+    </div>
   </main>
 </section>
 
@@ -305,7 +350,11 @@
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
   let sb = null;
-  const state = { roster: [], activity: [], pages: [], titles: {} };
+  const state = {
+    roster: [], activity: [], pages: [], quiz: [], code: [], titles: {},
+    // One student's quiz answers / code runs, loaded when picked: { code, rows }
+    quizFor: null, codeFor: null,
+  };
   let pendingEmail = "";
 
   // ---- Formatting ----------------------------------------------------------
@@ -380,15 +429,22 @@
   async function refresh() {
     $("refresh").disabled = true;
     try {
-      const [roster, activity, pages] = await Promise.all([
+      const [roster, activity, pages, quiz, code] = await Promise.all([
         rpc("admin_roster"),
         rpc("admin_activity", { p_limit: 500 }),
         rpc("admin_pages"),
+        rpc("admin_quiz"),
+        rpc("admin_code"),
       ]);
       state.roster = roster || [];
       state.activity = activity || [];
       state.pages = pages || [];
+      state.quiz = quiz || [];
+      state.code = code || [];
+      state.quizFor = null;
+      state.codeFor = null;
       renderAll();
+      await Promise.all([loadQuizFor(), loadCodeFor()]);
     } catch (e) {
       banner("Couldn't load data: " + e.message, true);
     }
@@ -408,6 +464,8 @@
       }
       renderActivity();
       renderPages();
+      renderQuiz();
+      renderCode();
     } catch (_) { /* titles are optional */ }
   }
 
@@ -417,6 +475,8 @@
     renderStudents();
     renderActivity();
     renderPages();
+    renderQuiz();
+    renderCode();
   }
 
   function renderStats() {
@@ -439,9 +499,9 @@
     const notes = [...new Set(state.roster.map((s) => s.note).filter(Boolean))].sort();
     fillSelect($("student-note"), notes.map((n) => [n, n]), '<option value="">All</option>');
     $("note-options").innerHTML = notes.map((n) => `<option value="${esc(n)}">`).join("");
-    fillSelect($("activity-student"),
-      state.roster.map((s) => [s.code, s.student_name + " (" + (s.email || s.code) + ")"]),
-      '<option value="">Everyone</option>');
+    const students = state.roster.map((s) => [s.code, s.student_name + " (" + (s.email || s.code) + ")"]);
+    ["activity-student", "quiz-student", "code-student"].forEach((id) =>
+      fillSelect($(id), students, '<option value="">Everyone</option>'));
   }
 
   function renderStudents() {
@@ -464,11 +524,13 @@
         <td>${esc(s.note || "")}</td>
         <td>${st.html}</td>
         <td class="num">${Number(s.pages_opened)}</td>
+        <td class="num">${Number(s.quiz_answered) ? Number(s.quiz_correct) + " of " + Number(s.quiz_answered) : "0"}</td>
+        <td class="num" title="${Number(s.code_errors)} ended in an error">${Number(s.code_runs)}</td>
         <td>${when(s.last_active)}</td>
         <td class="actions">${lock}
           <button class="btn danger small" data-act="delete" data-code="${esc(s.code)}">Delete</button></td>
       </tr>`;
-    }).join("") : `<tr><td colspan="7" class="empty">${state.roster.length
+    }).join("") : `<tr><td colspan="9" class="empty">${state.roster.length
       ? "No students match these filters." : "No students yet. Use Add students."}</td></tr>`;
   }
 
@@ -501,6 +563,131 @@
     }).join("") : `<tr><td colspan="4" class="empty">No pages opened yet.</td></tr>`;
   }
 
+  // ---- Quizzes and code ----------------------------------------------------
+  // "n of total" with a bar, as on the Pages tab.
+  function share(n, total) {
+    const pct = total ? Math.min(100, Math.round((n / total) * 100)) : 0;
+    return `<div style="display:flex;align-items:center;gap:8px">
+      <div class="bar" style="flex:1"><span style="width:${pct}%"></span></div>
+      <span style="white-space:nowrap">${n} of ${total}</span></div>`;
+  }
+
+  // Rows grouped under a heading row for each page, in the order given.
+  function byPage(rows, cols, renderRow) {
+    let last = null;
+    return rows.map((r) => {
+      const head = r.page !== last
+        ? `<tr class="group"><td colspan="${cols}" title="${esc(r.page)}">${esc(pageTitle(r.page))}</td></tr>` : "";
+      last = r.page;
+      return head + renderRow(r);
+    }).join("");
+  }
+
+  // One student's rows, loaded from Supabase when they're picked.
+  async function loadQuizFor() {
+    const code = $("quiz-student").value;
+    if (!code) { state.quizFor = null; renderQuiz(); return; }
+    if (state.quizFor && state.quizFor.code === code) return;
+    try {
+      state.quizFor = { code, rows: (await rpc("admin_quiz_responses", { p_code: code, p_limit: 5000 })) || [] };
+    } catch (e) {
+      banner("Couldn't load quiz answers: " + e.message, true);
+      state.quizFor = { code, rows: [] };
+    }
+    renderQuiz();
+  }
+
+  async function loadCodeFor() {
+    const code = $("code-student").value;
+    if (!code) { state.codeFor = null; renderCode(); return; }
+    if (state.codeFor && state.codeFor.code === code) return;
+    try {
+      state.codeFor = { code, rows: (await rpc("admin_code_runs", { p_code: code, p_limit: 5000 })) || [] };
+    } catch (e) {
+      banner("Couldn't load code runs: " + e.message, true);
+      state.codeFor = { code, rows: [] };
+    }
+    renderCode();
+  }
+
+  const sortByPage = (rows, time) =>
+    rows.slice().sort((a, b) => a.page.localeCompare(b.page) || new Date(a[time]) - new Date(b[time]));
+
+  function renderQuiz() {
+    const code = $("quiz-student").value;
+    if (!code) {
+      $("quiz-hint").textContent = "Each self-check question: how many students answered it, and how many got it " +
+        "right at least once. Pick a student to see their answers. Answers are checked in the browser, so this " +
+        "is a record of practice, not a grade.";
+      $("quiz-head").innerHTML = `<tr><th>Question</th><th>Students who answered</th>
+        <th>Got it right</th><th class="num">Attempts</th><th>Last answered</th></tr>`;
+      const total = state.roster.length;
+      $("quiz-body").innerHTML = state.quiz.length ? byPage(state.quiz, 5, (q) => `<tr>
+          <td class="wrap">${esc(q.label || q.question)}</td>
+          <td>${share(Number(q.students), total)}</td>
+          <td>${share(Number(q.students_correct), Number(q.students))}</td>
+          <td class="num">${Number(q.attempts)}</td>
+          <td>${when(q.last_at)}</td>
+        </tr>`) : `<tr><td colspan="5" class="empty">No quiz answers yet.</td></tr>`;
+      return;
+    }
+    $("quiz-hint").textContent = "This student's answers, with the answer they gave last.";
+    $("quiz-head").innerHTML = `<tr><th>Question</th><th>Last answer</th><th>Result</th>
+      <th class="num">Attempts</th><th>Last answered</th></tr>`;
+    if (!state.quizFor || state.quizFor.code !== code) {
+      $("quiz-body").innerHTML = `<tr><td colspan="5" class="empty">Loading…</td></tr>`;
+      return;
+    }
+    const rows = sortByPage(state.quizFor.rows, "first_at");
+    $("quiz-body").innerHTML = rows.length ? byPage(rows, 5, (q) => {
+      const result = q.correct ? '<span class="badge ok">Right</span>'
+        : q.ever_correct ? '<span class="badge warn">Right before, wrong now</span>'
+        : '<span class="badge danger">Not right yet</span>';
+      return `<tr>
+        <td class="wrap">${esc(q.label || q.question)}</td>
+        <td>${esc(q.last_answer || "")}</td>
+        <td>${result}</td>
+        <td class="num">${Number(q.attempts)}</td>
+        <td>${when(q.last_at)}</td>
+      </tr>`;
+    }) : `<tr><td colspan="5" class="empty">This student hasn't answered any questions yet.</td></tr>`;
+  }
+
+  function renderCode() {
+    const code = $("code-student").value;
+    if (!code) {
+      $("code-hint").textContent = "Each code cell: how many students ran it, how many times, and how many of " +
+        "those runs ended in an R error. Only runs a student starts count (Run Code or Shift+Enter), not cells " +
+        "that run by themselves. Pick a student to see the code they last ran.";
+      $("code-head").innerHTML = `<tr><th>Code cell</th><th>Students who ran it</th>
+        <th class="num">Runs</th><th class="num">Ended in an error</th><th>Last run</th></tr>`;
+      const total = state.roster.length;
+      $("code-body").innerHTML = state.code.length ? byPage(state.code, 5, (c) => `<tr>
+          <td class="wrap"><code>${esc(c.label || c.cell)}</code></td>
+          <td>${share(Number(c.students), total)}</td>
+          <td class="num">${Number(c.runs)}</td>
+          <td class="num">${Number(c.error_runs)}</td>
+          <td>${when(c.last_run)}</td>
+        </tr>`) : `<tr><td colspan="5" class="empty">No code runs yet.</td></tr>`;
+      return;
+    }
+    $("code-hint").textContent = "The code cells this student has run, with the code as they last ran it.";
+    $("code-head").innerHTML = `<tr><th>Code cell</th><th class="num">Runs</th>
+      <th class="num">Ended in an error</th><th>Last run</th><th>Code last run</th></tr>`;
+    if (!state.codeFor || state.codeFor.code !== code) {
+      $("code-body").innerHTML = `<tr><td colspan="5" class="empty">Loading…</td></tr>`;
+      return;
+    }
+    const rows = sortByPage(state.codeFor.rows, "first_run");
+    $("code-body").innerHTML = rows.length ? byPage(rows, 5, (c) => `<tr>
+        <td class="wrap"><code>${esc(c.label || c.cell)}</code></td>
+        <td class="num">${Number(c.runs)}</td>
+        <td class="num">${Number(c.error_runs)}${c.last_error ? ' <span class="badge danger">last run</span>' : ""}</td>
+        <td>${when(c.last_run)}</td>
+        <td>${c.last_code ? `<details><summary>Show code</summary><pre>${esc(c.last_code)}</pre></details>` : ""}</td>
+      </tr>`) : `<tr><td colspan="5" class="empty">This student hasn't run any code yet.</td></tr>`;
+  }
+
   // ---- Actions -------------------------------------------------------------
   async function onStudentAction(event) {
     const btn = event.target.closest("button[data-act]");
@@ -511,9 +698,13 @@
     const act = btn.dataset.act;
 
     if (act === "history") {
-      $("activity-student").value = code;
+      ["activity-student", "quiz-student", "code-student"].forEach((id) => ($(id).value = code));
       selectTab("activity");
       renderActivity();
+      renderQuiz();
+      renderCode();
+      loadQuizFor();
+      loadCodeFor();
       return;
     }
 
@@ -668,6 +859,8 @@
     ["student-search", "student-note", "student-status"].forEach((id) =>
       $(id).addEventListener("input", renderStudents));
     $("activity-student").addEventListener("input", renderActivity);
+    $("quiz-student").addEventListener("input", () => { renderQuiz(); loadQuizFor(); });
+    $("code-student").addEventListener("input", () => { renderCode(); loadCodeFor(); });
     $("add-form").addEventListener("submit", onAdd);
   }
 
