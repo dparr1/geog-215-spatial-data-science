@@ -155,18 +155,42 @@
 .sds-q-later { font-size: 0.88rem; color: var(--q-muted); }
 @keyframes sds-q-slide { from { transform: translateY(8px); opacity: 0; } }
 
+/* Cartoon Dave and his speech bubble, on right answers */
+.sds-q-coach { flex: 1 1 100%; display: flex; align-items: flex-end; gap: 12px; margin-top: -4px; }
+.sds-q-coach-svg {
+  flex: none; width: 84px; height: 91px; overflow: visible; transform-origin: 50% 100%;
+  animation: sds-q-coach-in 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both,
+             sds-q-coach-bob 0.8s 0.55s ease-in-out 3;
+}
+.sds-q-coach-eye {
+  transform-box: fill-box; transform-origin: center;
+  animation: sds-q-blink 3.2s 1.4s infinite;
+}
+.sds-q-bubble {
+  position: relative; margin-bottom: 44px; padding: 8px 16px;
+  background: #fff; color: var(--q-right); border: 2px solid var(--q-right-border); border-radius: 16px;
+  font-size: 1.15rem; font-weight: 800; white-space: nowrap; transform-origin: 0 100%;
+  box-shadow: 0 3px 0 var(--q-right-border);
+  animation: sds-q-bubble-in 0.4s 0.3s cubic-bezier(0.3, 1.7, 0.5, 1) both;
+}
+.sds-q-bubble::after {
+  content: ""; position: absolute; left: -8px; bottom: 10px; width: 12px; height: 12px;
+  background: #fff; border-left: 2px solid var(--q-right-border); border-bottom: 2px solid var(--q-right-border);
+  transform: rotate(45deg);
+}
+/* Bigger and centred on the end-of-quiz screen */
+.sds-q-done .sds-q-coach { justify-content: center; margin: 0 0 14px; }
+.sds-q-done .sds-q-coach-svg { width: 120px; height: 130px; }
+.sds-q-done .sds-q-bubble { margin-bottom: 70px; white-space: normal; max-width: 15em; text-align: left; }
+@keyframes sds-q-coach-in { from { transform: translateY(40px) scale(0.3); opacity: 0; } }
+@keyframes sds-q-coach-bob { 50% { transform: translateY(-5px) rotate(-4deg); } }
+@keyframes sds-q-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+@keyframes sds-q-bubble-in { from { transform: scale(0) rotate(-8deg); opacity: 0; } }
+
 .sds-q-pop { animation: sds-q-pop 0.35s ease-out; }
 @keyframes sds-q-pop { 40% { transform: scale(1.015); } }
 
 /* Finish */
-.sds-q-trophy svg { overflow: visible; animation: sds-q-bounce 0.7s cubic-bezier(0.3, 1.6, 0.5, 1); }
-.sds-q-trophy circle { fill: var(--q-right-border); }
-.sds-q-trophy path {
-  fill: none; stroke: #fff; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round;
-  stroke-dasharray: 50; stroke-dashoffset: 50; animation: sds-q-draw 0.45s 0.35s ease-out forwards;
-}
-@keyframes sds-q-bounce { from { transform: scale(0.2); opacity: 0; } }
-@keyframes sds-q-draw { to { stroke-dashoffset: 0; } }
 .sds-q-stats {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 0 0 22px;
 }
@@ -187,5 +211,4 @@
   .sds-quiz *, .sds-quiz *::before, .sds-quiz *::after {
     animation: none !important; transition: none !important;
   }
-  .sds-q-trophy path { stroke-dashoffset: 0; }
 }

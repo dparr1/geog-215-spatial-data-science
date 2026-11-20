@@ -7,6 +7,9 @@ draws its questions from a bank in this folder (`quizzes/<chapter>.json`). The q
 A session asks `perSession` questions (default 10), chosen at random, with at least `minR` R
 questions (default 3) if the bank has that many. Students answer one at a time. Any they miss come
 back at the end, again and again, until every question is right. Each new quiz is a fresh random set.
+On a right answer, a cartoon of the instructor pops up with a speech bubble ("Good job!", "Way to go!",
+...), and again on the end-of-quiz screen with a message that depends on how it went. The drawing
+(`COACH_SVG`) and the phrases (`CHEERS`, `FINISH_CHEERS`) are near the top of `quiz.js`.
 
 On geog215.org every answer is saved for the admin page's **Chapter quizzes** tab (see
 `supabase/README.md`). On daveparr.com the quiz works the same way but nothing is saved.
