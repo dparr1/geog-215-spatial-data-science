@@ -75,7 +75,20 @@
   // ---- Cartoon Dave, who cheers on right answers ----------------------------
   // Inline so quiz.css can animate it (pop in, bob, blink) and so it needs no
   // extra file path on quiz pages at different depths.
-  const COACH_SVG = `<svg class="sds-q-coach-svg" viewBox="0 0 120 130" aria-hidden="true" focusable="false">
+  // The face changes with the mood: raised brows and a big smile when right,
+  // worried brows and a frown when wrong.
+  const COACH_FACES = {
+    happy: {
+      brows: "M43 49.5 Q49 46 54 49 M66 49 Q71 46 77 49.5",
+      mouth: `<path d="M47 75.5 Q60 92 73 75.5 Q60 79 47 75.5 Z" fill="#7a2e2e"/>
+    <path d="M48.5 76.3 Q60 79.6 71.5 76.3 L70.6 78.6 Q60 81.6 49.4 78.6 Z" fill="#fff"/>`,
+    },
+    sad: {
+      brows: "M43 50.5 Q48.5 49.5 54 46 M66 46 Q71.5 49.5 77 50.5",
+      mouth: `<path d="M50.5 82.5 Q60 75.5 69.5 82.5 Q60 79 50.5 82.5 Z" fill="#7a2e2e" stroke="#7a2e2e" stroke-width="1.6" stroke-linejoin="round"/>`,
+    },
+  };
+  const coachSvg = (mood) => { const f = COACH_FACES[mood]; return `<svg class="sds-q-coach-svg" viewBox="0 0 120 130" aria-hidden="true" focusable="false">
     <path d="M8 130 C10 106 30 97 60 97 C90 97 110 106 112 130 Z" fill="#b19d86"/>
     <path d="M8 130 C10 108 22 100 36 97.5 L45 113 L38 130 Z" fill="#4a5466"/>
     <path d="M112 130 C110 108 98 100 84 97.5 L75 113 L82 130 Z" fill="#4a5466"/>
@@ -87,7 +100,7 @@
     <ellipse cx="60" cy="60" rx="27" ry="32" fill="#f3c4a8"/>
     <path d="M33 44 C31 51 32 57 34.5 61 L38 60 C37 54 37.5 49 39 45 Z" fill="#a8a29a"/>
     <path d="M87 44 C89 51 88 57 85.5 61 L82 60 C83 54 82.5 49 81 45 Z" fill="#a8a29a"/>
-    <path d="M43 49.5 Q49 46 54 49 M66 49 Q71 46 77 49.5" fill="none" stroke="#8d857c" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="${f.brows}" fill="none" stroke="#8d857c" stroke-width="2.4" stroke-linecap="round"/>
     <g class="sds-q-coach-eye"><ellipse cx="49" cy="55.5" rx="3.2" ry="3.4" fill="#3b4a5a"/><circle cx="50" cy="54.4" r="1" fill="#fff"/></g>
     <g class="sds-q-coach-eye"><ellipse cx="71" cy="55.5" rx="3.2" ry="3.4" fill="#3b4a5a"/><circle cx="72" cy="54.4" r="1" fill="#fff"/></g>
     <path d="M42 57 Q43.5 59.5 45.5 59 M78 57 Q76.5 59.5 74.5 59" fill="none" stroke="#d99a7e" stroke-width="1" stroke-linecap="round"/>
@@ -96,8 +109,7 @@
     <path d="M57.5 57 C56 63 54.5 66 57 67.5 C58.5 68.5 61.5 68.5 63 67.5 C65.5 66 64 63 62.5 57" fill="#eaa98c"/>
     <path d="M33 60 C32 84 43 100 60 100.5 C77 100 88 84 87 60 C85 70 80 75 74 75.5 C68 72 52 72 46 75.5 C40 75 35 70 33 60 Z" fill="#e6e2da"/>
     <path d="M40 84 q2 4 5 6 M50 92 q3 2 5 2.5 M80 84 q-2 4 -5 6 M70 92 q-3 2 -5 2.5" fill="none" stroke="#c9c3ba" stroke-width="1.1" stroke-linecap="round"/>
-    <path d="M47 75.5 Q60 92 73 75.5 Q60 79 47 75.5 Z" fill="#7a2e2e"/>
-    <path d="M48.5 76.3 Q60 79.6 71.5 76.3 L70.6 78.6 Q60 81.6 49.4 78.6 Z" fill="#fff"/>
+    ${f.mouth}
     <path d="M43.5 75 C49 69 55.5 69 60 71.5 C64.5 69 71 69 76.5 75 C70.5 72.5 65 73 60 75 C55 73 49.5 72.5 43.5 75 Z" fill="#a99f94"/>
     <g transform="translate(0 -3.5)">
       <path d="M32 46 C31 23 45 13 61 13 C78 13 91 24 89.5 44 C78 39.5 44 39.5 32 46 Z" fill="#2b303b"/>
@@ -105,20 +117,26 @@
       <circle cx="61" cy="13.5" r="2.2" fill="#1f232c"/>
       <path d="M41 30 c2 -4 4 -4 5 -1 s3 3 5 -1 s3 -4 5 0 s3 3 5 -1 s3 -4 5 0 s3 2 5 -1 s2 -2 3 0" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
       <path d="M29.5 46 C40 37.5 80 35 97 45 C99.5 48.5 94 51 88 49 C74 44 47 44.5 35 50 C30.5 51.5 27.5 48.5 29.5 46 Z" fill="#22262f"/>
-    </g></svg>`;
+    </g></svg>`; };
 
   const CHEERS = ["Good job!", "Way to go!", "Nice work!", "You got it!", "Nailed it!",
     "Great job!", "Well done!", "Spot on!", "Keep it up!", "Excellent!"];
-  let lastCheer = -1;
-  function coach(text) {
+  const CONSOLES = ["Oops! So close.", "Not this time.", "Aw, not quite.",
+    "That's OK, you'll get it!", "Shake it off!", "Almost!"];
+  const lastLine = { happy: -1, sad: -1 };
+
+  // mood is "happy" or "sad"; text defaults to a random line for that mood,
+  // never the same one twice in a row.
+  function coach(mood, text) {
     if (text == null) {
+      const lines = mood === "sad" ? CONSOLES : CHEERS;
       let i;
-      do { i = Math.floor(Math.random() * CHEERS.length); } while (i === lastCheer);
-      lastCheer = i;
-      text = CHEERS[i];
+      do { i = Math.floor(Math.random() * lines.length); } while (i === lastLine[mood]);
+      lastLine[mood] = i;
+      text = lines[i];
     }
-    return el("div", { class: "sds-q-coach" },
-      COACH_SVG + `<div class="sds-q-bubble">${esc(text)}</div>`);
+    return el("div", { class: "sds-q-coach is-" + mood },
+      coachSvg(mood) + `<div class="sds-q-bubble">${esc(text)}</div>`);
   }
 
   // What cartoon Dave says on the end-of-quiz screen.
@@ -571,7 +589,7 @@
       const cont = el("button", { type: "button", class: "sds-q-btn " + (right ? "sds-q-go" : "sds-q-danger") }, "Continue");
       cont.addEventListener("click", () => this.next());
       footer.replaceChildren(sheet, cont);
-      if (right) footer.prepend(coach());
+      footer.prepend(coach(right ? "happy" : "sad"));
       if (right && !reduceMotion()) footer.closest(".sds-q-card").classList.add("sds-q-pop");
       cont.focus();
     }
@@ -610,7 +628,7 @@
         <div class="sds-q-actions">
           <button type="button" class="sds-q-btn sds-q-primary">New quiz</button>
         </div>`);
-      card.prepend(coach(lines[Math.floor(Math.random() * lines.length)]));
+      card.prepend(coach("happy", lines[Math.floor(Math.random() * lines.length)]));
       const again = card.querySelector("button");
       again.addEventListener("click", () => this.start());
       this.root.appendChild(card);

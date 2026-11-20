@@ -178,6 +178,19 @@
   background: #fff; border-left: 2px solid var(--q-right-border); border-bottom: 2px solid var(--q-right-border);
   transform: rotate(45deg);
 }
+/* Wrong answer: red bubble, and a slow head droop instead of the happy bob */
+.sds-q-coach.is-sad .sds-q-coach-svg {
+  animation: sds-q-coach-in 0.5s cubic-bezier(0.3, 1.4, 0.5, 1) both,
+             sds-q-coach-droop 1.4s 0.5s ease-in-out both;
+}
+.sds-q-coach.is-sad .sds-q-bubble {
+  color: var(--q-wrong); border-color: var(--q-wrong-border); box-shadow: 0 3px 0 var(--q-wrong-border);
+}
+.sds-q-coach.is-sad .sds-q-bubble::after { border-color: var(--q-wrong-border); }
+@keyframes sds-q-coach-droop {
+  30% { transform: rotate(-5deg); } 60% { transform: rotate(4deg); } 100% { transform: translateY(3px) rotate(-2deg); }
+}
+
 /* Bigger and centred on the end-of-quiz screen */
 .sds-q-done .sds-q-coach { justify-content: center; margin: 0 0 14px; }
 .sds-q-done .sds-q-coach-svg { width: 120px; height: 130px; }
