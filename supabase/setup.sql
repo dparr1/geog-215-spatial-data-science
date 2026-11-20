@@ -397,6 +397,141 @@ grant execute on function public.record_quiz_answer(text, text, text, text, bool
 revoke all on function public.record_code_run(text, text, text, text, boolean) from public, anon;
 grant execute on function public.record_code_run(text, text, text, text, boolean) to authenticated;
 
+-- 5c. Chapter quizzes -------------------------------------------------------------
+-- The quiz page after each chapter (assets/quiz/quiz.js) asks about 10 random
+-- questions from that chapter's bank, then re-asks the ones a student got wrong
+-- until all are right. Every answer counts: "correct" and "incorrect" include
+-- the re-asks, so success = correct / (correct + incorrect). Each run through a
+-- quiz is a session; students can take as many as they like.
+
+create table if not exists public.chapter_quiz_sessions (
+  id                uuid primary key,             -- made in the browser
+  user_id           uuid not null default auth.uid()
+                    references auth.users (id) on delete cascade,
+  chapter           text not null,                -- the bank's id, e.g. r-rstudio-rmarkdown
+  chapter_title     text,
+  questions         integer not null default 0,   -- questions in this session
+  correct           integer not null default 0,
+  incorrect         integer not null default 0,
+  first_try_correct integer not null default 0,   -- right the first time they were asked
+  started_at        timestamptz not null default now(),
+  last_at           timestamptz not null default now(),
+  completed_at      timestamptz                   -- null until every question is right
+);
+
+create index if not exists chapter_quiz_sessions_user_idx
+  on public.chapter_quiz_sessions (user_id, chapter);
+
+-- Running totals for each student and question, across all their sessions.
+create table if not exists public.chapter_quiz_answers (
+  user_id           uuid not null default auth.uid()
+                    references auth.users (id) on delete cascade,
+  chapter           text not null,
+  question          text not null,                -- the question's id in the bank
+  label             text,                         -- the question text, for the admin page
+  correct           integer not null default 0,
+  incorrect         integer not null default 0,
+  first_try_correct integer not null default 0,
+  first_try_total   integer not null default 0,   -- times it was asked fresh
+  last_at           timestamptz not null default now(),
+  primary key (user_id, chapter, question)
+);
+
+alter table public.chapter_quiz_sessions enable row level security;
+alter table public.chapter_quiz_answers enable row level security;
+revoke all on table public.chapter_quiz_sessions from anon, authenticated;
+revoke all on table public.chapter_quiz_answers from anon, authenticated;
+grant select on table public.chapter_quiz_sessions to authenticated;
+grant select on table public.chapter_quiz_answers to authenticated;
+
+drop policy if exists "Students read their own quiz sessions" on public.chapter_quiz_sessions;
+create policy "Students read their own quiz sessions"
+  on public.chapter_quiz_sessions for select
+  to authenticated
+  using (user_id = (select auth.uid()));
+
+drop policy if exists "Students read their own chapter quiz answers" on public.chapter_quiz_answers;
+create policy "Students read their own chapter quiz answers"
+  on public.chapter_quiz_answers for select
+  to authenticated
+  using (user_id = (select auth.uid()));
+
+-- One answer. The first answer of a session creates the session row.
+create or replace function public.record_chapter_quiz_answer(
+  p_session uuid, p_chapter text, p_chapter_title text, p_size integer,
+  p_question text, p_label text, p_correct boolean, p_first_try boolean)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_chapter  text := left(btrim(coalesce(p_chapter, '')), 100);
+  v_question text := left(btrim(coalesce(p_question, '')), 100);
+  v_correct  boolean := coalesce(p_correct, false);
+  v_first    boolean := coalesce(p_first_try, false);
+begin
+  if auth.uid() is null or public.is_instructor()
+     or not public.is_current_user_approved()
+     or p_session is null or v_chapter = '' or v_question = '' then
+    return;
+  end if;
+
+  insert into public.chapter_quiz_sessions (id, user_id, chapter, chapter_title, questions)
+  values (p_session, auth.uid(), v_chapter, left(p_chapter_title, 200),
+          least(greatest(coalesce(p_size, 0), 0), 100))
+  on conflict (id) do nothing;
+
+  -- Only the student's own, unfinished session (a session id can't be reused
+  -- to add answers to someone else's).
+  update public.chapter_quiz_sessions s
+  set correct           = s.correct + v_correct::int,
+      incorrect         = s.incorrect + (not v_correct)::int,
+      first_try_correct = s.first_try_correct + (v_correct and v_first)::int,
+      last_at           = now()
+  where s.id = p_session and s.user_id = auth.uid() and s.completed_at is null;
+  if not found then
+    return;
+  end if;
+
+  insert into public.chapter_quiz_answers as a
+    (user_id, chapter, question, label, correct, incorrect, first_try_correct, first_try_total)
+  values (auth.uid(), v_chapter, v_question, left(p_label, 500),
+          v_correct::int, (not v_correct)::int, (v_correct and v_first)::int, v_first::int)
+  on conflict (user_id, chapter, question) do update
+    set correct           = a.correct + excluded.correct,
+        incorrect         = a.incorrect + excluded.incorrect,
+        first_try_correct = a.first_try_correct + excluded.first_try_correct,
+        first_try_total   = a.first_try_total + excluded.first_try_total,
+        label             = coalesce(excluded.label, a.label),
+        last_at           = now();
+end;
+$$;
+
+-- Every question answered correctly: the session is finished.
+create or replace function public.record_chapter_quiz_finish(p_session uuid)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+begin
+  if auth.uid() is null or p_session is null then
+    return;
+  end if;
+  update public.chapter_quiz_sessions s
+  set completed_at = now(), last_at = now()
+  where s.id = p_session and s.user_id = auth.uid() and s.completed_at is null;
+end;
+$$;
+
+revoke all on function public.record_chapter_quiz_answer(uuid, text, text, integer, text, text, boolean, boolean) from public, anon;
+grant execute on function public.record_chapter_quiz_answer(uuid, text, text, integer, text, text, boolean, boolean) to authenticated;
+revoke all on function public.record_chapter_quiz_finish(uuid) from public, anon;
+grant execute on function public.record_chapter_quiz_finish(uuid) to authenticated;
+
 -- 6. Admin page functions (instructors only) ------------------------------------
 -- Used by geog215.org/admin/. Each one stops with "Instructors only." unless
 -- the caller is signed in as an instructor, so the admin page can't be used by
@@ -439,7 +574,8 @@ returns table (
   code text, student_name text, email text, note text, active boolean,
   signed_in boolean, claimed_at timestamptz, added_at timestamptz,
   pages_opened bigint, total_visits bigint, last_active timestamptz,
-  quiz_answered bigint, quiz_correct bigint, code_runs bigint, code_errors bigint
+  quiz_answered bigint, quiz_correct bigint, code_runs bigint, code_errors bigint,
+  cq_correct bigint, cq_incorrect bigint, cq_completed bigint
 )
 language plpgsql
 stable
@@ -456,11 +592,15 @@ begin
            coalesce(sum(p.visits), 0)::bigint,
            greatest(max(p.last_visit),
                     (select max(q.last_at) from public.quiz_responses q where q.user_id = r.user_id),
-                    (select max(c.last_run) from public.code_runs c where c.user_id = r.user_id)),
+                    (select max(c.last_run) from public.code_runs c where c.user_id = r.user_id),
+                    (select max(s.last_at) from public.chapter_quiz_sessions s where s.user_id = r.user_id)),
            (select count(*) from public.quiz_responses q where q.user_id = r.user_id),
            (select count(*) from public.quiz_responses q where q.user_id = r.user_id and q.ever_correct),
            (select coalesce(sum(c.runs), 0) from public.code_runs c where c.user_id = r.user_id)::bigint,
-           (select coalesce(sum(c.error_runs), 0) from public.code_runs c where c.user_id = r.user_id)::bigint
+           (select coalesce(sum(c.error_runs), 0) from public.code_runs c where c.user_id = r.user_id)::bigint,
+           (select coalesce(sum(s.correct), 0) from public.chapter_quiz_sessions s where s.user_id = r.user_id)::bigint,
+           (select coalesce(sum(s.incorrect), 0) from public.chapter_quiz_sessions s where s.user_id = r.user_id)::bigint,
+           (select count(*) from public.chapter_quiz_sessions s where s.user_id = r.user_id and s.completed_at is not null)
     from public.roster r
     left join public.page_progress p on p.user_id = r.user_id
     group by r.code
@@ -703,6 +843,61 @@ begin
 end;
 $$;
 
+-- Chapter quizzes: one row per student and chapter.
+create or replace function public.admin_chapter_quizzes()
+returns table (
+  student_name text, code text, chapter text, chapter_title text,
+  started bigint, completed bigint, correct bigint, incorrect bigint,
+  best_first_try numeric, last_at timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+begin
+  perform public.require_instructor();
+  return query
+    select r.student_name, r.code, s.chapter, max(s.chapter_title),
+           count(*), count(*) filter (where s.completed_at is not null),
+           sum(s.correct)::bigint, sum(s.incorrect)::bigint,
+           -- best share of a finished session's questions right on the first try
+           max(round(100.0 * s.first_try_correct / nullif(s.questions, 0), 1))
+             filter (where s.completed_at is not null),
+           max(s.last_at)
+    from public.chapter_quiz_sessions s
+    join public.roster r on r.user_id = s.user_id
+    group by r.code, r.student_name, s.chapter
+    order by r.student_name, s.chapter;
+end;
+$$;
+
+-- Chapter quizzes: each question's totals across the class.
+create or replace function public.admin_chapter_quiz_questions()
+returns table (
+  chapter text, question text, label text, students bigint,
+  correct bigint, incorrect bigint, first_try_correct bigint, first_try_total bigint
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+begin
+  perform public.require_instructor();
+  return query
+    select a.chapter, a.question, max(a.label), count(*),
+           sum(a.correct)::bigint, sum(a.incorrect)::bigint,
+           sum(a.first_try_correct)::bigint, sum(a.first_try_total)::bigint
+    from public.chapter_quiz_answers a
+    join public.roster r on r.user_id = a.user_id
+    group by a.chapter, a.question
+    order by a.chapter, a.question;
+end;
+$$;
+
 do $$
 declare f text;
 begin
@@ -711,7 +906,8 @@ begin
     'admin_set_active(text, boolean)',
     'admin_delete_student(text)', 'admin_activity(integer)', 'admin_pages()',
     'admin_quiz()', 'admin_quiz_responses(text, integer)',
-    'admin_code()', 'admin_code_runs(text, integer)'
+    'admin_code()', 'admin_code_runs(text, integer)',
+    'admin_chapter_quizzes()', 'admin_chapter_quiz_questions()'
   ] loop
     execute format('revoke all on function public.%s from public, anon', f);
     execute format('grant execute on function public.%s to authenticated', f);
