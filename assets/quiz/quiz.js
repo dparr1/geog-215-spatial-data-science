@@ -72,6 +72,62 @@
   const reduceMotion = () =>
     window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // ---- Cartoon Dave, who cheers on right answers ----------------------------
+  // Inline so quiz.css can animate it (pop in, bob, blink) and so it needs no
+  // extra file path on quiz pages at different depths.
+  const COACH_SVG = `<svg class="sds-q-coach-svg" viewBox="0 0 120 130" aria-hidden="true" focusable="false">
+    <path d="M8 130 C10 106 30 97 60 97 C90 97 110 106 112 130 Z" fill="#b19d86"/>
+    <path d="M8 130 C10 108 22 100 36 97.5 L45 113 L38 130 Z" fill="#4a5466"/>
+    <path d="M112 130 C110 108 98 100 84 97.5 L75 113 L82 130 Z" fill="#4a5466"/>
+    <path d="M44 98 Q60 108 76 98" fill="none" stroke="#4a5466" stroke-width="3.5" stroke-linecap="round"/>
+    <g transform="translate(64 104) rotate(14)"><path d="M0 0 L0 6" stroke="#1e2228" stroke-width="1.6"/>
+      <rect x="-3.5" y="5" width="7" height="14" rx="3.5" fill="#1e2228"/></g>
+    <ellipse cx="33.5" cy="61" rx="5" ry="8" fill="#eab296"/>
+    <ellipse cx="86.5" cy="61" rx="5" ry="8" fill="#eab296"/>
+    <ellipse cx="60" cy="60" rx="27" ry="32" fill="#f3c4a8"/>
+    <path d="M33 44 C31 51 32 57 34.5 61 L38 60 C37 54 37.5 49 39 45 Z" fill="#a8a29a"/>
+    <path d="M87 44 C89 51 88 57 85.5 61 L82 60 C83 54 82.5 49 81 45 Z" fill="#a8a29a"/>
+    <path d="M43 49.5 Q49 46 54 49 M66 49 Q71 46 77 49.5" fill="none" stroke="#8d857c" stroke-width="2.4" stroke-linecap="round"/>
+    <g class="sds-q-coach-eye"><ellipse cx="49" cy="55.5" rx="3.2" ry="3.4" fill="#3b4a5a"/><circle cx="50" cy="54.4" r="1" fill="#fff"/></g>
+    <g class="sds-q-coach-eye"><ellipse cx="71" cy="55.5" rx="3.2" ry="3.4" fill="#3b4a5a"/><circle cx="72" cy="54.4" r="1" fill="#fff"/></g>
+    <path d="M42 57 Q43.5 59.5 45.5 59 M78 57 Q76.5 59.5 74.5 59" fill="none" stroke="#d99a7e" stroke-width="1" stroke-linecap="round"/>
+    <ellipse cx="43" cy="66" rx="6" ry="3.6" fill="#ee9c8b" opacity="0.55"/>
+    <ellipse cx="77" cy="66" rx="6" ry="3.6" fill="#ee9c8b" opacity="0.55"/>
+    <path d="M57.5 57 C56 63 54.5 66 57 67.5 C58.5 68.5 61.5 68.5 63 67.5 C65.5 66 64 63 62.5 57" fill="#eaa98c"/>
+    <path d="M33 60 C32 84 43 100 60 100.5 C77 100 88 84 87 60 C85 70 80 75 74 75.5 C68 72 52 72 46 75.5 C40 75 35 70 33 60 Z" fill="#e6e2da"/>
+    <path d="M40 84 q2 4 5 6 M50 92 q3 2 5 2.5 M80 84 q-2 4 -5 6 M70 92 q-3 2 -5 2.5" fill="none" stroke="#c9c3ba" stroke-width="1.1" stroke-linecap="round"/>
+    <path d="M47 75.5 Q60 92 73 75.5 Q60 79 47 75.5 Z" fill="#7a2e2e"/>
+    <path d="M48.5 76.3 Q60 79.6 71.5 76.3 L70.6 78.6 Q60 81.6 49.4 78.6 Z" fill="#fff"/>
+    <path d="M43.5 75 C49 69 55.5 69 60 71.5 C64.5 69 71 69 76.5 75 C70.5 72.5 65 73 60 75 C55 73 49.5 72.5 43.5 75 Z" fill="#a99f94"/>
+    <g transform="translate(0 -3.5)">
+      <path d="M32 46 C31 23 45 13 61 13 C78 13 91 24 89.5 44 C78 39.5 44 39.5 32 46 Z" fill="#2b303b"/>
+      <path d="M61 13 C58 22 58 32 59.5 40.5" fill="none" stroke="#1f232c" stroke-width="1.2"/>
+      <circle cx="61" cy="13.5" r="2.2" fill="#1f232c"/>
+      <path d="M41 30 c2 -4 4 -4 5 -1 s3 3 5 -1 s3 -4 5 0 s3 3 5 -1 s3 -4 5 0 s3 2 5 -1 s2 -2 3 0" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M29.5 46 C40 37.5 80 35 97 45 C99.5 48.5 94 51 88 49 C74 44 47 44.5 35 50 C30.5 51.5 27.5 48.5 29.5 46 Z" fill="#22262f"/>
+    </g></svg>`;
+
+  const CHEERS = ["Good job!", "Way to go!", "Nice work!", "You got it!", "Nailed it!",
+    "Great job!", "Well done!", "Spot on!", "Keep it up!", "Excellent!"];
+  let lastCheer = -1;
+  function coach(text) {
+    if (text == null) {
+      let i;
+      do { i = Math.floor(Math.random() * CHEERS.length); } while (i === lastCheer);
+      lastCheer = i;
+      text = CHEERS[i];
+    }
+    return el("div", { class: "sds-q-coach" },
+      COACH_SVG + `<div class="sds-q-bubble">${esc(text)}</div>`);
+  }
+
+  // What cartoon Dave says on the end-of-quiz screen.
+  const FINISH_CHEERS = {
+    perfect: ["Perfect score! Way to go!", "Flawless! I'm impressed!", "Every one right the first time!"],
+    great: ["Great work! Keep it up!", "Way to go! You've got this!", "Nice job sticking with it!"],
+    done: ["You stuck with it. Good job!", "Practice pays off. Way to go!", "Try another set to keep improving!"],
+  };
+
   // ---- webR (only for "code" questions) -------------------------------------
   let webRPromise = null;
   function getWebR() {
@@ -493,9 +549,8 @@
       if (top) top.replaceWith(this.progressBar());
 
       const right = !!result.correct;
-      const praise = ["Nice!", "Correct!", "Great job!", "You got it!", "Well done!"];
       const sheet = el("div", { class: "sds-q-sheet " + (right ? "is-right" : "is-wrong"), role: "status" });
-      let html = `<div class="sds-q-sheet-title">${right ? esc(praise[Math.floor(Math.random() * praise.length)]) : "Not quite"}</div>`;
+      let html = `<div class="sds-q-sheet-title">${right ? "Correct!" : "Not quite"}</div>`;
       if (result.note) html += `<p>${esc(result.note)}</p>`;
       if (!right) {
         const ans = correctAnswerText(q);
@@ -516,6 +571,7 @@
       const cont = el("button", { type: "button", class: "sds-q-btn " + (right ? "sds-q-go" : "sds-q-danger") }, "Continue");
       cont.addEventListener("click", () => this.next());
       footer.replaceChildren(sheet, cont);
+      if (right) footer.prepend(coach());
       if (right && !reduceMotion()) footer.closest(".sds-q-card").classList.add("sds-q-pop");
       cont.focus();
     }
@@ -538,13 +594,11 @@
       const total = s.correct + s.incorrect;
       const success = total ? Math.round((s.correct / total) * 100) : 100;
       const n = this.items.length;
-      const headline = s.firstTry === n ? "Perfect!" : success >= 80 ? "Great work!" : "You did it!";
+      const level = s.firstTry === n ? "perfect" : success >= 80 ? "great" : "done";
+      const headline = { perfect: "Perfect!", great: "Great work!", done: "You did it!" }[level];
+      const lines = FINISH_CHEERS[level];
       this.root.innerHTML = "";
       const card = el("div", { class: "sds-q-card sds-q-done" }, `
-        <div class="sds-q-trophy" aria-hidden="true">
-          <svg viewBox="0 0 64 64" width="96" height="96"><circle cx="32" cy="32" r="30"/>
-            <path d="M18 33 l9 9 l19 -20"/></svg>
-        </div>
         <h2>${headline}</h2>
         <p>You answered all ${n} questions correctly.</p>
         <div class="sds-q-stats">
@@ -556,6 +610,7 @@
         <div class="sds-q-actions">
           <button type="button" class="sds-q-btn sds-q-primary">New quiz</button>
         </div>`);
+      card.prepend(coach(lines[Math.floor(Math.random() * lines.length)]));
       const again = card.querySelector("button");
       again.addEventListener("click", () => this.start());
       this.root.appendChild(card);
