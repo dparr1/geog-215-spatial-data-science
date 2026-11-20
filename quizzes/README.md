@@ -8,8 +8,10 @@ A session asks `perSession` questions (default 10), chosen at random, with at le
 questions (default 3) if the bank has that many. Students answer one at a time. Any they miss come
 back at the end, again and again, until every question is right. Each new quiz is a fresh random set.
 On a right answer, a cartoon of the instructor pops up with a speech bubble ("Good job!", "Way to go!",
-...), and again on the end-of-quiz screen with a message that depends on how it went. The drawing
-(`COACH_SVG`) and the phrases (`CHEERS`, `FINISH_CHEERS`) are near the top of `quiz.js`.
+...), and again on the end-of-quiz screen with a message that depends on how it went. On a wrong
+answer it frowns and says something kind ("Oops! So close."). The drawing (`coachSvg`, with the two
+faces in `COACH_FACES`) and the phrases (`CHEERS`, `CONSOLES`, `FINISH_CHEERS`) are near the top of
+`quiz.js`.
 
 On geog215.org every answer is saved for the admin page's **Chapter quizzes** tab (see
 `supabase/README.md`). On daveparr.com the quiz works the same way but nothing is saved.
