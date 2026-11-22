@@ -1,0 +1,318 @@
+# Syllabus {.unnumbered}
+
+**GEOG 215: Introduction to Spatial Data Science**\
+University of North Carolina at Chapel Hill · Fall 2026
+
+::: {.callout-note appearance="simple"}
+Dates are subject to change. Changes are announced in class, on Canvas, and on Teams. Assignment deadlines and course staff are on the [Course materials](materials.qmd) page.
+:::
+
+## Instructor
+
+**Dr. David Parr** (please call me Dr. Parr or Professor Parr)\
+**Office:** 317B Carolina Hall\
+**Email:** <daveparr@unc.edu>\
+**Office hours:** Mondays 10–11 am (in my office), Tuesdays 4–5 pm (Zoom), Wednesdays 1:30–2:30 pm (in my office)
+
+Teaching assistants and undergraduate learning assistants also hold office hours each week. Free peer tutoring is available from the [UNC Learning Center](https://learningcenter.unc.edu/appointment-peer-tutoring/).
+
+## Course essentials
+
+- **Meeting times:** Mondays, Wednesdays, and Fridays, 12:20–1:10 pm
+- **Location:** Genome Sciences Building G200
+- **Credit hours:** 3
+- **Prerequisites:** None
+- **Target audience:** Geospatial Data Science majors, GISc minors, Data Science minors, Data Science BA, Geography majors, General Education
+- **Instructional format:** In person
+- **Gen Ed:** IDEAs in Action FC-QUANT; Making Connections SS, QI
+- **Grading status:** Letter grade
+- **Final exam:** Friday, December 11, noon–3 pm, in our classroom
+
+## Course description
+
+This course will introduce students to data science with a focus on spatial (geographic) data, data that are referenced to a location on Earth's surface. Students will learn concepts and techniques to apply various facets of data science practice, including data collection, management, and integration, descriptive modeling, exploratory spatial data analysis, and communication via visualization and mapping. Real world examples and datasets spanning physical, social, and health sciences will be used throughout the course.
+
+## Units and modules
+
+| Unit | Modules and projects |
+|:--|:--|
+| **1. Getting Started with Data Science** | Module 1: Getting started with R<br>Module 2: Processing data with the tidyverse<br>Module 3: Exploring data for information<br>Project 1: Map contest with tmap |
+| **2. Working with Spatial Data** | Module 4: Overlaying two spatial layers<br>Module 5: Joining tables<br>Module 6: Spatial statistics<br>Project 2: Map contest with online data |
+| **3. Spatial Data Science** | Module 7: ANOVA<br>Module 8: Regression<br>Module 9: Clustering<br>Project 3: Spatial data science project |
+
+## Learning objectives
+
+Learning objectives describe the skills, knowledge, and abilities students gain from this class. They are grouped by the final grade that shows mastery of them.
+
+- **All students who pass the course (a D or better)** will be able to:
+  - Describe key concepts of the R programming language.
+  - Apply specific vocabulary and concepts to explain facets of putting spatial data science in practice, including geospatial data models, and coordinate systems and projections.
+- **For a C or better,** students will also be able to:
+  - Communicate their ideas with fluency and clarity.
+  - Design and write a clearly structured program in R using spatial data.
+- **For a B or better,** students will also be able to:
+  - Design, develop, and implement an R program for a scientific spatial research project.
+  - Discuss ethical considerations of collecting, using, and sharing spatial data.
+- **For an A,** students will also be able to:
+  - Design, develop, and implement an R program for a scientific spatial research project in a collaborative format that includes data preparation, data analysis, and visualization.
+  - Reflect on learning spatial data science, showing critical thinking skills and problem-solving abilities.
+
+### IDEAs in Action learning outcomes (FC-QUANT)
+
+- Summarize, interpret, and present quantitative data in mathematical forms, such as graphs, diagrams, tables, or mathematical text.
+- Develop or compute representations of data using mathematical forms or equations as models, and use statistical methods to assess their validity.
+- Make and evaluate important assumptions in the estimation, modeling, and analysis of data, and recognize the limitations of the results.
+- Apply mathematical concepts, data, procedures, and solutions to make judgments and draw conclusions.
+- Synthesize and present quantitative data to others to explain findings or to provide quantitative evidence in support of a position.
+
+These are the types of questions you should be able to answer after completing the course:
+
+1. What is the role of mathematics in organizing and interpreting measurements of the world?
+2. How can mathematical models and quantitative analysis be used to summarize or synthesize data into knowledge and predictions?
+3. What methodology can we apply to validate or reject mathematical models or to express our degree of confidence in them?
+
+## Computers and software
+
+You'll need a laptop or desktop computer (Mac, Linux, or PC), and optionally a mobile device. **Bring your computer to class charged and ready for in-class activities.**
+
+- **Canvas:** assignments, quizzes, exams, and projects, plus the syllabus, checklists, and links to Teams and office hours.
+- **Microsoft Teams:** office hours, group chats, questions about assignments, working with groups, and most announcements. Check it often.
+- **Zoom:** virtual office hours.
+- **[R and RStudio](https://posit.co/download/rstudio-desktop/):** the free, open-source programming language and workspace we use all semester.
+- **Gradescope** (optional): uploading in-class assignments and quizzes.
+- **[Poll Everywhere](https://pollev.com/drparr):** in-class discussions, attendance, and tokens.
+- **Pen and pencil:** bring something to write with!
+
+Readings are posted on Canvas, and the course [textbook](preface.qmd) is on this site.
+
+## Class expectations
+
+Slides will usually be posted on Canvas, although they may not always be available before class, and some content may only be available during lecture. Check Canvas regularly.
+
+The readings include both general reading about data and analysis and tutorials with instructions for accomplishing various tasks. The expectation is that you read them and can summarize their main points.
+
+Class sessions consist of lecture, discussion, individual and group exercises, and "free" work time, in proportions that vary from session to session.
+
+Active attendance is expected. Being an active participant in the classroom is a privilege and responsibility that includes contributing to class discussion, being present, and engaging in the critical thinking processes of the class.
+
+Students do best when they are actively engaged to develop *mastery* in the material, have a *personal connection* to what they are learning, and are *socially connected* to learning with their peers. Learn the concepts and practices of spatial data science, but more importantly, think about how to apply them to your own career path and life goals. Along the way, build relationships with your instructors and your classmates.
+
+Like playing the piano, we can talk about spatial data science, but you won't improve unless you practice, Practice, PRACTICE! Set aside time each week for the assignments. Spatial data science is not only software: it's a way of thinking about solving spatial problems that is used in many industries, government organizations, non-profits, and educational institutions.
+
+## Grading: how this class works
+
+### Specifications grading
+
+This course uses an approach to assessing learning called ***specifications grading***. Instead of grading each assignment with points, everything is assessed with the ESRN rubric (below), based on whether you demonstrate the stated learning goals. Assignments are "bundled" into tiers that reflect a hierarchy of learning goals, and final grades are based on which bundles you satisfactorily complete. The grades are not the goal of the course: they indicate which learning goals you have shown that you accomplished.
+
+Since this approach is new to most students, Dr. Parr will take however much time is needed to make sure you understand the expectations and are poised to succeed at your chosen level. His goal is to help every student reach Satisfactory or better on every part of the course they take on, and to be transparent about expectations throughout the semester.
+
+### Course assessment components
+
+| Component | Total |
+|:--|:-:|
+| Quizzes | 9 |
+| Assignments | 9 |
+| Projects | 3 |
+| Exams | 2 |
+| Presentation | 1 |
+| Reflection essay | 1 |
+
+You do not need to complete every component to pass this class.
+
+### Grade bundles
+
+There is a good deal of choice in how much you wish to learn and how hard you want to work to show and apply that learning. You might decide that passing with a D is enough for your goals, and that is perfectly appropriate and worthy of respect, especially if it lets you put your time into other things. If you aim for an A and want to learn as much as you can, know that you are taking on that work, and make sure you are in a personal and academic situation to reach that level of engagement.
+
+Final grades are awarded by the bundles below. You must meet **every** requirement in a row to earn that grade.
+
+| Final grade | Reflection essay (1) | Quizzes (9) | Combined in-class exams (2) | Assignments scored S or E (9) | Absences allowed | Projects scored S or E (3) | Projects scored E (3) | Project presentations |
+|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| A | 1 | 9 | 80% | 8 | 3 | 3 | 2 | 1 |
+| A- | 1 | 9 | 75% | 8 | 4 | 3 | 1 | 0 |
+| B+ | 1 | 8 | 75% | 7✩ | 5 | 2 | 0 | 0 |
+| B | 1 | 7 | 70% | 6✩ | 6 | 1 | 0 | 0 |
+| C+ | 1 | 6 | 65% | 5✩ | 7 | 0 | 0 | 0 |
+| C | 1 | 5 | 60% | 4✩ | – | 0 | 0 | 0 |
+| D | 1 | 4 | 50% | 0 | – | 0 | 0 | 0 |
+| F | 0 | 0 | 0% | 0 | – | 0 | 0 | 0 |
+
+✩ A Satisfactory project can substitute for a Satisfactory assignment.
+
+Assignments and projects are assessed on this scale:
+
+- **E: Excellent.** Exemplary work showing mastery of the material.
+- **S: Satisfactory.** Work with some minor errors, omissions, or misunderstandings.
+- **R: Revision needed.** Work with major errors, omissions, or misunderstandings.
+- **N: Not assessable.** Work that is incomplete, incomprehensible, or shows little understanding of the material.
+
+### Assignments
+
+**Assignments** put spatial data science into practice: they are where you develop your skills in R, programming, and working with spatial data. They are posted on Canvas with detailed instructions and must be submitted on Canvas before the deadline. To count toward your grade, an assignment must meet the specifications in its instructions. If it doesn't, you'll get feedback and a chance to resubmit. Work turned in late can't be resubmitted.
+
+Most students need 2 to 4 hours for an assignment, though some need longer and some assignments are longer than others. Scheduling 4 or 5 hours a week should give you enough time. If you finish early, use the extra time to practice. It will make you more proficient later on!
+
+### Projects and presentation
+
+Three projects build on the skills from the assignments. For an A, you need to present at least one of your projects in class, and at least two of your projects should be at the *Excellent* level. See each project's instructions for more guidance.
+
+### Quizzes
+
+There are 9 online **quizzes**, one for each module, on the reading and lecture material. They are untimed, and you may retake a quiz once per day. To pass a quiz, you need 100% correct.
+
+### Exams
+
+There are two **exams**: a midterm that covers the first third of the course, and a final exam in our scheduled final exam time. Attendance at both is mandatory. Exceptions are allowed only for University Approved Absences or arrangements made with the instructor *before* the exam. The point total for both exams is cumulative.
+
+### Feedback and revising work
+
+Grades and feedback are often confused. Meaningful, timely feedback that helps you improve is far more useful than a grade, and this grading system is designed to separate the two. Feedback focuses on the key ideas and specifics that will most improve your work, tied to each assessment's learning objectives. Use it to revise your work or improve future work, and email or visit office hours with specific questions.
+
+Learning is a process, and nobody is perfect the first time. If something isn't yet *Satisfactory*, you can resubmit it to make it better.
+
+## Tokens
+
+Every student starts the course with **1 token** that can be exchanged for some leniency or a chance to revise. Your tokens are tracked in the Canvas gradebook. Tokens are not grades: **apart from attendance, you can't trade tokens for a better grade.**
+
+**Earn tokens by:**
+
+- Being in the course: everyone starts with 1.
+- Turning in an assignment or project early (on or before the Friday before the Tuesday due date).
+- Getting an Excellent mark on an assignment or project.
+- Coming to class and answering questions in Poll Everywhere.
+- At the instructor's discretion: for example, asking questions, participating, or sharing relevant, cool class-related things.
+
+**Use tokens to:**
+
+- Turn in an assignment or project late (the cost goes up the longer you wait).
+- Resubmit an assignment or project (2 tokens per resubmission).
+- Replace an absence from class (2 tokens).
+- At the instructor's discretion, for example for poor behavior in extreme circumstances.
+
+### Late and early work
+
+The deadline for assignments and projects is **11:59 pm Eastern** on Canvas. You can use tokens to turn work in late, and the cost rises the longer you wait. Work isn't accepted after the last day for late work, and resubmissions aren't accepted after the last day to resubmit (see the deadlines on the [Course materials](materials.qmd) page). There is no grade penalty for late work, only a token cost, so turning work in late is better than not turning it in. **You can earn a token by submitting early!**
+
+If you turn in work late for any reason (a poor internet connection, the wrong submission site, Canvas issues), it is late. Tokens are there to give you flexibility. If you run out, late work won't count toward your final grade.
+
+### Negative tokens
+
+If you have negative tokens at the end of the semester, the assignments that used the most tokens for late work or resubmission won't count toward your final grade. They are removed, starting with the one that used the most tokens, until your balance is zero or positive. If you didn't use tokens for late work or resubmission, negative tokens won't affect your grade.
+
+## Attendance
+
+Attendance is taken in class with Poll Everywhere. You and your classmates learn better when you're present, both physically and mentally. If you miss class for any reason, you are still responsible for what was covered, including lecture material, discussions, assessments, and assignment requirements. Ask your classmates what you missed.
+
+## Top Student Award
+
+Grades are one measure, often an imperfect one, of your work in a class. Learning is about developing knowledge, skills, relationships, and capabilities that will serve you well in the future. These are principles I've found useful for thinking about how to learn:
+
+- *Learning* is more important than grades. Grades are, at best, an indicator of your work in a course, but learning is a lifelong process of growth and understanding.
+- *Process* is more important than product. There is no perfection. A true student works to improve the process of the work, not just the outcome.
+- *Curiosity* is more important than content. Facts matter, but a willingness to ask meaningful, deep, powerful questions matters a little more. *Why* is the most important letter in the alphabet.
+- *Collaboration* is more important than individual effort. The more you work to make others stronger, the stronger you become. Reach out to your instructors and your peers!
+
+One student who best embodies these principles of learning, process, curiosity, and collaboration will receive the **Top Student** award. Grades don't decide it: it could be any student.
+
+## Frequently asked questions
+
+**"I'm not really a computer person…"**\
+That's not really a question, but I hear it a lot from students who are nervous about the class. Chances are you're not giving yourself enough credit: I've found that 99.9% of students can do the work in this class if they stick with it. Ask questions, get help when you need it, and keep trying.
+
+**Is it okay to visit office hours?**\
+Yes! For any reason. Stop by to ask about the class, jobs, or life, or just to chat. Or just nerd out.
+
+**What if I *almost* meet the requirements for the next grade bundle, like everything for a B except one assignment?**\
+Then you've earned a C, and there's nothing wrong with that. In some cases the instructor may consider a +/- grade (a C+ here), but don't count on it. The specifications are there for a reason.
+
+**Can I really pick my grade and the work I want to do?**\
+Yes! As long as your work is *Satisfactory* or *Excellent* by each assignment's specifications, you're in good shape. If you're motivated for an A, you'll learn and do more. There's no reason anyone should fail this class.
+
+## Course policies
+
+### Behavior
+
+Respect your peers, your instructors (including substitutes and guests), and yourself. Interact respectfully with your classmates and instructors, and when working in groups, respect the time and thoughts of every person in the group.
+
+Respect your own thoughts and skills, too. In programming it is easy to get confused and frustrated, but confusion is often a sign of deep thought as you make sense of the material. Negative and insulting language about your own abilities will not be tolerated. Any time you feel disrespected, or think you might have to act in a way that could seem disrespectful, talk to me about it.
+
+### Communication
+
+With college instructors, teaching assistants, and peers, it's best to start with formal, direct communication, then adjust once you know how the other person likes to communicate. Personally, I like casual and direct communication. Put the most important point first. Be kind and be brief! Please address your instructor as **Dr. Parr** or **Professor Parr**.
+
+### Extenuating circumstances
+
+Life can be difficult at times, and most college students go through a hard semester. I'm on your side, and I want you to succeed. If something is keeping you from doing your best work, schedule an office hours visit and talk to me.
+
+### Artificial intelligence (AI)
+
+Carolina students are expected to follow these AI guidelines:
+
+1. **AI should help you think, not think for you.** In this course, don't use AI unless an assignment's or project's guidelines say you may. Never use AI on an exam or quiz.
+2. **Engage responsibly with AI.** Evaluate AI output for bias, limitations, inaccuracies, false output, and ethical implications. Don't put personal or confidential data into these tools.
+3. **Use of AI must be open and documented.** When an assignment allows it, declare, explain, and cite any use of AI in your work using applicable standards (such as APA, MLA, or course guidelines). You are 100% responsible for your final product.
+4. **Follow this syllabus's AI guidelines.** If you're unsure, ask me. This guidance would be referenced if an issue were referred to Student Conduct for alleged academic misconduct.
+
+### Code of conduct
+
+All students are expected to follow University policy and the UNC Student Code of Conduct, including its policies on academic integrity. Read more at [studentconduct.unc.edu](https://studentconduct.unc.edu/). What counts as cheating can change from one activity to another: collaboration may be encouraged on an assignment but be cheating on an exam. Follow the guidelines for each activity, and ask if you're unsure. Don't be a cheater!
+
+### University class attendance policy
+
+As stated in the University's [Class Attendance Policy](https://catalog.unc.edu/policies-procedures/attendance-grading-examination/#text), no right or privilege exists that permits a student to be absent from any class meetings, except for these University Approved Absences:
+
+1. Authorized University activities. The [University Approved Absence Office (UAAO)](https://uaao.unc.edu/) has information and [FAQs for students](https://uaao.unc.edu/faqs-for-students/).
+2. Disability, religious observance, pregnancy, or short-term military service, as required by law and approved by the [University Compliance Office](https://eoc.unc.edu/what-we-do/accommodations/), or for short-term military service, the Dean of Students.
+3. A significant health condition and/or personal or family emergency, as approved by the [Office of the Dean of Students](https://odos.unc.edu/), [Gender Violence Service Coordinators](https://gvsc.unc.edu/), and/or the [University Compliance Office](https://eoc.unc.edu/what-we-do/accommodations/).
+
+### Acceptable use
+
+By attending UNC-Chapel Hill, you agree to follow University policies on the acceptable use of IT systems and services. The Acceptable Use Policy sets the expectation that you use the University's technology responsibly, consistent with its mission, including protecting the privacy of class participants and respecting others' intellectual property. See the full [Information Technology Acceptable Use Policy](https://policies.unc.edu/TDClient/2833/Portal/KB/ArticleDet?ID=131247) and [Safe Computing at UNC](https://safecomputing.unc.edu/).
+
+### Data security and privacy
+
+UNC-Chapel Hill is committed to transparency as a state institution, to protecting certain types of information, and to using the information it collects only for appropriate purposes. See the [UNC-Chapel Hill Privacy Statement](https://www.unc.edu/about/privacy-statement/). The tools in Canvas, such as the discussion forum, assignments, mailbox, gradebook, and quizzes, share FERPA-protected information privately between instructors and individual students.
+
+### Grade appeals
+
+If you have concerns about grading, or think you have received an incorrect grade, talk with me as soon as possible. If we can't resolve the issue, you may talk to the Geography department's director of undergraduate studies or department chair.
+
+### Syllabus changes
+
+The instructor reserves the right to make changes to the syllabus, including project due dates and test dates. Changes will be announced as early as possible.
+
+### Required statement
+
+This course engages diverse scholarly perspectives to develop critical thinking, analysis, and debate, and inclusion of a reading does not imply endorsement.
+
+## Services and student support
+
+### Accommodations
+
+The University Compliance Office (UCO) [Accommodations team](https://eoc.unc.edu/accommodations/) receives requests for accommodations for disability, pregnancy and related conditions, and sincerely held religious beliefs and practices through the University's Policy on Accommodations, and determines eligibility and reasonable accommodations consistent with state and federal law.
+
+### Counseling and Psychological Services (CAPS)
+
+UNC-Chapel Hill is strongly committed to addressing the mental health needs of a diverse student body. The [Heels Care Network](http://care.unc.edu) is a place to find the many mental health resources at Carolina. CAPS is the primary mental health provider for students, offering timely consultation and connection to clinically appropriate services. Visit the [CAPS website](https://caps.unc.edu/), or go to the third floor of the Campus Health building for an initial evaluation. You can call CAPS 24/7 at 919-966-3658 for immediate help.
+
+### Title IX resources
+
+Any student affected by discrimination, harassment, interpersonal (relationship) violence, sexual violence, sexual exploitation, or stalking is encouraged to seek resources on campus or in the community. Reports can be made [online to the UCO](https://eoc.unc.edu/report-an-incident/) or by contacting the University's Title IX Coordinator or the Report and Response Managers in the University Compliance Office. I am a Responsible Employee, which means I must report to the UCO any information I receive about these forms of misconduct. Confidential resources include Counseling and Psychological Services, the University's Ombuds Office, and the Gender Violence Services Coordinators. More resources are at [safe.unc.edu](https://safe.unc.edu/).
+
+### Non-discrimination
+
+As set out in the University's [Policy Statement on Non-Discrimination](https://policies.unc.edu/TDClient/2833/Portal/KB/ArticleDet?ID=131717), the University is committed to providing an environment where all members of our community can learn, work, and thrive, and does not discriminate on the basis of age, color, disability, gender, gender expression, gender identity, genetic information, national origin, race, religion, sex, sexual orientation, or veteran status, consistent with its [Policy on Prohibited Discrimination, Harassment and Related Misconduct](https://policies.unc.edu/TDClient/2833/Portal/KB/ArticleDet?ID=132487).
+
+If you are experiencing harassment or discrimination, you can get help and file a report through the Report and Response Coordinators (<reportandresponse@unc.edu>, or see [safe.unc.edu](https://safe.unc.edu/)) or the [University Compliance Office](https://eoc.unc.edu/report-an-incident/). I am a Responsible Employee and must report to the UCO any information I receive about harassment or discrimination. Confidential resources include Counseling and Psychological Services and the University's Ombuds Office.
+
+### Undergraduate Testing Center
+
+The College of Arts and Sciences provides a secure, proctored place to take exams for undergraduates who are unable to take an exam at the scheduled time (arranged in advance with your instructor) and who do not need testing accommodations through the UCO. See the [testing center website](http://testingcenter.web.unc.edu/).
+
+### Learning Center
+
+Want to get the most out of this course or others? Visit [UNC's Learning Center](http://learningcenter.unc.edu/) to make an appointment or register for an event. Its free programs include academic coaching, peer tutoring, STEM support, ADHD/LD services, workshops, and study camps.
+
+### Writing Center
+
+For free feedback on any writing project, including multimedia projects and application essays, at any stage of the writing process, visit [UNC's Writing Center](http://writingcenter.unc.edu/). You don't even need a draft to come in.

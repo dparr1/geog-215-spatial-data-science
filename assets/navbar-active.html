@@ -1,0 +1,22 @@
+<!--
+  Highlights the right item in the top menu. Quarto's book layout marks
+  "Welcome" as active on every page, so this sets it from the page address:
+  the course pages match their own item, and every other page (chapters,
+  quizzes, glossary) is part of the Textbook.
+-->
+<script>
+(function () {
+  "use strict";
+  const COURSE_PAGES = ["index", "syllabus", "materials", "about"];
+  const file = (location.pathname.split("/").pop() || "index").replace(/\.html$/, "");
+  const inRoot = !/\/chapters\//.test(location.pathname);
+  const target = inRoot && COURSE_PAGES.includes(file) ? file : "preface";
+  document.querySelectorAll("#navbarCollapse a.nav-link").forEach((a) => {
+    const page = (a.getAttribute("href") || "").split("/").pop().replace(/\.html$/, "");
+    const on = page === target;
+    a.classList.toggle("active", on);
+    if (on) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
+  });
+})();
+</script>

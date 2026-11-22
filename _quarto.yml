@@ -12,15 +12,38 @@ book:
   subtitle: "The textbook for GEOG 215"
   author: "David Parr"
   date: last-modified
+  # Top menu on every page. Welcome, Syllabus, and About are public on
+  # geog215.org; every other page asks students to sign in (see
+  # PUBLIC_PAGES in assets/auth-gate.html).
+  navbar:
+    left:
+      - href: index.qmd
+        text: Welcome
+      - href: syllabus.qmd
+        text: Syllabus
+      - href: preface.qmd
+        text: Textbook
+      - href: materials.qmd
+        text: Course materials
+      - href: about.qmd
+        text: About
   chapters:
-    - index.qmd
-    # Each chapter is followed by its (unnumbered) chapter quiz page.
-    - chapters/intro-spatial-data-science.qmd
-    - chapters/intro-spatial-data-science-quiz.qmd
-    - chapters/r-rstudio-rmarkdown.qmd
-    - chapters/r-rstudio-rmarkdown-quiz.qmd
-    - chapters/census-data-apis.qmd
-    - chapters/census-data-apis-quiz.qmd
+    - part: "Course"
+      chapters:
+        - index.qmd
+        - syllabus.qmd
+        - materials.qmd
+        - about.qmd
+    - part: "Textbook"
+      chapters:
+        - preface.qmd
+        # Each chapter is followed by its (unnumbered) chapter quiz page.
+        - chapters/intro-spatial-data-science.qmd
+        - chapters/intro-spatial-data-science-quiz.qmd
+        - chapters/r-rstudio-rmarkdown.qmd
+        - chapters/r-rstudio-rmarkdown-quiz.qmd
+        - chapters/census-data-apis.qmd
+        - chapters/census-data-apis-quiz.qmd
   appendices:
     - glossary.qmd
 
@@ -37,7 +60,10 @@ format:
     # webexercises (interactive self-check questions); from
     # webexercises::add_to_quarto(), copied to include/ by hand
     css: include/webex.css
-    include-after-body: include/webex.js
+    include-after-body:
+      - include/webex.js
+      # Highlights the current page in the top menu.
+      - assets/navbar-active.html
     # The Supabase sign-in gate is added only for geog215.org, by the
     # `geog215` profile (_quarto-geog215.yml). daveparr.com stays public.
 

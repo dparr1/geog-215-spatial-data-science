@@ -1,0 +1,17 @@
+# About the author {.unnumbered}
+
+![](images/dave-parr-headshot.jpg){fig-alt="Dave Parr" width="200" style="float: right; margin: 0 0 1rem 1.5rem; border-radius: 50%;"}
+
+I'm **Dr. David Parr**, a Teaching Assistant Professor in the Department of Geography and the Environment at the University of North Carolina at Chapel Hill. I teach classes in spatial data science, GIS, programming, web mapping, spatial databases, cartography, spatial modeling and analysis, and data acquisition and integration.
+
+I see my disciplines, Geographic Information Science (GIS) and spatial data science, as the intersections of Geography and Computer Science, the fields in which I have earned my degrees. I want students to be able to *think geographically*: to critically consider the dynamic spatial and temporal issues of a problem, and to consider how scale and distance affect our human and physical environments. I also want them to *think computationally*: to break problems into smaller components in a logical sequence, and to consider how a representation in a computer is related to the object in the real world. These skills, understanding spatial relations and logical problem solving, are critical in our discipline and in the wider world.
+
+My teaching and research interests include volunteered geographic information, space-time spatial analysis and modeling, GIS and geography education, and GIS and society, including digital places and web GIS.
+
+- **Email:** <daveparr@unc.edu>
+- **Website:** [daveparr.com](https://daveparr.com/)
+- **Office:** 317B Carolina Hall, UNC-Chapel Hill
+
+## About this book
+
+This book is a working draft, written from the lectures for GEOG 215. It is a [Quarto](https://quarto.org) book: every chapter is a runnable document, so the tables, maps, and figures come from the R code printed beside them, and many code boxes can be edited and run right in your browser.

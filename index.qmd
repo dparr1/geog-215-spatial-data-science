@@ -1,15 +1,31 @@
-# Preface {.unnumbered}
+# Welcome {.unnumbered}
 
-This is a working draft of a textbook built from the lectures for GEOG 215, Spatial Data Science.
+**GEOG 215: Introduction to Spatial Data Science**\
+University of North Carolina at Chapel Hill · Fall 2026 · Dr. David Parr
 
-Every chapter is a runnable Quarto document. The R code in each chapter runs when the book is built, so the tables and maps you see come from the code printed beside them.
+Hello and welcome to **Spatial Data Science**! I'm thrilled to have you in this class. Whether you're new to programming or already have some experience, this course is your gateway to understanding and working with **spatial data** using the **R programming language**. We'll go beyond traditional maps and dive into how data science principles can be applied to geographic information to reveal patterns, solve problems, and tell compelling stories.
 
-## Before you start
+Throughout the semester, we'll build your skills from the ground up. We'll start with the fundamentals of R and the **tidyverse**, which will become your go-to toolkit for processing and exploring data. You'll quickly see how these skills apply to real-world projects, starting with our first **Map Contest**. As we progress, we'll move into the core of spatial data science: handling different types of spatial data, overlaying layers and joining tables, and more advanced topics like spatial statistics, ANOVA, regression, and clustering. The course is hands-on, with projects that challenge you to create something tangible, like our second **Map Contest** and the final **Spatial Data Science Project**.
 
-Several chapters download data from web APIs. For the US Census chapters, request a free API key at <https://api.census.gov/data/key_signup.html> and store it once:
+My goal is for you to leave this course with a robust understanding of both R and spatial data. By the end of the semester, you'll be able to confidently design and write R programs for your own spatial research, and critically evaluate data.
 
-```r
-tidycensus::census_api_key("YOUR KEY HERE", install = TRUE)
-```
+I'm here to support you every step of the way. Please reach out with any questions about the class, or just to chat about the fascinating world of data science. Let's get started on this exciting journey together.
 
-This saves the key to your `.Renviron` file, so it never needs to appear in your scripts.
+*Dr. Parr*
+
+## On this site
+
+| | |
+|:--|:--|
+| [**Syllabus**](syllabus.qmd) | How the course works: learning objectives, units and modules, grading, tokens, and course policies. |
+| [**Textbook**](preface.qmd) | The course textbook, with runnable R code, self-check questions, and a quiz for each chapter. Students sign in with the email on the class list. |
+| [**Course materials**](materials.qmd) | Course staff and office hours, the class schedule, and assignment deadlines. Students sign in with the email on the class list. |
+| [**About**](about.qmd) | About the instructor and author. |
+
+## Course at a glance
+
+- **Meets:** Mondays, Wednesdays, and Fridays, 12:20–1:10 pm, Genome Sciences Building G200
+- **Credit hours:** 3. No prerequisites.
+- **Gen Ed:** IDEAs in Action FC-QUANT; Making Connections SS, QI
+- **Assignments and grades:** on Canvas. Announcements and discussion are on Microsoft Teams.
+- **Final exam:** Friday, December 11, noon–3 pm, in our classroom

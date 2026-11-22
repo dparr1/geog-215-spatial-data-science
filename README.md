@@ -14,6 +14,23 @@ The book is published in two places from this repo:
 
 Both rebuild automatically on every push to `main`.
 
+## Site layout
+
+Every page has a top menu: **Welcome**, **Syllabus**, **Textbook**, **Course materials**, and
+**About**. In the sidebar these are two parts, *Course* and *Textbook*.
+
+| Page | File | Sign-in on geog215.org |
+|---|---|---|
+| Welcome (home page) | `index.qmd` | Public |
+| Syllabus | `syllabus.qmd` | Public |
+| Course materials: staff and office hours, schedule, deadlines | `materials.qmd` | Students only |
+| About the author | `about.qmd` | Public |
+| Textbook: preface, chapters, chapter quizzes, glossary | `preface.qmd`, `chapters/`, `glossary.qmd` | Students only |
+
+The public pages are listed in `PUBLIC_PAGES` in `assets/auth-gate.html`; keep that list in step with
+the menu in `_quarto.yml`. The course pages are copied from the Fall 2026 Course Resources doc in
+Google Drive, so update them each semester.
+
 ## What's in the book
 
 | Chapter | Quiz bank |
@@ -63,7 +80,8 @@ See `supabase/README.md` for the one-time setup, the admin page and troubleshoot
 
 | Path | Contents |
 |---|---|
-| `index.qmd` | Preface |
+| `index.qmd`, `syllabus.qmd`, `materials.qmd`, `about.qmd` | Course pages (Welcome, Syllabus, Course materials, About) |
+| `preface.qmd` | Textbook preface |
 | `chapters/` | One `.qmd` per chapter, plus its `-quiz.qmd` page |
 | `quizzes/` | Chapter quiz question banks (JSON) and how to write them |
 | `assets/quiz/` | The quiz engine (`quiz.js`, `quiz.css`), including the instructor cartoon |

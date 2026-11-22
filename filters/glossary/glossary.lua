@@ -307,8 +307,11 @@ return {
         pandoc.path.filename(quarto.doc.input_file or ""))
       read_glossary(stem)
       is_html = quarto.doc.is_format("html")
-      -- Quiz pages and the Glossary page itself get no popups.
-      if stem:match("%-quiz$") or stem == "glossary" then
+      -- Quiz pages, the Glossary page itself, and the course pages (Welcome,
+      -- Syllabus, Course materials, About) get no popups.
+      local NO_POPUPS = { glossary = true, index = true, syllabus = true,
+                          materials = true, about = true }
+      if stem:match("%-quiz$") or NO_POPUPS[stem] then
         is_html = false
       end
 
