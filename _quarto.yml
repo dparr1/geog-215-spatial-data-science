@@ -1,3 +1,10 @@
+profile:
+  # Exactly one of these is active. `site` is used unless `--profile
+  # textbook` is given, so `quarto preview` and `--profile geog215` build the
+  # full site.
+  group:
+    - [site, textbook]
+
 project:
   type: book
   output-dir: _book
@@ -12,40 +19,9 @@ book:
   subtitle: "The textbook for GEOG 215"
   author: "David Parr"
   date: last-modified
-  # Top menu on every page. Welcome, Syllabus, and About are public on
-  # geog215.org; every other page asks students to sign in (see
-  # PUBLIC_PAGES in assets/auth-gate.html).
-  navbar:
-    left:
-      - href: index.qmd
-        text: Welcome
-      - href: syllabus.qmd
-        text: Syllabus
-      - href: preface.qmd
-        text: Textbook
-      - href: materials.qmd
-        text: Course materials
-      - href: about.qmd
-        text: About
-  chapters:
-    - part: "Course"
-      chapters:
-        - index.qmd
-        - syllabus.qmd
-        - materials.qmd
-        - about.qmd
-    - part: "Textbook"
-      chapters:
-        - preface.qmd
-        # Each chapter is followed by its (unnumbered) chapter quiz page.
-        - chapters/intro-spatial-data-science.qmd
-        - chapters/intro-spatial-data-science-quiz.qmd
-        - chapters/r-rstudio-rmarkdown.qmd
-        - chapters/r-rstudio-rmarkdown-quiz.qmd
-        - chapters/census-data-apis.qmd
-        - chapters/census-data-apis-quiz.qmd
-  appendices:
-    - glossary.qmd
+  # The top menu and chapter list are in _quarto-site.yml (the full
+  # geog215.org site, the default) and _quarto-textbook.yml (textbook only,
+  # for daveparr.com/geog215/).
 
 bibliography: references.bib
 
