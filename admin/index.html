@@ -105,6 +105,7 @@
   .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
   .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-bottom: 12px; }
   .toolbar > div { flex: 1 1 200px; }
+  .toolbar > div.toolbar-action { flex: 0 0 auto; }
   .hint { color: var(--muted); font-size: 0.88rem; margin: 0 0 12px; }
 
   .table-wrap { overflow-x: auto; }
@@ -231,6 +232,10 @@
             <option value="new">Not signed in yet</option>
             <option value="locked">Locked out</option>
           </select>
+        </div>
+        <div class="toolbar-action">
+          <button class="btn secondary" type="button" id="students-csv"
+            title="Download the students shown below (with the current filters) as a CSV file">Export to CSV</button>
         </div>
       </div>
       <div class="table-wrap">
@@ -594,14 +599,19 @@
     fillSelect($("cq-chapter"), chapters().map((c) => [c.chapter, c.title]), '<option value="">All chapters</option>');
   }
 
-  function renderStudents() {
+  // Students that match the Students tab's search and filters.
+  function filteredStudents() {
     const q = $("student-search").value.trim().toLowerCase();
     const note = $("student-note").value;
     const status = $("student-status").value;
-    const rows = state.roster.filter((s) =>
+    return state.roster.filter((s) =>
       (!q || s.student_name.toLowerCase().includes(q) || (s.email || "").includes(q)) &&
       (!note || s.note === note) &&
       (!status || statusOf(s).key === status));
+  }
+
+  function renderStudents() {
+    const rows = filteredStudents();
 
     $("students-body").innerHTML = rows.length ? rows.map((s) => {
       const st = statusOf(s);
@@ -653,6 +663,48 @@
         <td>${when(p.last_visit)}</td>
       </tr>`;
     }).join("") : `<tr><td colspan="4" class="empty">No pages opened yet.</td></tr>`;
+  }
+
+  // Export to CSV: the Students tab as shown (current filters), one row per student,
+  // with plain numbers instead of badges. Access codes are left out on purpose.
+  function csvCell(v) {
+    let t = v == null ? "" : String(v);
+    if (/^[=+\-@\t\r]/.test(t) && isNaN(Number(t))) t = "'" + t;   // no spreadsheet formulas
+    return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+  }
+  // "2026-11-21 10:05" in the viewer's time zone, which spreadsheets read as a date.
+  function localStamp(ts) {
+    if (!ts) return "";
+    const d = new Date(ts), z = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}`;
+  }
+  const STATUS_TEXT = { locked: "Locked out", signedin: "Has signed in", new: "Not signed in yet" };
+  function exportStudentsCsv() {
+    const rows = filteredStudents();
+    if (!rows.length) { banner("No students to export with these filters.", true); return; }
+    const head = ["Name", "Email", "Group / term", "Status", "Pages opened",
+      "Quiz score", "Quiz success (%)", "Quiz answers correct", "Quiz answers incorrect", "Quizzes finished",
+      "Self-checks right", "Self-checks answered", "Code runs", "Code errors", "Last active"];
+    const lines = rows.map((s) => {
+      const c = Number(s.cq_correct) || 0, i = Number(s.cq_incorrect) || 0;
+      return [s.student_name, s.email || "", s.note || "", STATUS_TEXT[statusOf(s).key],
+        Number(s.pages_opened) || 0,
+        c + i ? Number(s.cq_score) || 0 : "", c + i ? Math.round((c / (c + i)) * 100) : "",
+        c, i, Number(s.cq_completed) || 0,
+        Number(s.quiz_correct) || 0, Number(s.quiz_answered) || 0,
+        Number(s.code_runs) || 0, Number(s.code_errors) || 0,
+        localStamp(s.last_active)];
+    });
+    const csv = "\ufeff" + [head, ...lines].map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "geog215-students-" + new Date().toISOString().slice(0, 10) + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    banner("Exported " + rows.length + (rows.length === 1 ? " student." : " students."));
   }
 
   // ---- Chapter quizzes -----------------------------------------------------
@@ -1078,6 +1130,7 @@
     document.querySelectorAll(".tabs button").forEach((b) =>
       b.addEventListener("click", () => selectTab(b.dataset.tab)));
     $("students-body").addEventListener("click", onStudentAction);
+    $("students-csv").addEventListener("click", exportStudentsCsv);
     ["student-search", "student-note", "student-status"].forEach((id) =>
       $(id).addEventListener("input", renderStudents));
     $("activity-student").addEventListener("input", renderActivity);
