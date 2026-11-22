@@ -11,6 +11,15 @@ Resend, from `mail.geog215.org`) a 6-digit code and a link:
   would be used up before the student ever clicked it.
 
 Only emails you've added to the roster (or the instructor list) can sign in.
+
+**Several classes, one database.** Every roster row is an enrollment: a
+student in one **course** (e.g. `geog215`) and **term** (e.g. `Fall 2026`).
+Each class's site sends its course code (`SDS_COURSE` in
+`assets/auth-gate.html`), so a student only gets into the classes they're on
+the roster for, and all their progress is filed under that course and term.
+The term comes from the student's roster row, never from the browser. The
+same email can be in several classes or terms with one account. See
+[Adding another class](#adding-another-class).
 The database refuses to create an account for any other email. The sign-in
 screen shows the same "if this email is on the class list…" message either
 way, so it can't be used to find out who is in the class.
@@ -114,6 +123,8 @@ never reaches Google Analytics or server logs.
 It's safe to re-run, and it keeps your students, instructors and progress.
 It also:
 
+- adds course and term to the roster and all progress tables, filing
+  everything that was there before as `geog215`, `Fall 2026`;
 - replaces the old "setup code only" sign-up rule with "roster or instructor
   email";
 - links any existing accounts to their roster rows by email;
@@ -145,13 +156,19 @@ To add another instructor, insert their email the same way.
 
 ## Admin page (https://geog215.org/admin/)
 
+The **Course** and **Term** pickers at the top choose what every tab shows.
+The term starts on the course's newest term; pick **All terms** to see
+everyone. The page remembers your choice on that browser. You only see the
+courses you teach: an instructor whose `courses` is empty (null) sees every
+course, and one with `courses = '{geog370}'` sees only GEOG 370.
+
 | Tab | |
 | --- | --- |
-| **Students** | Every student with their email, status (*Has signed in* / *Not signed in yet* / *Locked out*), pages opened, chapter quiz score and success, self-check questions right (of those answered), code runs and last activity. Search by name or email, and filter by group/term or status. **Lock out** / **Let back in**, **Delete** (removes their account and progress). Click a name to see their activity, quiz answers and code runs. |
-| **Add students** | Paste one student per line as `Name, email` (comma or tab, so two columns pasted from a spreadsheet or Canvas export work too), plus an optional group/term. Emails already on the roster are skipped. Added students can sign in straight away. |
+| **Students** | Every student with their email, term, group, status (*Has signed in* / *Not signed in yet* / *Locked out*), pages opened, chapter quiz score and success, self-check questions right (of those answered), code runs and last activity. Search by name or email, and filter by group or status. **Lock out** / **Let back in** (this course only), **Delete** (removes them and their progress from this course and term, and their account too unless they're in another course or term). Click a name to see their activity, quiz answers and code runs. |
+| **Add students** | Paste one student per line as `Name, email` (comma or tab, so two columns pasted from a spreadsheet or Canvas export work too), plus the term (required) and an optional group such as a section. They're added to the course picked in the header. Emails already on that course and term are skipped. Added students can sign in straight away, including students who already have an account from another term or class. |
 | **Activity** | The latest page opens, for everyone or one student. |
 | **Pages** | How many students have opened each page. |
-| **Quiz scores** | A leaderboard of chapter quiz points: each student's rank, total score, score for each chapter, quizzes finished and best streak, highest total first. Filter by group/term. Click a name to see that student on the Chapter quizzes tab. |
+| **Quiz scores** | A leaderboard of chapter quiz points: each student's rank, total score, score for each chapter, quizzes finished and best streak, highest total first. Filter by group. Click a name to see that student on the Chapter quizzes tab. |
 | **Chapter quizzes** | Results from the quiz page after each chapter, for everyone or one student, and for all chapters or one. **Correct** and **incorrect** count every answer, including re-asks of missed questions, and **success** is correct answers as a share of all answers. *By chapter* gives class totals. *By student* gives each student's quizzes finished, correct and incorrect answers, success, best first-try score, total points for the chapter and best single-quiz score. *Questions* lists every question, hardest first. |
 | **Self-checks** | Each self-check question in the chapters, by page: how many students answered it, how many got it right, and total attempts. Pick a student to see their last answer to each question. |
 | **Code** | Each webR code cell, by page: how many students ran it, total runs, and how many ended in an error. Pick a student to see the code they last ran in each cell. |
@@ -171,29 +188,77 @@ same; it also deletes their progress.
 
 ## Everyday tasks in SQL
 
-The admin page does all of these. They're here in case you prefer the
+The admin page does most of these. They're here in case you prefer the
 **SQL Editor** (or **Table Editor > roster**).
 
 ```sql
--- Add students (they can sign in with that email straight away)
-insert into public.roster (student_name, email, note) values
-  ('Ada Lovelace', 'ada@unc.edu',   'Spring 2027'),
-  ('Grace Hopper', 'grace@unc.edu', 'Spring 2027');
+-- Add students to a course and term (they can sign in with that email straight away)
+insert into public.roster (course, term, student_name, email) values
+  ('geog215', 'Spring 2027', 'Ada Lovelace', 'ada@unc.edu'),
+  ('geog215', 'Spring 2027', 'Grace Hopper', 'grace@unc.edu');
 
 -- Everyone, and whether they've signed in yet
-select student_name, email, note, user_id is not null as signed_in, active
-from public.roster order by student_name;
+select course, term, student_name, email, user_id is not null as signed_in, active
+from public.roster order by course, term, student_name;
 
--- Lock out (next page load) / let back in
-update public.roster set active = false where email = 'ada@unc.edu';
-update public.roster set active = true  where email = 'ada@unc.edu';
+-- Lock out of one course (next page load) / let back in
+update public.roster set active = false
+where course = 'geog215' and term = 'Spring 2027' and email = 'ada@unc.edu';
 
 -- Every page each student has opened
-select * from public.instructor_progress order by student_name, page;
+select * from public.instructor_progress order by course, term, student_name, page;
 ```
 
-Emails must be lowercase. **New term:** add the new students with a new
-group/term, and lock out last term's.
+Emails must be lowercase. **New term:** add the new students on the admin page
+with the new term (for example `Spring 2027`), then lock out last term's:
+
+```sql
+update public.roster set active = false where course = 'geog215' and term = 'Fall 2026';
+```
+
+**Clearing out an old term** once you've exported what you need (Export to
+CSV on the Students tab). This deletes that term's progress and roster rows;
+accounts stay, so students in other terms or classes aren't affected:
+
+```sql
+delete from public.page_progress         where course = 'geog215' and term = 'Fall 2026';
+delete from public.quiz_responses        where course = 'geog215' and term = 'Fall 2026';
+delete from public.code_runs             where course = 'geog215' and term = 'Fall 2026';
+delete from public.chapter_quiz_answers  where course = 'geog215' and term = 'Fall 2026';
+delete from public.chapter_quiz_sessions where course = 'geog215' and term = 'Fall 2026';
+delete from public.roster                where course = 'geog215' and term = 'Fall 2026';
+```
+
+## Adding another class
+
+Another class can use this same Supabase project, Resend domain and admin
+page. Each class gets its own site (its own copy of the book's Quarto
+project, or a different book).
+
+1. **Add the course** (SQL Editor). The code is lowercase letters, numbers
+   and dashes:
+   ```sql
+   insert into public.courses (course, title, site_url)
+   values ('geog370', 'GEOG 370: Introduction to GIS', 'https://geog370.org');
+   ```
+2. **The class's site:** copy `assets/auth-gate.html` and change
+   `SDS_COURSE` to the new code (`"geog370"`), plus the title and wording on
+   the sign-in card. Include it the same way `_quarto-geog215.yml` does.
+3. **Supabase > Authentication > URL Configuration:** add the new site to
+   **Redirect URLs** (e.g. `https://geog370.org/**`), or the emailed link
+   won't bring students back to it. The code in the email works either way.
+4. **Email template:** the sign-in email says "GEOG 215". Supabase has one
+   template for the whole project, so make its wording general (for example
+   "Sign in to your course textbook") once a second class uses it.
+5. **Instructors:** you see every course already. To add an instructor for
+   only the new class:
+   ```sql
+   insert into public.instructors (email, courses) values ('ta@unc.edu', '{geog370}');
+   ```
+   They use the same admin page (https://geog215.org/admin/) and see only
+   their courses.
+6. **Add students** on the admin page: pick the course in the header, then
+   **Add students** with the term.
 
 ## Troubleshooting
 

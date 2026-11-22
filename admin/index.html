@@ -11,6 +11,10 @@
   Every action calls an admin_* function in Supabase (supabase/setup.sql), and
   each of those refuses to run unless you are signed in as an instructor, so
   this page being public does not let anyone else see or change the roster.
+
+  One database serves several classes. The Course and Term pickers in the
+  header choose what every tab shows; you only see the courses you teach
+  (instructors.courses in supabase/setup.sql).
 -->
 <html lang="en">
 <head>
@@ -84,7 +88,10 @@
   }
   header h1 { font-size: 1.15rem; margin: 0; }
   header .who { color: var(--muted); font-size: 0.85rem; }
-  header .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  header .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .scope { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .scope label { margin: 0; font-size: 0.8rem; color: var(--muted); }
+  .scope select { width: auto; min-width: 9em; padding: 5px 8px; font-size: 0.88rem; }
   main { max-width: 1100px; margin: 0 auto; padding: 16px; }
   #banner { margin-bottom: 12px; padding: 10px 12px; border-radius: 6px; }
   #banner.error { background: var(--danger-bg); color: var(--danger); }
@@ -187,12 +194,18 @@
 <section id="dashboard" hidden>
   <header>
     <div>
-      <h1>GEOG 215 admin</h1>
+      <h1 id="dash-title">GEOG 215 admin</h1>
       <div class="who" id="who"></div>
+    </div>
+    <div class="scope">
+      <label for="scope-course">Course</label>
+      <select id="scope-course"></select>
+      <label for="scope-term">Term</label>
+      <select id="scope-term"></select>
     </div>
     <div class="actions">
       <button class="btn secondary small" type="button" id="refresh">Refresh</button>
-      <a class="btn secondary small" href="/" target="_blank" rel="noopener">Open textbook</a>
+      <a class="btn secondary small" id="open-site" href="/" target="_blank" rel="noopener">Open textbook</a>
       <button class="btn secondary small" type="button" id="signout">Sign out</button>
     </div>
   </header>
@@ -226,7 +239,7 @@
           <input id="student-search" type="search" placeholder="Name or email">
         </div>
         <div>
-          <label for="student-note">Group / term</label>
+          <label for="student-note">Group</label>
           <select id="student-note"><option value="">All</option></select>
         </div>
         <div>
@@ -247,7 +260,7 @@
         <table>
           <thead>
             <tr>
-              <th>Name</th><th>Email</th><th>Group / term</th><th>Status</th>
+              <th>Name</th><th>Email</th><th>Term</th><th>Group</th><th>Status</th>
               <th class="num">Pages opened</th>
               <th class="num" title="Chapter quizzes: total points across all quizzes">Quiz score</th>
               <th class="num" title="Chapter quizzes: correct answers as a share of all answers">Quiz success</th>
@@ -263,9 +276,11 @@
     <!-- Add students -->
     <div class="panel" data-panel="add" hidden>
       <p class="hint">One student per line: name and email, separated by a comma or tab (you can
-        paste two columns from a spreadsheet or Canvas export). Once added, a student goes to
-        geog215.org, enters that email, and signs in with the code or link we email them. Only
-        emails on this list can sign in.</p>
+        paste two columns from a spreadsheet or Canvas export). They're added to
+        <strong id="add-course-name">this course</strong> for the term below. Once added, a student goes to
+        <span id="add-site">the textbook</span>, enters that email, and signs in with the code or link we email
+        them. Only emails on this course's list can sign in. A student who already has an account (from
+        another term or class) uses the same email.</p>
       <form id="add-form">
         <div class="toolbar">
           <div style="flex-basis: 100%">
@@ -274,8 +289,13 @@
             <p class="msg error" id="add-errors" hidden></p>
           </div>
           <div>
-            <label for="add-note">Group / term (optional)</label>
-            <input id="add-note" placeholder="Spring 2027" list="note-options">
+            <label for="add-term">Term</label>
+            <input id="add-term" placeholder="Spring 2027" list="term-options" required maxlength="40">
+            <datalist id="term-options"></datalist>
+          </div>
+          <div>
+            <label for="add-note">Group (optional)</label>
+            <input id="add-note" placeholder="Section 001" list="note-options">
             <datalist id="note-options"></datalist>
           </div>
           <div style="flex: 0 0 auto">
@@ -321,7 +341,7 @@
     <div class="panel" data-panel="scores" hidden>
       <div class="toolbar">
         <div>
-          <label for="scores-note">Group / term</label>
+          <label for="scores-note">Group</label>
           <select id="scores-note"><option value="">All</option></select>
         </div>
       </div>
@@ -441,6 +461,17 @@
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
   let sb = null;
+  // Which course and term every tab shows (the header pickers).
+  const scope = { courses: [], course: "", term: "" };
+  const courseInfo = () => scope.courses.find((c) => c.course === scope.course) || null;
+  const scopeArgs = (extra) => Object.assign({ p_course: scope.course || null, p_term: scope.term || null }, extra || {});
+  const siteUrl = () => { const c = courseInfo(); return (c && c.site_url) || location.origin; };
+  const siteHost = () => { try { return new URL(siteUrl()).host; } catch (_) { return "the textbook"; } };
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (_) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (_) { /* fine */ } },
+  };
+
   const state = {
     roster: [], activity: [], pages: [], quiz: [], code: [], titles: {},
     cq: [], cqQuestions: [],   // chapter quizzes: per student and chapter, per question
@@ -513,6 +544,66 @@
     }
     $("who").textContent = "Signed in as " + session.user.email;
     show("dashboard");
+    try {
+      await loadCourses();
+    } catch (e) {
+      banner("Couldn't load your courses: " + e.message, true);
+      return;
+    }
+    loadTitles();
+    await refresh();
+  }
+
+  // ---- Course and term -----------------------------------------------------
+  // The courses you teach, each with its terms (newest first). The page
+  // remembers the last course and term you picked on this browser.
+  async function loadCourses() {
+    scope.courses = (await rpc("admin_courses")) || [];
+    if (!scope.courses.length) throw new Error("you aren't an instructor of any course yet.");
+    const saved = store.get("sds-admin-course");
+    if (!scope.courses.some((c) => c.course === scope.course)) {
+      scope.course = scope.courses.some((c) => c.course === saved) ? saved : scope.courses[0].course;
+    }
+    fillSelect($("scope-course"), scope.courses.map((c) => [c.course, c.title || c.course]), "");
+    $("scope-course").value = scope.course;
+    renderTerms(store.get("sds-admin-term:" + scope.course));
+  }
+
+  // Term picker for the current course: its terms, newest first, plus "All
+  // terms". Picks `want` if the course has it, else the newest term.
+  function renderTerms(want) {
+    const terms = (courseInfo() && courseInfo().terms) || [];
+    if (want !== "" && !terms.includes(want)) want = terms[0] || "";
+    scope.term = want || "";
+    fillSelect($("scope-term"), terms.map((t) => [t, t]), '<option value="">All terms</option>');
+    $("scope-term").value = scope.term;
+    $("term-options").innerHTML = terms.map((t) => `<option value="${esc(t)}">`).join("");
+    if (!$("add-term").value || !terms.includes($("add-term").value)) $("add-term").value = scope.term || terms[0] || "";
+    renderScopeText();
+  }
+
+  function renderScopeText() {
+    const c = courseInfo();
+    const name = c ? (c.title || c.course) : "";
+    $("dash-title").textContent = (c ? c.course.toUpperCase().replace(/^([A-Z]+)(\d)/, "$1 $2") : "Course") + " admin";
+    document.title = $("dash-title").textContent;
+    $("add-course-name").textContent = name || "this course";
+    $("add-site").textContent = siteHost();
+    $("open-site").href = siteUrl();
+  }
+
+  async function onScopeChange(event) {
+    if (event.target.id === "scope-course") {
+      scope.course = $("scope-course").value;
+      store.set("sds-admin-course", scope.course);
+      $("add-term").value = "";
+      renderTerms(store.get("sds-admin-term:" + scope.course));
+    } else {
+      scope.term = $("scope-term").value;
+      store.set("sds-admin-term:" + scope.course, scope.term);
+    }
+    // A student picked on one course isn't on another.
+    ["activity-student", "quiz-student", "code-student", "cq-student"].forEach((id) => ($(id).value = ""));
     loadTitles();
     await refresh();
   }
@@ -522,13 +613,13 @@
     $("refresh").disabled = true;
     try {
       const [roster, activity, pages, quiz, code, cq, cqQuestions] = await Promise.all([
-        rpc("admin_roster"),
-        rpc("admin_activity", { p_limit: 500 }),
-        rpc("admin_pages"),
-        rpc("admin_quiz"),
-        rpc("admin_code"),
-        rpc("admin_chapter_quizzes"),
-        rpc("admin_chapter_quiz_questions"),
+        rpc("admin_roster", scopeArgs()),
+        rpc("admin_activity", scopeArgs({ p_limit: 500 })),
+        rpc("admin_pages", scopeArgs()),
+        rpc("admin_quiz", scopeArgs()),
+        rpc("admin_code", scopeArgs()),
+        rpc("admin_chapter_quizzes", scopeArgs()),
+        rpc("admin_chapter_quiz_questions", scopeArgs()),
       ]);
       state.roster = roster || [];
       state.activity = activity || [];
@@ -548,7 +639,10 @@
   }
 
   // Page titles from the book's search index ("/intro" -> "1 Introduction").
+  // Only this site's own book; another course's pages show as their paths.
   async function loadTitles() {
+    state.titles = {};
+    if (siteUrl().replace(/\/+$/, "") !== location.origin) return;
     try {
       const res = await fetch("/search.json", { cache: "no-store" });
       if (!res.ok) return;
@@ -598,7 +692,8 @@
     fillSelect($("student-note"), notes.map((n) => [n, n]), '<option value="">All</option>');
     fillSelect($("scores-note"), notes.map((n) => [n, n]), '<option value="">All</option>');
     $("note-options").innerHTML = notes.map((n) => `<option value="${esc(n)}">`).join("");
-    const students = state.roster.map((s) => [s.code, s.student_name + " (" + (s.email || s.code) + ")"]);
+    const students = state.roster.map((s) => [s.code, s.student_name + " (" + (s.email || s.code) + ")" +
+      (scope.term ? "" : " · " + s.term)]);
     ["activity-student", "quiz-student", "code-student", "cq-student"].forEach((id) =>
       fillSelect($(id), students, '<option value="">Everyone</option>'));
     fillSelect($("cq-chapter"), chapters().map((c) => [c.chapter, c.title]), '<option value="">All chapters</option>');
@@ -626,6 +721,7 @@
       return `<tr>
         <td><button class="linkish" data-act="history" data-code="${esc(s.code)}">${esc(s.student_name)}</button></td>
         <td>${s.email ? esc(s.email) : '<span class="badge warn">No email</span>'}</td>
+        <td>${esc(s.term || "")}</td>
         <td>${esc(s.note || "")}</td>
         <td>${st.html}</td>
         <td class="num">${Number(s.pages_opened)}</td>
@@ -637,7 +733,7 @@
         <td class="actions">${lock}
           <button class="btn danger small" data-act="delete" data-code="${esc(s.code)}">Delete</button></td>
       </tr>`;
-    }).join("") : `<tr><td colspan="11" class="empty">${state.roster.length
+    }).join("") : `<tr><td colspan="12" class="empty">${state.roster.length
       ? "No students match these filters." : "No students yet. Use Add students."}</td></tr>`;
   }
 
@@ -693,12 +789,12 @@
     const pos = (s) => (order.has(s.code) ? order.get(s.code) : Infinity);
     const rows = filteredStudents().sort((a, b) => pos(a) - pos(b));
     if (!rows.length) { banner("No students to export with these filters.", true); return; }
-    const head = ["Name", "Email", "Group / term", "Status", "Pages opened",
+    const head = ["Name", "Email", "Course", "Term", "Group", "Status", "Pages opened",
       "Quiz score", "Quiz success (%)", "Quiz answers correct", "Quiz answers incorrect", "Quizzes finished",
       "Self-checks right", "Self-checks answered", "Code runs", "Code errors", "Last active"];
     const lines = rows.map((s) => {
       const c = Number(s.cq_correct) || 0, i = Number(s.cq_incorrect) || 0;
-      return [s.student_name, s.email || "", s.note || "", STATUS_TEXT[statusOf(s).key],
+      return [s.student_name, s.email || "", s.course || "", s.term || "", s.note || "", STATUS_TEXT[statusOf(s).key],
         Number(s.pages_opened) || 0,
         c + i ? Number(s.cq_score) || 0 : "", c + i ? Math.round((c / (c + i)) * 100) : "",
         c, i, Number(s.cq_completed) || 0,
@@ -710,7 +806,9 @@
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = "geog215-students-" + new Date().toISOString().slice(0, 10) + ".csv";
+    const slug = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    a.download = [scope.course || "students", scope.term ? slug(scope.term) : "all-terms", "students",
+      new Date().toISOString().slice(0, 10)].join("-") + ".csv";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -873,7 +971,7 @@
     if (!code) { state.quizFor = null; renderQuiz(); return; }
     if (state.quizFor && state.quizFor.code === code) return;
     try {
-      state.quizFor = { code, rows: (await rpc("admin_quiz_responses", { p_code: code, p_limit: 5000 })) || [] };
+      state.quizFor = { code, rows: (await rpc("admin_quiz_responses", scopeArgs({ p_code: code, p_limit: 5000 }))) || [] };
     } catch (e) {
       banner("Couldn't load quiz answers: " + e.message, true);
       state.quizFor = { code, rows: [] };
@@ -886,7 +984,7 @@
     if (!code) { state.codeFor = null; renderCode(); return; }
     if (state.codeFor && state.codeFor.code === code) return;
     try {
-      state.codeFor = { code, rows: (await rpc("admin_code_runs", { p_code: code, p_limit: 5000 })) || [] };
+      state.codeFor = { code, rows: (await rpc("admin_code_runs", scopeArgs({ p_code: code, p_limit: 5000 }))) || [] };
     } catch (e) {
       banner("Couldn't load code runs: " + e.message, true);
       state.codeFor = { code, rows: [] };
@@ -1119,7 +1217,8 @@
         `Lock ${name} out? They'll be signed out on their next page load.`, `${name} is locked out.`],
       unlock: ["admin_set_active", { p_code: code, p_active: true }, null, `${name} can sign in again.`],
       delete: ["admin_delete_student", { p_code: code },
-        `Delete ${name}${s && s.email ? " (" + s.email + ")" : ""}? This removes their account and all of their progress, and can't be undone.`,
+        `Delete ${name}${s && s.email ? " (" + s.email + ")" : ""} from ${s ? s.term + " of " : ""}this course? ` +
+        "This removes their progress here, and their account too unless they're on another course or term. It can't be undone.",
         `${name} was deleted.`],
     }[act];
     if (!plan) return;
@@ -1163,14 +1262,21 @@
       ? "Nothing was added. Fix these first: " + problems.join("; ") : "";
     if (problems.length || !students.length) return;
     const note = $("add-note").value.trim();
+    const term = $("add-term").value.trim().replace(/\s+/g, " ");
+    if (!term) { $("add-errors").hidden = false; $("add-errors").textContent = "Enter a term, for example Spring 2027."; return; }
     $("add-submit").disabled = true;
     try {
-      const added = (await rpc("admin_add_students", { p_students: students, p_note: note || null })) || [];
+      const added = (await rpc("admin_add_students", {
+        p_students: students, p_note: note || null, p_course: scope.course, p_term: term,
+      })) || [];
       $("add-names").value = "";
       const skipped = students.length - added.length;
-      banner(`Added ${added.length} student${added.length === 1 ? "" : "s"}.` +
-        (skipped ? ` Skipped ${skipped} already on the roster.` : "") +
-        (added.length ? " They can sign in at geog215.org with that email now." : ""));
+      banner(`Added ${added.length} student${added.length === 1 ? "" : "s"} to ${term}.` +
+        (skipped ? ` Skipped ${skipped} already on the roster for ${term}.` : "") +
+        (added.length ? ` They can sign in at ${siteHost()} with that email now.` : ""));
+      // A new term shows up in the Term picker; switch to it.
+      await loadCourses();
+      if (scope.term && scope.term !== term) { scope.term = term; renderTerms(term); store.set("sds-admin-term:" + scope.course, term); }
       await refresh();
     } catch (e) {
       banner("Couldn't add students: " + e.message, true);
@@ -1258,6 +1364,8 @@
     $("signout").addEventListener("click", signOut);
     $("switch-account").addEventListener("click", signOut);
     $("refresh").addEventListener("click", refresh);
+    $("scope-course").addEventListener("change", onScopeChange);
+    $("scope-term").addEventListener("change", onScopeChange);
 
     document.querySelectorAll(".tabs button").forEach((b) =>
       b.addEventListener("click", () => selectTab(b.dataset.tab)));
