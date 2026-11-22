@@ -73,14 +73,14 @@ Your information is kept for the semester you are enrolled and is deleted no lat
 ## Your choices and rights
 
 - **Taking part is voluntary.** Saying no will not affect your grade or your standing in the course in any way.
-- **You can use the textbook without signing in.** The same textbook chapters are available as an static PDF on the Canvas site, which does not ask for your name or email and does not save your progress. Course announcements, assignments, and deadlines are always on Canvas.
+- **You can use the textbook without signing in.** The same textbook chapters are available as a static PDF on the Canvas site, which does not ask for your name or email and does not save your progress. Course announcements, assignments, and deadlines are always on Canvas.
 - **You can change your mind.** You can withdraw your consent at any time by emailing your instructor. Your access will be turned off and your information deleted.
 - **You can see, correct, or delete your information.** Email your instructor to get a copy of what is stored about you, to correct it, or to have it deleted.
 - **You can limit analytics.** You can block or delete cookies in your browser, or use [Google's opt-out tool](https://tools.google.com/dlpage/gaoptout), without losing access to the textbook.
 
 ## FERPA
 
-Your name, email address, enrollment, and the activity records described above are education records protected by the Family Educational Rights and Privacy Act (FERPA). They are used only for this course, shared only with course staff and the service providers that run the site on the course's behalf, and are not disclosed to anyone else without your written consent except as FERPA allows. You also have the right to inspect your education records and to ask for corrections. For more about your FERPA rights, see the [UNC Office of the University Registrar](https://registrar.unc.edu/).
+Your name, email address, enrollment, and the activity records described above are education records protected by the Family Educational Rights and Privacy Act (FERPA). They are used only for this course, shared only with the instructor and the service providers that run the site on the course's behalf, and are not disclosed to anyone else without your written consent except as FERPA allows. You also have the right to inspect your education records and to ask for corrections. For more about your FERPA rights, see the [UNC Office of the University Registrar](https://registrar.unc.edu/).
 
 ## Questions and changes
 
