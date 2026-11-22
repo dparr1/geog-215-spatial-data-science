@@ -1,11 +1,13 @@
 # Privacy policy {.unnumbered}
 
+```{=html}
 <!--
   Public on geog215.org (listed in PUBLIC_PAGES in assets/auth-gate.html) and
   linked from the sign-in screen. Matches the student data consent form
   (GEOG_215_Student_Data_Consent_Form.docx). If the site starts recording
   something new, or adds a third-party service, update this page and the form.
 -->
+```
 
 *Last updated November 2026.*
 
@@ -14,14 +16,15 @@ This textbook site, geog215.org, asks students in GEOG 215 to sign in so it can 
 ## What the site stores
 
 | Information | Details |
-|---|---|
+|------------------------------------|------------------------------------|
 | Name and email address | Taken from the class roster by your instructor. Your email is how you sign in. |
-| Course and term | For example, GEOG 215, Fall 2026, plus an optional note such as your section. |
+| Course and term | For example, GEOG 215, Spring 2027, plus an optional note such as your section. |
 | Sign-in account | An account with your email address, when it was created, and when you last signed in. The sign-in service also keeps short-term security logs (such as IP address and browser type) to prevent abuse. |
 | Pages you open | Which textbook pages you visit, how many times, and when you first and last opened each one. |
 | Practice questions | Your answers to the "check your understanding" questions: your latest answer, the number of attempts, and whether you got it right. |
 | Practice code | The R code you run in the textbook's code boxes (the latest version only, up to 4,000 characters), how many times you ran it, and whether it produced an error. |
 | Chapter practice quizzes | How many questions you answered right and wrong, practice points and streaks, and whether you finished the quiz. |
+| Feedback and Discussion Questions | Some survey feedback and/or discussion questions may be stored on this site. These are not used in grading, but to provide feedback. |
 
 ## What the site does not store
 
@@ -41,11 +44,11 @@ Your information is never sold, never used for advertising, and never used to ca
 ## Who can see it
 
 - **You.** When signed in, you can only see your own records. Other students cannot see your name, email, or activity.
-- **Your instructor and authorized course staff.** The instructor, and any teaching assistants the instructor gives access, can view the class roster and activity on a protected admin page and can download it as a spreadsheet for course purposes. Instructors can only see the courses they are assigned to.
+- **Your instructor.** The instructor can view the class roster and activity on a protected admin page and can download it as a spreadsheet for course purposes. Instructors can only see the courses they are assigned to.
 - **Service providers.** The companies below run the site on the course's behalf. They handle your information only to provide their service.
 
 | Provider | What it does | What it receives |
-|---|---|---|
+|------------------------|------------------------|------------------------|
 | [Supabase](https://supabase.com/privacy) | Database and sign-in service. Servers are in the United States (US East). | Everything listed under "What the site stores". |
 | [Resend](https://resend.com/legal/privacy-policy) | Delivers the sign-in emails from mail.geog215.org. | Your email address and the sign-in email. |
 | [Cloudflare](https://www.cloudflare.com/privacypolicy/) | Hosts the website and delivers its pages. | Standard web request data, such as IP address and browser type. |
@@ -65,12 +68,12 @@ The R code you run in the textbook runs inside your own web browser, not on a se
 
 ## How long it is kept
 
-Your information is kept for the semester you are enrolled and is deleted no later than **[12 months]** after the semester ends, unless you ask for it to be deleted sooner. Deleting your record removes your roster entry, all of your activity for that course and term, and your sign-in account if you are not enrolled in another course that uses the site.
+Your information is kept for the semester you are enrolled and is deleted no later than **12 months** after the semester ends, unless you ask for it to be deleted sooner. Deleting your record removes your roster entry, all of your activity for that course and term, and your sign-in account if you are not enrolled in another course that uses the site.
 
 ## Your choices and rights
 
 - **Taking part is voluntary.** Saying no will not affect your grade or your standing in the course in any way.
-- **You can use the textbook without signing in.** The same textbook chapters are available at [daveparr.com/geog215](https://daveparr.com/geog215/), which does not ask for your name or email and does not save your progress. Course announcements, assignments, and deadlines are always on Canvas.
+- **You can use the textbook without signing in.** The same textbook chapters are available as an static PDF on the Canvas site, which does not ask for your name or email and does not save your progress. Course announcements, assignments, and deadlines are always on Canvas.
 - **You can change your mind.** You can withdraw your consent at any time by emailing your instructor. Your access will be turned off and your information deleted.
 - **You can see, correct, or delete your information.** Email your instructor to get a copy of what is stored about you, to correct it, or to have it deleted.
 - **You can limit analytics.** You can block or delete cookies in your browser, or use [Google's opt-out tool](https://tools.google.com/dlpage/gaoptout), without losing access to the textbook.
@@ -81,4 +84,4 @@ Your name, email address, enrollment, and the activity records described above a
 
 ## Questions and changes
 
-Questions about this policy or your information: contact your instructor, **David Parr**, at <daveparr@unc.edu>. If this policy changes in a way that affects how your information is used, you will be told and asked for your consent again.
+Questions about this policy or your information: contact your instructor, **David Parr**, at [daveparr\@unc.edu](mailto:daveparr@unc.edu){.email}. If this policy changes in a way that affects how your information is used, you will be told and asked for your consent again.
