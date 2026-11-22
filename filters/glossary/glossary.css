@@ -1,0 +1,71 @@
+/* Glossary terms in the text (added by glossary.lua) */
+.glossary-term {
+  text-decoration: underline dotted;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
+  cursor: help;
+  border-radius: 2px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.glossary-term:hover,
+.glossary-term[data-open] {
+  text-decoration-color: var(--bs-primary, #2780e3);
+  background-color: color-mix(in srgb, var(--bs-primary, #2780e3) 10%, transparent);
+}
+
+.glossary-term:focus {
+  outline: none;
+}
+
+.glossary-term:focus-visible {
+  outline: 2px solid var(--bs-primary, #2780e3);
+  outline-offset: 2px;
+}
+
+/* The popup (created by glossary.js) */
+.glossary-popover {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1080;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(22rem, calc(100vw - 16px));
+  padding: 0.6rem 0.8rem;
+  background: var(--bs-body-bg, #fff);
+  color: var(--bs-body-color, #212529);
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-top: 3px solid var(--bs-primary, #2780e3);
+  border-radius: 0.375rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  text-align: left;
+  font-weight: normal;
+  font-style: normal;
+}
+
+.glossary-popover[hidden] {
+  display: none;
+}
+
+.glossary-popover-term {
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.glossary-popover code {
+  font-size: 0.85em;
+}
+
+@media print {
+  .glossary-term {
+    text-decoration: none;
+    background: none;
+  }
+  .glossary-popover {
+    display: none !important;
+  }
+}

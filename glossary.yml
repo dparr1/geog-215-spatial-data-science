@@ -1,0 +1,617 @@
+# Glossary of key terms for the book.
+#
+# This one file drives two things:
+#   1. Hover/tap definitions in the chapters. The glossary filter
+#      (filters/glossary/glossary.lua) finds each term in the chapter text and
+#      turns it into a dotted-underlined word that shows its definition when
+#      hovered, tapped, or focused with the keyboard. To keep pages readable,
+#      only the FIRST use of a term in each section (each ## heading) is marked.
+#   2. The Glossary page at the back of the book (glossary.qmd), which lists
+#      every term alphabetically.
+#
+# Each entry has:
+#   term:            The name shown in the popup and on the Glossary page. It is
+#                    also matched in the text (case doesn't matter).
+#   aliases:         (optional) Other spellings to match: plurals, abbreviations,
+#                    other forms of the word.
+#   definition:      One or two plain sentences. Markdown (*italic*, `code`) works.
+#   case_sensitive:  (optional) true to match only the exact capitalization, for
+#                    words that are also ordinary English (Console, Editor).
+#   chapters:        (optional) Limit matching to these chapter files (file name
+#                    without .qmd), for words that mean different things in
+#                    different chapters ("block" of code vs. census "block").
+#
+# Matching is on whole words, and the longest match wins, so "block group" is
+# never marked as "block", and "R Markdown" is never marked as "Markdown".
+
+# Phrases that look like a term but aren't one. They are matched (so the
+# shorter term inside them is not) and left unmarked.
+exclude:
+  - scale up
+
+terms:
+
+  # --- Introduction to Spatial Data Science ---------------------------------
+
+  - term: spatial data science
+    definition: >-
+      The use of data that have a location attached to answer questions about
+      the world. It combines what we study (the *spatial*), how we handle it
+      (*data* skills), and how we ask and answer questions (*science*).
+
+  - term: spatial thinking
+    definition: >-
+      Taking seriously how location connects observations: asking whether
+      nearby values are alike, whether a pattern depends on the size of the
+      areas, and whether a relationship holds everywhere.
+
+  - term: independence
+    aliases: [independent]
+    definition: >-
+      The assumption, built into most standard statistics, that knowing one
+      observation tells you nothing about another. Data about places usually
+      break it, because nearby places tend to be alike.
+
+  - term: spatial autocorrelation
+    definition: >-
+      The tendency for things that are close together to be more alike than
+      things that are far apart, such as neighboring counties having similar
+      incomes.
+
+  - term: first law of geography
+    aliases: [Tobler's first law, Tobler's first law of geography]
+    definition: >-
+      Waldo Tobler's statement that "everything is related to everything else,
+      but near things are more related than distant things." It is the idea
+      behind spatial autocorrelation.
+
+  - term: hotspot
+    aliases: [hotspots, hot spot, hot spots]
+    definition: >-
+      A cluster of places with unusually high values, such as a group of
+      neighborhoods with many burglaries. Finding hotspots is a common goal of
+      spatial analysis.
+
+  - term: scale
+    definition: >-
+      The level of detail at which you study something: addresses,
+      neighborhoods, counties, or states. A pattern that is clear at one scale
+      can vanish or reverse at another.
+
+  - term: modifiable areal unit problem (MAUP)
+    aliases: [modifiable areal unit problem, MAUP]
+    definition: >-
+      The way results can change when the same individual data are grouped
+      into different areas, either larger or smaller ones or the same size
+      with different boundaries.
+
+  - term: spatial heterogeneity
+    definition: >-
+      The idea that relationships between variables change from place to
+      place. A link that is strong in one city may be weak, or reversed, in
+      another.
+
+  - term: vector data
+    aliases: [spatial vector data]
+    definition: >-
+      Spatial data stored as points, lines, and polygons, each with a table of
+      attributes. In R, the **sf** package handles vector data.
+
+  - term: raster
+    aliases: [rasters, raster data]
+    definition: >-
+      Spatial data stored as a grid of cells (pixels), each holding a value,
+      such as a satellite image or an elevation model. In R, the **terra**
+      package handles rasters.
+
+  - term: polygon
+    aliases: [polygons]
+    definition: >-
+      A closed shape that represents an area, such as a county, a lake, or a
+      census tract.
+
+  - term: coordinate system
+    aliases: [coordinate systems, coordinate reference system, CRS]
+    definition: >-
+      The rules that tie coordinates to places on the Earth, including how
+      the round Earth is flattened onto a map (the projection). Layers must
+      share a coordinate system before you can combine them.
+
+  - term: clustering
+    aliases: [cluster detection, cluster analysis]
+    definition: >-
+      Methods that find groups of similar observations, or groups of places
+      with similar values that sit close together.
+
+  - term: ANOVA
+    case_sensitive: true
+    definition: >-
+      Analysis of variance: a statistical test of whether the averages of
+      several groups are different, such as average incomes in two cities.
+
+  - term: regression
+    definition: >-
+      A statistical model of how one variable (such as home price) changes
+      with one or more others (such as distance to downtown).
+
+  - term: network analysis
+    definition: >-
+      Analysis of movement along a network, such as roads, to measure travel
+      distance or time, or how easily people can reach a place.
+
+  # --- R packages -----------------------------------------------------------
+
+  - term: tidyverse
+    definition: >-
+      A family of R packages (including **dplyr**, **ggplot2**, and **readr**)
+      for reading, cleaning, reshaping, summarizing, and plotting data, all
+      designed to work together.
+
+  - term: sf
+    case_sensitive: true
+    definition: >-
+      "Simple features": the R package for spatial vector data. An sf object
+      is a data frame with a geometry column holding each row's point, line,
+      or polygon.
+
+  - term: tmap
+    case_sensitive: true
+    definition: >-
+      An R package for making thematic maps quickly, with sensible defaults.
+
+  - term: terra
+    case_sensitive: true
+    definition: >-
+      An R package for working with raster data.
+
+  - term: ggplot2
+    case_sensitive: true
+    definition: >-
+      The tidyverse package for making plots and maps by adding layers.
+
+  - term: dplyr
+    case_sensitive: true
+    definition: >-
+      The tidyverse package for transforming data frames: filtering rows,
+      choosing columns, adding new columns, joining tables, and summarizing.
+
+  - term: purrr
+    case_sensitive: true
+    definition: >-
+      The tidyverse package for repeating a task over many inputs, such as
+      downloading data for several years.
+
+  - term: tidycensus
+    case_sensitive: true
+    definition: >-
+      An R package that downloads US Census data through the Census API and
+      returns it as a tidy data frame, with boundaries attached if you ask.
+
+  - term: tigris
+    case_sensitive: true
+    definition: >-
+      An R package that downloads Census boundary files (TIGER/Line
+      shapefiles) as sf objects.
+
+  - term: httr2
+    case_sensitive: true
+    definition: >-
+      An R package for building, sending, and reading web (HTTP) requests,
+      used to call an API by hand.
+
+  # --- R, RStudio, and R Markdown -------------------------------------------
+
+  - term: RStudio
+    case_sensitive: true
+    definition: >-
+      The integrated development environment (IDE) where you write and run R.
+      R does the computing; RStudio is the workspace around it.
+
+  - term: integrated development environment (IDE)
+    aliases: [integrated development environment, IDE]
+    definition: >-
+      A program that puts everything for writing code in one window: an
+      editor, a place to run the code, and tools to inspect the results.
+
+  - term: package
+    aliases: [packages, R package, R packages]
+    definition: >-
+      A bundle of code, written by other users, that adds new functions to R.
+      Install it once with `install.packages()`, then load it in each session
+      with `library()`.
+
+  - term: CRAN
+    case_sensitive: true
+    definition: >-
+      The Comprehensive R Archive Network: the official website for
+      downloading R and most R packages.
+
+  - term: Editor
+    case_sensitive: true
+    definition: >-
+      The RStudio pane (top left) where you write and save scripts and R
+      Markdown files. Code here can be kept and run again.
+
+  - term: Console
+    case_sensitive: true
+    definition: >-
+      The RStudio pane (bottom left) where R runs commands and prints results,
+      warnings, and errors. Nothing typed here is saved.
+
+  - term: Environment
+    case_sensitive: true
+    definition: >-
+      The RStudio pane (top right) that lists the variables and data currently
+      in memory.
+
+  - term: R script
+    aliases: [R scripts, script, scripts]
+    definition: >-
+      A plain file of R code, ending in `.R`. Anything that isn't code must be
+      written as a comment.
+
+  - term: R Markdown
+    definition: >-
+      A document format (`.Rmd`) that mixes formatted text with chunks of R
+      code. Knitting it runs the code and builds a finished report.
+
+  - term: Markdown
+    case_sensitive: true
+    definition: >-
+      A simple way of formatting plain text: `#` for headings, `*italic*`,
+      `**bold**`, and `-` for list items.
+
+  - term: Quarto
+    case_sensitive: true
+    definition: >-
+      The newer successor to R Markdown, from the same developers. Quarto
+      files end in `.qmd`. This book is written in Quarto.
+
+  - term: YAML header
+    aliases: [YAML]
+    definition: >-
+      The block at the top of an R Markdown file, between two lines of three
+      dashes, that holds the document's title, author, date, and output
+      format.
+
+  - term: metadata
+    definition: >-
+      Data about data: who made a dataset, when, how, and what each part
+      means. In a YAML header, it describes the document.
+
+  - term: code chunk
+    aliases: [code chunks, chunk, chunks]
+    definition: >-
+      A block of R code inside an R Markdown file, starting with
+      ```` ```{r} ```` and ending with three backticks.
+
+  - term: knit
+    aliases: [knitting, knits, knitted]
+    definition: >-
+      To build an R Markdown file into a finished document (HTML, PDF, or
+      Word). Knitting reruns every code chunk from the top in a fresh R
+      session.
+
+  - term: reproducibility
+    aliases: [reproducible]
+    definition: >-
+      The ability for anyone to rerun an analysis from its code and data and
+      get the same result.
+
+  - term: file path
+    aliases: [file paths]
+    definition: >-
+      The location of a file on your computer, such as `data/counties.csv`.
+      When you knit, paths are read relative to the folder the `.Rmd` file is
+      saved in.
+
+  - term: block of code
+    aliases: [block, blocks]
+    chapters: [r-rstudio-rmarkdown]
+    definition: >-
+      Several lines of code that work together on one task, like the steps of
+      one recipe. In R Markdown, a block usually lives in one code chunk.
+
+  - term: program
+    aliases: [programs]
+    definition: >-
+      A set of lines and blocks of code that work together to do a whole job.
+      R runs a program from top to bottom, so order matters.
+
+  - term: variable
+    aliases: [variables]
+    definition: >-
+      In R, a named piece of memory that holds data, such as `months <- 12`.
+      In a dataset, a measured characteristic, such as median income; each
+      Census variable has a code.
+
+  - term: assignment operator
+    definition: >-
+      `<-`, the arrow that stores the value on its right in the name on its
+      left. Read `x <- 5` as "x gets 5."
+
+  - term: case-sensitive
+    definition: >-
+      Treating capital and lowercase letters as different. In R, `Months` and
+      `months` are two different names.
+
+  - term: comment
+    aliases: [comments]
+    definition: >-
+      A note for people that R ignores. In R, a comment starts with `#`.
+
+  - term: function
+    aliases: [functions]
+    definition: >-
+      Code that takes inputs (arguments), does a job, and returns an output,
+      such as `mean(temps)`.
+
+  - term: argument
+    aliases: [arguments]
+    definition: >-
+      An input to a function, written inside its parentheses.
+
+  - term: named argument
+    aliases: [named arguments]
+    definition: >-
+      An argument given with its name, such as `digits = 1` in
+      `round(x, digits = 1)`.
+
+  - term: vector
+    aliases: [vectors]
+    definition: >-
+      A sequence of values that R stores together, made with `c()`, such as
+      `c(71, 75, 68)`.
+
+  - term: pipe
+    aliases: [pipe operator]
+    definition: >-
+      The operator `|>`, which passes the result on its left as the first
+      argument of the function on its right. Read it as "and then."
+
+  - term: syntax
+    definition: >-
+      The exact rules for writing code: spelling, capitalization, commas,
+      quotation marks, and matching brackets.
+
+  - term: data frame
+    aliases: [data frames, tibble, tibbles]
+    definition: >-
+      R's table: rows are observations and columns are variables. A tibble is
+      the tidyverse's version of a data frame.
+
+  # --- Census Data and APIs --------------------------------------------------
+
+  - term: decennial census
+    aliases: [decennial]
+    definition: >-
+      The full count of everyone in the US, every ten years. It asks only a
+      few questions but covers every person.
+
+  - term: apportionment
+    aliases: [apportioned]
+    definition: >-
+      Dividing the seats in the House of Representatives among the states by
+      population, the reason the Constitution requires a census.
+
+  - term: American Community Survey (ACS)
+    aliases: [American Community Survey, ACS]
+    definition: >-
+      The Census Bureau's continuous survey of a sample of households every
+      year. It asks many more questions than the decennial census, but every
+      value is an estimate with a margin of error.
+
+  - term: sample
+    aliases: [samples, sampling, sample survey]
+    definition: >-
+      A subset of a population that is surveyed to estimate something about
+      the whole population. Smaller samples give less certain estimates.
+
+  - term: TIGER
+    case_sensitive: true
+    aliases: [TIGER/Line]
+    definition: >-
+      The Census Bureau's national digital map database of streets and
+      boundaries, first used for the 1990 census. Census boundary files come
+      from it.
+
+  - term: mean center of population
+    aliases: [center of population]
+    definition: >-
+      The point where a flat map of the country would balance if every
+      resident weighed the same.
+
+  - term: nesting
+    aliases: [nest, nests, nested]
+    chapters: [census-data-apis]
+    definition: >-
+      When every smaller area lies entirely inside exactly one larger area, as
+      blocks do inside block groups, tracts, and counties. Nested areas can be
+      added up without double-counting anyone.
+
+  - term: census block
+    aliases: [census blocks, block, blocks]
+    chapters: [census-data-apis]
+    definition: >-
+      The smallest Census geography, often a single city block bounded by
+      streets or other visible features. Only decennial census data are
+      published for blocks.
+
+  - term: block group
+    aliases: [block groups, census block group, census block groups]
+    definition: >-
+      A group of census blocks, usually holding 600 to 3,000 people. It is the
+      smallest geography with ACS 5-year estimates.
+
+  - term: census tract
+    aliases: [census tracts, tract, tracts]
+    definition: >-
+      A small area of about 1,200 to 8,000 people (4,000 on average), drawn to
+      be fairly stable over time. The workhorse unit for neighborhood
+      analysis.
+
+  - term: ZIP Code Tabulation Area (ZCTA)
+    aliases: [ZIP Code Tabulation Area, ZIP Code Tabulation Areas, ZCTA, ZCTAs]
+    definition: >-
+      The Census Bureau's approximation of a ZIP code's area, built from
+      census blocks. ZCTAs do not nest inside counties or tracts.
+
+  - term: GEOID
+    case_sensitive: true
+    aliases: [GEOIDs]
+    definition: >-
+      The unique ID of a Census area, made by stringing together the FIPS
+      codes of each level, such as `37135` for Orange County, NC. Keep GEOIDs
+      as text, and join tables on them.
+
+  - term: FIPS code
+    aliases: [FIPS codes, FIPS]
+    definition: >-
+      A standard numeric code for a state or county (Federal Information
+      Processing Standards). North Carolina is `37`.
+
+  - term: differential privacy
+    definition: >-
+      Carefully calibrated random noise added to published 2020 census tables
+      to protect respondents' privacy. It matters most for small areas such as
+      blocks.
+
+  - term: redistricting data (PL 94-171)
+    aliases: [redistricting data, PL 94-171, redistricting counts]
+    definition: >-
+      The first 2020 census product: basic population, race, voting-age, and
+      housing counts down to the block, used to redraw voting districts.
+
+  - term: Demographic and Housing Characteristics (DHC)
+    aliases: [Demographic and Housing Characteristics, DHC]
+    definition: >-
+      The 2020 census product with more detailed tables on age, sex,
+      households, and housing than the redistricting data.
+
+  - term: 5-year estimates
+    aliases: [ACS 5-year estimates, ACS 5-year estimate, ACS 5-year, 5-year estimate, 5-year]
+    definition: >-
+      ACS estimates that pool 60 months of responses. They are the most
+      reliable ACS product and the only one for tracts and block groups. An
+      estimate labeled 2022 describes 2018 to 2022.
+
+  - term: 1-year estimates
+    aliases: [ACS 1-year estimates, ACS 1-year estimate, ACS 1-year, 1-year estimate, 1-year]
+    definition: >-
+      ACS estimates from 12 months of responses. They are the most current but
+      are only published for areas of 65,000 people or more.
+
+  - term: margin of error (MOE)
+    aliases: [margin of error, margins of error, MOE, MOEs]
+    definition: >-
+      How far a sample estimate might be from the true value. ACS margins of
+      error use a 90% confidence level: there is a 90% chance the true value
+      lies within the estimate plus or minus the MOE.
+
+  - term: confidence level
+    definition: >-
+      How sure you can be that the true value lies within a range. The ACS
+      uses a 90% confidence level for its margins of error.
+
+  - term: standard error
+    definition: >-
+      A measure of how much a sample estimate would vary from sample to
+      sample. For the ACS, it is the margin of error divided by 1.645.
+
+  - term: coefficient of variation (CV)
+    aliases: [coefficient of variation, CV]
+    definition: >-
+      The standard error as a percentage of the estimate. A CV above about
+      30% is a common sign that an estimate is unreliable.
+
+  - term: median
+    aliases: [medians]
+    definition: >-
+      The middle value when values are sorted, so half are above and half
+      below. Unlike counts, medians can't be added across areas.
+
+  - term: denominator
+    aliases: [denominators]
+    definition: >-
+      The number you divide by to turn a count into a share, usually the total
+      of the same table, such as total population.
+
+  - term: nominal dollars
+    aliases: [nominal]
+    definition: >-
+      Dollar amounts as reported in their own year, not adjusted for
+      inflation. Adjust them before comparing across years.
+
+  - term: microdata
+    definition: >-
+      Records for individual people or households (with identifying details
+      removed), rather than totals for areas. The ACS publishes microdata as
+      PUMS.
+
+  - term: API
+    case_sensitive: true
+    aliases: [APIs, Application Programming Interface]
+    definition: >-
+      Application Programming Interface: a set of rules for how one program
+      asks another for data or services, such as your R script asking the
+      Census Bureau's server for a table.
+
+  - term: API key
+    aliases: [API keys]
+    definition: >-
+      A private code that identifies you to an API. Store it in `.Renviron`,
+      never in a script you share.
+
+  - term: REST
+    case_sensitive: true
+    definition: >-
+      The most common style of web API: each dataset has its own URL, you ask
+      for data with ordinary web requests, and the answer usually comes back
+      as JSON.
+
+  - term: endpoint
+    aliases: [endpoints]
+    definition: >-
+      The web address of one dataset or service in an API, such as
+      `https://api.census.gov/data/2022/acs/acs5`.
+
+  - term: parameter
+    aliases: [parameters]
+    chapters: [census-data-apis]
+    definition: >-
+      A `name=value` setting added to an API request after the `?`, such as
+      `for=county:*`, that says what you want.
+
+  - term: HTTP
+    case_sensitive: true
+    definition: >-
+      The protocol web browsers and servers use to talk. A `GET` request reads
+      data; a `POST` request sends data.
+
+  - term: JSON
+    case_sensitive: true
+    definition: >-
+      JavaScript Object Notation: structured text that most web APIs send
+      back, which R can turn into lists or data frames.
+
+  - term: geocoding
+    definition: >-
+      Turning an address or place name into coordinates that can be mapped.
+
+  - term: wrapper package
+    aliases: [wrapper packages]
+    definition: >-
+      An R package that hides the details of calling an API behind simple
+      functions, such as **tidycensus** for the Census API.
+
+  - term: join
+    aliases: [joins, joined, joining]
+    definition: >-
+      Combining two tables by matching rows on a shared key column, such as
+      attaching Census data to boundaries by `GEOID` with `left_join()`.
+
+  - term: Jenks natural breaks
+    aliases: [natural breaks, Jenks]
+    definition: >-
+      A way of dividing values into map classes that puts the breaks where
+      the gaps between values are largest, so similar values share a color.

@@ -21,6 +21,8 @@ book:
     - chapters/r-rstudio-rmarkdown-quiz.qmd
     - chapters/census-data-apis.qmd
     - chapters/census-data-apis-quiz.qmd
+  appendices:
+    - glossary.qmd
 
 bibliography: references.bib
 
@@ -54,6 +56,10 @@ execute:
 
 filters:
   - webr
+  # Hover/tap definitions for the key terms in glossary.yml. Runs before
+  # Quarto's own processing so callout titles are still headings (and skipped).
+  - at: pre-ast
+    path: filters/glossary/glossary.lua
 
 webr:
   show-startup-message: false

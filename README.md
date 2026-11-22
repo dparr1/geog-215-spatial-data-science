@@ -26,6 +26,11 @@ Each chapter is followed by a **chapter quiz** page. Readers also get:
 
 - **Runnable R in the browser.** Code cells use [webR](https://docs.r-wasm.org/webr/) through the
   `coatless/webr` Quarto extension, so students can edit and run R without installing anything.
+- **Hover definitions for key terms.** About 95 key terms (spatial autocorrelation, MAUP, GEOID,
+  margin of error, knit, pipe, ...) are defined once in `glossary.yml`. In the chapters, the first
+  use of each term in a section gets a dotted underline and shows its definition on hover, tap, or
+  keyboard focus (`filters/glossary/`). The same file builds the **Glossary** page at the back of
+  the book. To add or edit a term, edit `glossary.yml`; no chapter changes are needed.
 - **Self-check questions** inside chapters, from the
   [webexercises](https://psyteachr.github.io/webexercises/) R package.
 - **Duolingo-style chapter quizzes** (`assets/quiz/`). Each quiz draws 10 random questions from the
@@ -67,6 +72,8 @@ See `supabase/README.md` for the one-time setup, the admin page and troubleshoot
 | `supabase/` | Database setup (`setup.sql`) and setup guide |
 | `data/`, `data-raw/` | Data used in chapters, and the scripts that build it |
 | `images/` | Figures and screenshots |
+| `glossary.yml`, `glossary.qmd` | Key terms and definitions, and the Glossary page built from them |
+| `filters/glossary/` | Lua filter, script, and styles for the hover definitions |
 | `include/` | webexercises CSS and JS |
 | `_extensions/` | Quarto extensions (webR) |
 | `_templates/` | PrettyPDF template for the PDF format |
