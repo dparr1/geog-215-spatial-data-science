@@ -23,6 +23,10 @@ book:
     - chapters/indexing-vectors-data-frames-quiz.qmd
     - chapters/tidyverse-filter-pipe.qmd
     - chapters/tidyverse-filter-pipe-quiz.qmd
+    - chapters/tidyverse-arrange-select-mutate.qmd
+    - chapters/tidyverse-arrange-select-mutate-quiz.qmd
+    - chapters/tidyverse-summarize-group-by.qmd
+    - chapters/tidyverse-summarize-group-by-quiz.qmd
     - chapters/census-data-apis.qmd
     - chapters/census-data-apis-quiz.qmd
   appendices:

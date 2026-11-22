@@ -45,6 +45,8 @@ those chapters, and `_quarto-site.yml` lists the full site; one of the two is al
 | R Basics | 30 questions |
 | Indexing Vectors and Data Frames | 30 questions |
 | Into the Tidyverse: glimpse, filter, and the Pipe | 29 questions |
+| Into the Tidyverse: arrange, distinct, select, and mutate | 30 questions |
+| Into the Tidyverse: summarize, group_by, and drop_na | 28 questions |
 | Census Data and APIs | 32 questions |
 
 Each chapter is followed by a **chapter quiz** page. Readers also get:

@@ -1,0 +1,367 @@
+{
+  "id": "tidyverse-summarize-group-by",
+  "title": "Into the Tidyverse: summarize, group_by, and drop_na",
+  "perSession": 10,
+  "minR": 4,
+  "questions": [
+    {
+      "id": "warmup-pipe",
+      "type": "choice",
+      "r": true,
+      "prompt": "This code stops with `object 'distance' not found`. Why?",
+      "code": "flights_new <- flights |>\n  filter(month == 10)\n  mutate(avg_speed = distance / air_time * 60) |>\n  arrange(desc(avg_speed))",
+      "choices": [
+        "The `filter()` line has no `|>` at the end, so `mutate()` runs on its own",
+        "`distance` is not a column in `flights`",
+        "`month == 10` should be `month = 10`",
+        "`mutate()` must come before `filter()`"
+      ],
+      "answer": 0,
+      "explain": "Without the pipe, the chain stops after `filter()`. `mutate()` then runs with no data frame, so it can't find `distance`. The error names the symptom, not the cause."
+    },
+    {
+      "id": "tidy-rules",
+      "type": "choice",
+      "prompt": "Which is one of the three rules of tidy data?",
+      "choices": [
+        "Each observation is a row",
+        "Each table has one column",
+        "Each value is stored as text",
+        "Each row is sorted"
+      ],
+      "answer": 0,
+      "explain": "Each variable is a column, each observation is a row, and each value is a cell."
+    },
+    {
+      "id": "summarize-rows",
+      "type": "choice",
+      "r": true,
+      "prompt": "How many rows does this return?",
+      "code": "flights |>\n  summarize(delay = mean(dep_delay, na.rm = TRUE))",
+      "choices": [
+        "1",
+        "12",
+        "336,776",
+        "19"
+      ],
+      "answer": 0,
+      "explain": "Without `group_by()`, `summarize()` collapses the whole data frame into a single row."
+    },
+    {
+      "id": "narm-needed",
+      "type": "truefalse",
+      "r": true,
+      "prompt": "Without `na.rm = TRUE`, `mean(dep_delay)` returns `NA` for the `flights` data.",
+      "answer": true,
+      "explain": "Cancelled flights have no departure delay, and any calculation with an unknown value gives an unknown answer."
+    },
+    {
+      "id": "fill-narm",
+      "type": "fill",
+      "prompt": "Complete the code so `mean()` skips the missing values.",
+      "code": "summarize(delay = mean(dep_delay, ___ = TRUE))",
+      "answers": [
+        "na.rm"
+      ],
+      "explain": "`na.rm = TRUE` means \"remove NAs\" before calculating."
+    },
+    {
+      "id": "summarize-name",
+      "type": "choice",
+      "r": true,
+      "prompt": "In `summarize(delay = mean(dep_delay, na.rm = TRUE))`, what is `delay`?",
+      "choices": [
+        "The name of the new column in the result",
+        "A column in `flights`",
+        "A function",
+        "An argument of `mean()`"
+      ],
+      "answer": 0,
+      "explain": "You choose the name on the left of `=`; the calculation goes on the right."
+    },
+    {
+      "id": "fn-n",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which function counts the rows in each group, and takes no arguments?",
+      "choices": [
+        "`n()`",
+        "`count()`",
+        "`sum()`",
+        "`length()`"
+      ],
+      "answer": 0,
+      "explain": "`n()` only works inside dplyr verbs such as `summarize()`. After `group_by()`, it counts the rows in each group."
+    },
+    {
+      "id": "fn-middle",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which function returns the middle value?",
+      "choices": [
+        "`median()`",
+        "`mean()`",
+        "`quantile()`",
+        "`var()`"
+      ],
+      "answer": 0,
+      "explain": "Half the values are above the median and half below."
+    },
+    {
+      "id": "fn-spread",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which function measures how spread out the values are, in the same units as the values?",
+      "choices": [
+        "`sd()`",
+        "`var()`",
+        "`mean()`",
+        "`n()`"
+      ],
+      "answer": 0,
+      "explain": "`sd()` is the standard deviation. `var()`, the variance, is the standard deviation squared, so its units are squared."
+    },
+    {
+      "id": "fn-quantile",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `quantile(dep_delay, 0.25, na.rm = TRUE)` return?",
+      "choices": [
+        "The delay below which a quarter of the delays fall",
+        "A quarter of the mean delay",
+        "The 25 shortest delays",
+        "The delay of the 25th flight"
+      ],
+      "answer": 0,
+      "explain": "It is the 25th percentile. For 2013 it is −5 minutes."
+    },
+    {
+      "id": "skewed",
+      "type": "choice",
+      "prompt": "The mean departure delay in 2013 was 12.6 minutes, but the median was −2 minutes. Why?",
+      "choices": [
+        "A few very long delays pull the mean up, but not the median",
+        "One of them was calculated wrongly",
+        "The median ignores negative values",
+        "The mean ignores missing values"
+      ],
+      "answer": 0,
+      "explain": "Delays are skewed: most flights leave close to on time, but a few leave hours late. The median only looks at the middle flight."
+    },
+    {
+      "id": "summarize-several",
+      "type": "choice",
+      "r": true,
+      "prompt": "How do you calculate several statistics in one `summarize()`?",
+      "choices": [
+        "Separate `name = statistic` pairs with commas",
+        "Use one `summarize()` for each",
+        "Put them in a vector with `c()`",
+        "Join them with `|>`"
+      ],
+      "answer": 0,
+      "explain": "Each pair becomes its own column, still in a single row."
+    },
+    {
+      "id": "group-rows",
+      "type": "choice",
+      "r": true,
+      "prompt": "How many rows does this return?",
+      "code": "flights |>\n  group_by(month) |>\n  summarize(max_delay = max(dep_delay, na.rm = TRUE))",
+      "choices": [
+        "12",
+        "1",
+        "336,776",
+        "24"
+      ],
+      "answer": 0,
+      "explain": "`group_by(month)` makes 12 groups, and `summarize()` returns one row for each."
+    },
+    {
+      "id": "group-origin",
+      "type": "choice",
+      "r": true,
+      "prompt": "How many rows does this return?",
+      "code": "flights |>\n  group_by(origin) |>\n  summarize(n = n())",
+      "choices": [
+        "3",
+        "1",
+        "12",
+        "105"
+      ],
+      "answer": 0,
+      "explain": "There are three origin airports, so three groups and three rows."
+    },
+    {
+      "id": "group-alone",
+      "type": "truefalse",
+      "r": true,
+      "prompt": "`flights |> group_by(month)` on its own returns 12 rows.",
+      "answer": false,
+      "explain": "`group_by()` doesn't change the rows. It only notes which group each row is in (`Groups: month [12]`). It takes `summarize()` to collapse each group into one row."
+    },
+    {
+      "id": "group-keeps",
+      "type": "choice",
+      "r": true,
+      "prompt": "After `group_by(month) |> summarize(...)`, which column is always in the result?",
+      "choices": [
+        "`month`",
+        "`dep_delay`",
+        "`n`",
+        "None; only the statistics"
+      ],
+      "answer": 0,
+      "explain": "The grouping column stays, so you can tell the rows apart."
+    },
+    {
+      "id": "fill-ungroup",
+      "type": "fill",
+      "prompt": "Complete the code to remove the grouping when you have finished working by group.",
+      "code": "flights |>\n  group_by(month) |>\n  mutate(month_mean = mean(dep_delay, na.rm = TRUE)) |>\n  ___()",
+      "answers": [
+        "ungroup"
+      ],
+      "explain": "`ungroup()` removes the grouping so later steps don't run by group by accident."
+    },
+    {
+      "id": "grouped-mutate",
+      "type": "choice",
+      "r": true,
+      "prompt": "On a data frame grouped by `month`, what does `mutate(m = mean(dep_delay, na.rm = TRUE))` put in each row?",
+      "choices": [
+        "The mean delay for that flight's month",
+        "The mean delay for the whole year",
+        "That flight's own delay",
+        "`NA`"
+      ],
+      "answer": 0,
+      "explain": "Verbs after `group_by()` work within each group, so the mean is for each month."
+    },
+    {
+      "id": "dropna-package",
+      "type": "choice",
+      "prompt": "Which package does `drop_na()` come from?",
+      "choices": [
+        "tidyr",
+        "dplyr",
+        "ggplot2",
+        "nycflights13"
+      ],
+      "answer": 0,
+      "explain": "`drop_na()` is in tidyr, which `library(tidyverse)` also loads."
+    },
+    {
+      "id": "dropna-all",
+      "type": "choice",
+      "r": true,
+      "prompt": "`drop_na()` with no columns named removes the rows that have an `NA` in:",
+      "choices": [
+        "Any column",
+        "The first column",
+        "The column you last used",
+        "No columns"
+      ],
+      "answer": 0,
+      "explain": "That can remove more rows than you meant to. Always name the columns your question needs."
+    },
+    {
+      "id": "dropna-vs-narm",
+      "type": "choice",
+      "r": true,
+      "prompt": "How do `na.rm = TRUE` and `drop_na(dep_delay)` differ?",
+      "choices": [
+        "`drop_na()` removes whole rows for every later step; `na.rm` only affects one calculation",
+        "They are exactly the same",
+        "`na.rm` removes rows; `drop_na()` doesn't",
+        "`drop_na()` replaces NAs with 0"
+      ],
+      "answer": 0,
+      "explain": "`drop_na()` changes the data. `na.rm = TRUE` only tells one function to skip NAs. Counts with `n()` can differ."
+    },
+    {
+      "id": "weighted-why",
+      "type": "choice",
+      "prompt": "Why is the mean of the flights' speeds a poor measure of the average speed in a month?",
+      "choices": [
+        "It gives a half-hour hop as much weight as a six-hour flight",
+        "`mean()` can't handle speeds",
+        "Speeds can't be averaged at all",
+        "It counts cancelled flights"
+      ],
+      "answer": 0,
+      "explain": "Short flights are slow and plentiful, so they drag the simple mean down. Dividing total distance by total air time counts each flight in proportion to its air time."
+    },
+    {
+      "id": "weighted-better",
+      "type": "truefalse",
+      "prompt": "To find the average speed for a month, it is better to divide the total distance by the total air time than to take the mean of the flights' speeds.",
+      "answer": true,
+      "explain": "That is a weighted average. In January it gives 394 mph, against 370 from the simple mean."
+    },
+    {
+      "id": "order-weighted",
+      "type": "order",
+      "prompt": "Put the tiles in order to calculate the weighted speed for each month.",
+      "answer": [
+        "flights",
+        "|>",
+        "group_by(month)",
+        "|>",
+        "drop_na(distance, air_time)",
+        "|>",
+        "summarize(distance = sum(distance), air_time = sum(air_time))",
+        "|>",
+        "mutate(speed = distance / air_time * 60)"
+      ],
+      "explain": "Group, drop the flights with no air time, add up the totals for each month, and then divide the totals."
+    },
+    {
+      "id": "order-late-plane",
+      "type": "order",
+      "prompt": "Put the tiles in order to find the plane that left late most often.",
+      "answer": [
+        "flights",
+        "|>",
+        "filter(dep_delay > 0)",
+        "|>",
+        "group_by(tailnum)",
+        "|>",
+        "summarize(n_late = n())",
+        "|>",
+        "arrange(desc(n_late))"
+      ],
+      "extra": [
+        "select(tailnum)"
+      ],
+      "explain": "Keep the late flights, group them by plane, count each group, and sort, largest first."
+    },
+    {
+      "id": "code-mean-na",
+      "type": "code",
+      "prompt": "`delays` holds six departure delays, one of them missing. Store their mean, skipping the missing value, in `avg_delay`.",
+      "starter": "delays <- c(4, -2, NA, 30, 0, -7)\n",
+      "check": "isTRUE(all.equal(avg_delay, 5))",
+      "solution": "delays <- c(4, -2, NA, 30, 0, -7)\navg_delay <- mean(delays, na.rm = TRUE)",
+      "explain": "Without `na.rm = TRUE` the answer would be `NA`. The five known delays add up to 25, so the mean is 5."
+    },
+    {
+      "id": "code-weighted",
+      "type": "code",
+      "prompt": "`distance` (miles) and `air_time` (minutes) are for three flights. Store their **weighted** average speed in miles per hour, total distance divided by total air time, in `speed`.",
+      "starter": "distance <- c(96, 762, 2586)\nair_time <- c(32, 116, 345)\n",
+      "check": "isTRUE(all.equal(speed, sum(c(96, 762, 2586)) / sum(c(32, 116, 345)) * 60))",
+      "solution": "distance <- c(96, 762, 2586)\nair_time <- c(32, 116, 345)\nspeed <- sum(distance) / sum(air_time) * 60",
+      "explain": "Sum first, then divide: 3,444 miles in 493 minutes is about 419 mph. The mean of the three flights' speeds, `mean(distance / air_time * 60)`, is lower, about 341 mph, because the short flight counts as much as the long one."
+    },
+    {
+      "id": "code-count-late",
+      "type": "code",
+      "prompt": "`delays` holds departure delays. Store the number of flights that left late (delay greater than 0) in `n_late`, ignoring the missing value.",
+      "starter": "delays <- c(12, -3, NA, 45, 0, 7, -1)\n",
+      "check": "isTRUE(all.equal(n_late, 3))",
+      "solution": "delays <- c(12, -3, NA, 45, 0, 7, -1)\nn_late <- sum(delays > 0, na.rm = TRUE)",
+      "explain": "`delays > 0` is TRUE for 12, 45, and 7. `sum()` counts the TRUEs, as R treats TRUE as 1, and `na.rm = TRUE` skips the NA."
+    }
+  ]
+}

@@ -561,7 +561,7 @@ terms:
 
   - term: tidy data
     aliases: [tidy, tidying]
-    chapters: [tidyverse-filter-pipe]
+    chapters: [tidyverse-filter-pipe, tidyverse-arrange-select-mutate, tidyverse-summarize-group-by]
     definition: >-
       Data arranged so that each variable is a column, each observation is a
       row, and each value has its own cell.
@@ -581,7 +581,7 @@ terms:
 
   - term: verb
     aliases: [verbs]
-    chapters: [tidyverse-filter-pipe]
+    chapters: [tidyverse-filter-pipe, tidyverse-arrange-select-mutate, tidyverse-summarize-group-by]
     definition: >-
       A dplyr function named for the job it does to a data frame, such as
       `filter()`, `select()`, `arrange()`, and `mutate()`.
@@ -598,6 +598,101 @@ terms:
     definition: >-
       A value that is unknown, written `NA` ("not available") in R. Most
       calculations with `NA` give `NA`; test for it with `is.na()`.
+
+  # --- Into the Tidyverse: arrange, distinct, select, and mutate -------------
+
+  - term: unique value
+    aliases: [unique values]
+    definition: >-
+      A value counted once, however many times it repeats. `distinct()` keeps
+      one row for each unique value, or each unique combination of values.
+
+  - term: ascending order
+    aliases: [ascending]
+    definition: >-
+      Smallest to largest for numbers, A to Z for text. `arrange()` sorts in
+      ascending order unless you wrap the column in `desc()`.
+
+  - term: descending order
+    aliases: [descending]
+    definition: >-
+      Largest to smallest for numbers, Z to A for text. Ask `arrange()` for it
+      with `desc()`, as in `arrange(desc(dep_delay))`.
+
+  - term: tie
+    aliases: [ties]
+    chapters: [tidyverse-arrange-select-mutate]
+    definition: >-
+      Two or more rows with the same value in the column being sorted.
+      `arrange()` breaks ties with the next column you name.
+
+  - term: selection helper
+    aliases: [selection helpers]
+    definition: >-
+      A function that picks columns by name inside `select()`, such as
+      `starts_with()`, `ends_with()`, and `contains()`.
+
+  - term: vectorized
+    aliases: [vectorised]
+    definition: >-
+      Done to every element of a vector at once, without a loop. Arithmetic in
+      R is vectorized, so `distance / air_time` divides row by row.
+
+  - term: outlier
+    aliases: [outliers]
+    definition: >-
+      A value far from all the others. It may be real or an error, so check
+      it before you report it.
+
+  # --- Into the Tidyverse: summarize, group_by, and drop_na ------------------
+
+  - term: summary statistic
+    aliases: [summary statistics]
+    definition: >-
+      One number that describes many values, such as their mean, median,
+      maximum, or count. `summarize()` calculates them.
+
+  - term: mean
+    case_sensitive: true
+    chapters: [tidyverse-summarize-group-by]
+    definition: >-
+      The average: the sum of the values divided by how many there are. A few
+      very large or small values can pull it a long way.
+
+  - term: standard deviation
+    aliases: [standard deviations]
+    definition: >-
+      A measure of how spread out values are around their mean, in the same
+      units as the values. `sd()` in R.
+
+  - term: variance
+    definition: >-
+      A measure of spread: the standard deviation squared, so its units are
+      squared too. `var()` in R.
+
+  - term: percentile
+    aliases: [percentiles, quantile, quantiles]
+    definition: >-
+      The value below which a given share of the values fall: a quarter of
+      values are below the 25th percentile. `quantile()` in R.
+
+  - term: skewed
+    aliases: [skew, skewness]
+    definition: >-
+      Lopsided: most values are bunched at one end, with a long tail of
+      unusual values at the other, which pulls the mean away from the median.
+
+  - term: grouped data frame
+    aliases: [grouped data frames]
+    definition: >-
+      A data frame made by `group_by()`. It looks the same, but later verbs
+      work on each group separately until you call `ungroup()`.
+
+  - term: weighted average
+    aliases: [weighted averages, weighted mean]
+    definition: >-
+      An average in which some values count more than others. Total distance
+      divided by total air time weights each flight's speed by its air time.
 
   # --- Census Data and APIs --------------------------------------------------
 
