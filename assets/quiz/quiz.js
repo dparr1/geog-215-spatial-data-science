@@ -14,6 +14,13 @@
   "Write R code" questions run real R in the browser with webR, loaded only
   when a session includes one.
 
+  Scoring: each answer (re-asks included) is +100 if right and -100 if wrong,
+  and a right answer adds a streak bonus of 10 for each right answer in a row
+  just before it (100, 110, 120, ...). A wrong answer resets the streak, and each
+  quiz starts from 0. The official score is worked out by Supabase in
+  record_chapter_quiz_answer() (supabase/setup.sql); this only shows the same
+  numbers to the student as they go, so keep QUIZ_POINTS in step with it.
+
   Right and wrong answers play a short sound (Web Audio, no files), which
   students can turn off with the speaker button by the progress bar.
 */
@@ -23,6 +30,12 @@
   // Same webR version as the book's code cells (_extensions/coatless/webr).
   const WEBR_URL = "https://webr.r-wasm.org/v0.6.0/webr.mjs";
   const R_TYPES = ["fill", "order", "code"];
+
+  // Points per answer (must match record_chapter_quiz_answer in supabase/setup.sql).
+  const QUIZ_POINTS = { right: 100, wrong: -100, streakBonus: 10 };
+  const points = (right, streak) =>
+    right ? QUIZ_POINTS.right + QUIZ_POINTS.streakBonus * streak : QUIZ_POINTS.wrong;
+  const fmtScore = (n) => (n < 0 ? "\u2212" : "") + Math.abs(n).toLocaleString("en-US");
 
   // ---- Small helpers ---------------------------------------------------------
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
@@ -343,7 +356,7 @@
       this.items = this.pick().map((q) => ({ q, missed: false, done: false }));
       this.queue = this.items.slice();
       this.fixing = false;
-      this.stats = { correct: 0, incorrect: 0, firstTry: 0 };
+      this.stats = { correct: 0, incorrect: 0, firstTry: 0, score: 0, streak: 0, bestStreak: 0 };
       if (this.items.some((i) => i.q.type === "code")) getWebR().catch(() => {});   // warm up R
       this.next();
     }
@@ -385,7 +398,11 @@
         <div class="sds-q-progress" role="progressbar" aria-valuemin="0" aria-valuemax="${this.items.length}"
              aria-valuenow="${done}" aria-label="Questions answered correctly">
           <span style="width:${pct}%"></span></div>
-        <div class="sds-q-count">${done} / ${this.items.length}</div>`;
+        <div class="sds-q-count">${done} / ${this.items.length}</div>
+        <div class="sds-q-score" title="Your score for this quiz"
+             aria-label="Score ${fmtScore(this.stats.score)}${this.stats.streak > 1 ? ", " + this.stats.streak + " in a row" : ""}">
+          ${this.stats.streak > 1 ? `<span class="sds-q-streak" aria-hidden="true">\u{1F525}${this.stats.streak}</span>` : ""}
+          <span aria-hidden="true">${fmtScore(this.stats.score)}</span></div>`;
       const btn = el("button", { type: "button", class: "sds-q-sound" });
       const label = () => {
         btn.textContent = soundOn ? "\u{1F50A}" : "\u{1F507}";
@@ -624,6 +641,10 @@
     grade(item, result, footer) {
       const q = item.q;
       const firstTry = !item.missed && !this.fixing;
+      const earned = points(!!result.correct, this.stats.streak);
+      this.stats.score += earned;
+      this.stats.streak = result.correct ? this.stats.streak + 1 : 0;
+      this.stats.bestStreak = Math.max(this.stats.bestStreak, this.stats.streak);
       if (result.correct) {
         this.stats.correct++;
         if (firstTry) this.stats.firstTry++;
@@ -648,7 +669,12 @@
       const right = !!result.correct;
       playSound(right ? "right" : "wrong");
       const sheet = el("div", { class: "sds-q-sheet " + (right ? "is-right" : "is-wrong"), role: "status" });
-      let html = `<div class="sds-q-sheet-title">${right ? "Correct!" : "Not quite"}</div>`;
+      const bonus = earned - QUIZ_POINTS.right;
+      const pts = right
+        ? `+${earned} points` + (bonus > 0 ? ` (${this.stats.streak} in a row: +${bonus} bonus)` : "")
+        : `${fmtScore(earned)} points`;
+      let html = `<div class="sds-q-sheet-title">${right ? "Correct!" : "Not quite"}` +
+        ` <span class="sds-q-points">${pts}</span></div>`;
       if (result.note) html += `<p>${esc(result.note)}</p>`;
       if (!right) {
         const ans = correctAnswerText(q);
@@ -700,6 +726,8 @@
         <h2>${headline}</h2>
         <p>You answered all ${n} questions correctly.</p>
         <div class="sds-q-stats">
+          <div class="sds-q-stat-score"><span class="n">${fmtScore(s.score)}</span><span class="l">points</span></div>
+          <div><span class="n">${s.bestStreak}</span><span class="l">best streak</span></div>
           <div><span class="n">${s.firstTry}/${n}</span><span class="l">right first try</span></div>
           <div><span class="n">${s.correct}</span><span class="l">correct answers</span></div>
           <div><span class="n">${s.incorrect}</span><span class="l">incorrect answers</span></div>

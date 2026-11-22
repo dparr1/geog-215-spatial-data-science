@@ -206,6 +206,7 @@
       <button role="tab" data-tab="add" aria-selected="false">Add students</button>
       <button role="tab" data-tab="activity" aria-selected="false">Activity</button>
       <button role="tab" data-tab="pages" aria-selected="false">Pages</button>
+      <button role="tab" data-tab="scores" aria-selected="false">Quiz scores</button>
       <button role="tab" data-tab="cq" aria-selected="false">Chapter quizzes</button>
       <button role="tab" data-tab="quiz" aria-selected="false">Self-checks</button>
       <button role="tab" data-tab="code" aria-selected="false">Code</button>
@@ -238,6 +239,7 @@
             <tr>
               <th>Name</th><th>Email</th><th>Group / term</th><th>Status</th>
               <th class="num">Pages opened</th>
+              <th class="num" title="Chapter quizzes: total points across all quizzes">Quiz score</th>
               <th class="num" title="Chapter quizzes: correct answers as a share of all answers">Quiz success</th>
               <th class="num" title="Self-check questions answered correctly at least once, of those answered">Self-checks right</th>
               <th class="num">Code runs</th><th>Last active</th><th>Actions</th>
@@ -305,6 +307,30 @@
       </div>
     </div>
 
+    <!-- Quiz scores (leaderboard) -->
+    <div class="panel" data-panel="scores" hidden>
+      <div class="toolbar">
+        <div>
+          <label for="scores-note">Group / term</label>
+          <select id="scores-note"><option value="">All</option></select>
+        </div>
+      </div>
+      <p class="hint">Points from the chapter quizzes. Every answer, re-asks included, is
+        <strong>+100</strong> if right and <strong>&minus;100</strong> if wrong. A right answer also earns a
+        streak bonus of <strong>+10</strong> for each right answer in a row just before it in the same quiz,
+        so a run of right answers scores 100, 110, 120, 130, and so on. A wrong answer resets the streak, and
+        every new quiz starts from zero. A student's <strong>total</strong> adds up every quiz they have taken;
+        each chapter column is the total for that chapter's quizzes. <strong>Best streak</strong> is the most
+        right answers in a row in any one quiz. Quizzes taken before scoring was added count 100 per right
+        answer and &minus;100 per wrong one, with no streak bonus.</p>
+      <div class="table-wrap">
+        <table>
+          <thead id="scores-head"></thead>
+          <tbody id="scores-body"></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Chapter quizzes -->
     <div class="panel" data-panel="cq" hidden>
       <div class="toolbar">
@@ -337,6 +363,8 @@
         <table>
           <thead><tr><th>Student</th><th>Chapter</th><th class="num">Finished</th><th class="num">Correct</th>
             <th class="num">Incorrect</th><th class="num">Success</th><th class="num">Best first try</th>
+            <th class="num" title="Points from all of this student's quizzes for the chapter">Score</th>
+            <th class="num" title="Best score in a single quiz">Best quiz</th>
             <th>Last taken</th></tr></thead>
           <tbody id="cq-students-body"></tbody>
         </table>
@@ -533,6 +561,7 @@
     renderStudents();
     renderActivity();
     renderPages();
+    renderScores();
     renderChapterQuizzes();
     renderQuiz();
     renderCode();
@@ -557,6 +586,7 @@
   function renderFilters() {
     const notes = [...new Set(state.roster.map((s) => s.note).filter(Boolean))].sort();
     fillSelect($("student-note"), notes.map((n) => [n, n]), '<option value="">All</option>');
+    fillSelect($("scores-note"), notes.map((n) => [n, n]), '<option value="">All</option>');
     $("note-options").innerHTML = notes.map((n) => `<option value="${esc(n)}">`).join("");
     const students = state.roster.map((s) => [s.code, s.student_name + " (" + (s.email || s.code) + ")"]);
     ["activity-student", "quiz-student", "code-student", "cq-student"].forEach((id) =>
@@ -584,6 +614,7 @@
         <td>${esc(s.note || "")}</td>
         <td>${st.html}</td>
         <td class="num">${Number(s.pages_opened)}</td>
+        <td class="num">${scoreCell(s.cq_score, Number(s.cq_correct) + Number(s.cq_incorrect))}</td>
         <td class="num" title="${Number(s.cq_correct)} correct, ${Number(s.cq_incorrect)} incorrect, ${Number(s.cq_completed)} quizzes finished">${successBadge(s.cq_correct, s.cq_incorrect)}</td>
         <td class="num">${Number(s.quiz_answered) ? Number(s.quiz_correct) + " of " + Number(s.quiz_answered) : "0"}</td>
         <td class="num" title="${Number(s.code_errors)} ended in an error">${Number(s.code_runs)}</td>
@@ -591,7 +622,7 @@
         <td class="actions">${lock}
           <button class="btn danger small" data-act="delete" data-code="${esc(s.code)}">Delete</button></td>
       </tr>`;
-    }).join("") : `<tr><td colspan="10" class="empty">${state.roster.length
+    }).join("") : `<tr><td colspan="11" class="empty">${state.roster.length
       ? "No students match these filters." : "No students yet. Use Add students."}</td></tr>`;
   }
 
@@ -679,8 +710,10 @@
         <td class="num">${Number(r.incorrect)}</td>
         <td class="num">${successBadge(r.correct, r.incorrect)}</td>
         <td class="num">${r.best_first_try == null ? "–" : Math.round(Number(r.best_first_try)) + "%"}</td>
+        <td class="num">${scoreCell(r.score, 1)}</td>
+        <td class="num" title="Best streak: ${Number(r.best_streak) || 0} in a row">${r.best_score == null ? "–" : fmtScore(r.best_score)}</td>
         <td>${when(r.last_at)}</td>
-      </tr>`).join("") : `<tr><td colspan="8" class="empty">${student
+      </tr>`).join("") : `<tr><td colspan="10" class="empty">${student
         ? "This student hasn't taken a chapter quiz yet." : "No chapter quizzes taken yet."}</td></tr>`;
 
     // Questions, hardest first (class-wide).
@@ -698,6 +731,56 @@
         <td class="num">${successBadge(q.correct, q.incorrect)}</td>
         <td class="num">${Number(q.first_try_total) ? Math.round(100 * Number(q.first_try_correct) / Number(q.first_try_total)) + "%" : "–"}</td>
       </tr>`).join("") : `<tr><td colspan="6" class="empty">No answers yet.</td></tr>`;
+  }
+
+  // ---- Quiz scores ----------------------------------------------------------
+  // Scores are worked out in Supabase (record_chapter_quiz_answer); see the
+  // hint on the Quiz scores tab for the rule.
+  function fmtScore(n) {
+    n = Number(n) || 0;
+    return (n < 0 ? "\u2212" : "") + Math.abs(n).toLocaleString("en-US");
+  }
+  // A score, red when below zero, or a dash when there were no answers.
+  function scoreCell(score, answered) {
+    if (!Number(answered)) return '<span class="muted-dash">–</span>';
+    const n = Number(score) || 0;
+    return n < 0 ? `<span style="color:var(--danger)">${fmtScore(n)}</span>` : `<strong>${fmtScore(n)}</strong>`;
+  }
+
+  // Leaderboard: every student, highest total first, with a column per chapter.
+  function renderScores() {
+    const note = $("scores-note").value;
+    const chs = chapters();
+    const byStudent = {};
+    state.cq.forEach((r) => { (byStudent[r.code] ||= {})[r.chapter] = r; });
+    const rows = state.roster.filter((s) => !note || s.note === note).map((s) => {
+      const per = byStudent[s.code] || {};
+      const answered = Number(s.cq_correct) + Number(s.cq_incorrect);
+      const bestStreak = Math.max(0, ...Object.values(per).map((r) => Number(r.best_streak) || 0));
+      return { s, per, answered, total: Number(s.cq_score) || 0, bestStreak };
+    }).sort((a, b) => (b.answered > 0) - (a.answered > 0) || b.total - a.total ||
+      a.s.student_name.localeCompare(b.s.student_name));
+
+    $("scores-head").innerHTML = `<tr><th class="num">Rank</th><th>Student</th><th class="num">Total</th>` +
+      chs.map((c) => `<th class="num">${esc(c.title)}</th>`).join("") +
+      `<th class="num">Quizzes finished</th><th class="num">Best streak</th></tr>`;
+
+    // Ties share a rank (1, 2, 2, 4); students with no answers get none.
+    let rank = 0, prev = null;
+    $("scores-body").innerHTML = rows.length ? rows.map((r, i) => {
+      if (r.answered && r.total !== prev) { rank = i + 1; prev = r.total; }
+      return `<tr>
+        <td class="num">${r.answered ? rank : "–"}</td>
+        <td><button class="linkish" data-code="${esc(r.s.code)}" title="See this student's chapter quizzes">${esc(r.s.student_name)}</button></td>
+        <td class="num">${scoreCell(r.total, r.answered)}</td>` +
+        chs.map((c) => {
+          const x = r.per[c.chapter];
+          return `<td class="num">${x ? scoreCell(x.score, Number(x.correct) + Number(x.incorrect)) : '<span class="muted-dash">–</span>'}</td>`;
+        }).join("") + `
+        <td class="num">${Number(r.s.cq_completed)}</td>
+        <td class="num">${r.answered ? r.bestStreak : "–"}</td>
+      </tr>`;
+    }).join("") : `<tr><td colspan="${chs.length + 5}" class="empty">No students yet.</td></tr>`;
   }
 
   // ---- Self-checks and code ------------------------------------------------
@@ -998,6 +1081,14 @@
       $(id).addEventListener("input", renderStudents));
     $("activity-student").addEventListener("input", renderActivity);
     ["cq-student", "cq-chapter"].forEach((id) => $(id).addEventListener("input", renderChapterQuizzes));
+    $("scores-note").addEventListener("input", renderScores);
+    $("scores-body").addEventListener("click", (event) => {
+      const btn = event.target.closest("button[data-code]");
+      if (!btn) return;
+      $("cq-student").value = btn.dataset.code;
+      selectTab("cq");
+      renderChapterQuizzes();
+    });
     $("quiz-student").addEventListener("input", () => { renderQuiz(); loadQuizFor(); });
     $("code-student").addEventListener("input", () => { renderCode(); loadCodeFor(); });
     $("add-form").addEventListener("submit", onAdd);
