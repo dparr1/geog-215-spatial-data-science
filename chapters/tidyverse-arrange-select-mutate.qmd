@@ -1,0 +1,400 @@
+---
+title: "Into the Tidyverse: arrange, distinct, select, and mutate"
+engine: knitr
+webr:
+  # Installed in the browser for this chapter's live code boxes.
+  packages: ["dplyr", "nycflights13"]
+---
+
+```{r}
+#| label: setup-webex
+#| include: false
+library(webexercises)
+```
+
+::: {.callout-note appearance="simple"}
+## Learning objectives
+
+By the end of this chapter you should be able to:
+
+1.  Sort the rows of a data frame with `arrange()`, in either direction and by more than one column.
+2.  Find the unique values, or unique combinations of values, in a data frame with `distinct()`.
+3.  Keep only the columns you need with `select()`.
+4.  Make new columns from existing ones with `mutate()`.
+5.  Chain these verbs and `filter()` together with the pipe to answer a question step by step.
+:::
+
+In the last chapter you met the tidyverse, looked inside the `flights` data with `glimpse()`, and kept the rows you needed with `filter()`. This chapter adds four more dplyr verbs. Two of them work on rows: `distinct()` finds the unique values in a column, and `arrange()` sorts the rows. The other two work on columns: `select()` keeps the columns you name, and `mutate()` makes new ones. With `filter()`, these five verbs cover most of the day-to-day work of getting data into shape.
+
+The examples keep using the **nycflights13** data, so you can build each answer one step at a time. By the end of the chapter you will be able to answer questions such as "where can I fly from JFK in under three hours?" and "what was the fastest flight out of New York in 2013?"
+
+::: {.callout-tip appearance="simple"}
+## Warm-up: why doesn't this code work?
+
+``` r
+flights |> filter(month = 1)
+```
+
+Run it in the box below and read the error before you look at the answer.
+
+```{webr-r}
+library(dplyr)
+library(nycflights13)
+
+flights |> filter(month = 1)
+```
+
+`r hide("Show the answer")`
+R says it "detected a named input" and asks "Did you mean `month == 1`?" A single `=` names an argument; a comparison needs a double `==`. The fix is `flights |> filter(month == 1)`. dplyr's error messages often tell you exactly what went wrong, so read them before you change anything.
+`r unhide()`
+:::
+
+## Verbs for rows and verbs for columns {#sec-rows-columns}
+
+### Two kinds of verb
+
+Every dplyr **verb** takes a data frame as its first argument and returns a new data frame, which is why they chain together so well with the pipe. But they change different things. Some verbs change *which rows* you have, or the order they are in. Others change *which columns* you have (@tbl-verbs-rows-columns).
+
+| Works on | Verb | What it does | Example |
+|:---------|:-----------|:----------------------------------|:----------------------------|
+| Rows | `filter()` | Keeps the rows that meet a condition | `filter(origin == "JFK")` |
+| Rows | `distinct()` | Keeps one row for each unique value | `distinct(dest)` |
+| Rows | `arrange()` | Sorts the rows | `arrange(dest, origin)` |
+| Columns | `select()` | Keeps the columns you name | `select(origin, dest)` |
+| Columns | `mutate()` | Adds new columns | `mutate(avg_speed = distance / air_time * 60)` |
+
+: The five dplyr verbs in this chapter and the last, grouped by what they work on. Every example is code you will run in this chapter. {#tbl-verbs-rows-columns}
+
+Keeping the two groups in mind helps you plan a pipe chain. If the question is about *which flights*, you need a row verb. If it is about *which information about each flight*, you need a column verb.
+
+### Where this fits
+
+These verbs all belong to the **Transform** step of the data science workflow you met in the last chapter. None of them changes what a row means: before and after, each row of `flights` is one flight. They only change which flights you keep, the order they are in, and which facts about each flight you can see. That relies on the data being **tidy**: each variable is a column, each observation is a row, and each value has its own cell.
+
+## Finding unique values with distinct() {#sec-distinct}
+
+### One column
+
+`flights` has 336,776 rows, but most of the values in a column like `origin` repeat thousands of times. `distinct()` keeps one row for each **unique value**. Give it the data frame and the column to check:
+
+```{webr-r}
+flights |>
+  distinct(origin)
+```
+
+Read it as "take `flights`, *and then* keep one row for each different `origin`." The answer is three rows: the three New York City airports, Newark (`EWR`), LaGuardia (`LGA`), and John F. Kennedy (`JFK`). Notice that the result has only the column you named. `distinct()` answers the question "which values are there?", so it drops the other columns.
+
+### Building up a question
+
+`distinct()` is most useful at the end of a pipe chain, after `filter()` has kept the rows you care about. Here is one question, asked four ways, each a little narrower than the last.
+
+**Where can I fly from New York?** Every row of `flights` is one departure, so the same destination appears thousands of times. `distinct(dest)` keeps each destination once:
+
+```{webr-r}
+flights |>
+  distinct(dest)
+```
+
+The result has 105 rows: 105 destination airports. They are all domestic. Most are in the 50 states, and a few are in US territories, such as San Juan (`SJU`) in Puerto Rico and St. Thomas (`STT`) in the US Virgin Islands.
+
+**Where can I fly from JFK?** Put a `filter()` in front, so that `distinct()` only sees the JFK flights:
+
+```{webr-r}
+flights |>
+  filter(origin == "JFK") |>
+  distinct(dest)
+```
+
+JFK serves 70 of the 105 destinations.
+
+**Where can I fly from JFK in 3 hours or less?** `air_time` is the time in the air, in minutes, so 3 hours is 180 minutes. Add a second filter:
+
+```{webr-r}
+flights |>
+  filter(origin == "JFK") |>
+  filter(air_time <= 180) |>
+  distinct(dest)
+```
+
+That leaves 50 destinations. `<=` means "less than or equal to," so this keeps flights of exactly 180 minutes too. For "less than 3 hours," strictly, use `<`. In this case both give the same 50 destinations, but they won't always, so write the one that matches your question.
+
+**And sorted by airport code?** The result above is in the order the destinations first appear in the data, which is hard to scan. The next section shows how to sort it.
+
+### Several columns
+
+Give `distinct()` more than one column and it keeps each unique *combination* of their values. Which airports are linked by a direct flight from New York?
+
+```{webr-r}
+flights |>
+  distinct(origin, dest)
+```
+
+There are 224 origin and destination pairs. That is more than 105, because many destinations are served from more than one New York airport: Atlanta, for example, appears three times, once with each origin.
+
+To count unique values, pipe the result into `nrow()`, as in `flights |> distinct(dest) |> nrow()`, which returns 105. If you want to keep the other columns, `distinct()` has an argument for that, `.keep_all = TRUE`, which keeps the first row it finds for each unique value.
+
+## Sorting rows with arrange() {#sec-arrange}
+
+### Sorting by one column
+
+`arrange()` sorts the rows of a data frame by the column you name. Add it to the end of the JFK question to list the destinations alphabetically:
+
+```{webr-r}
+flights |>
+  filter(origin == "JFK") |>
+  filter(air_time <= 180) |>
+  distinct(dest) |>
+  arrange(dest)
+```
+
+The same 50 rows now start with `ACK` (Nantucket), `ATL` (Atlanta), and `AUS` (Austin). `arrange()` changes the *order* of the rows, never how many there are. It sorts in **ascending order** by default: A to Z for text, smallest to largest for numbers.
+
+### Sorting every row
+
+`arrange()` works on any data frame, not only on the result of `distinct()`. Take out `distinct()`, and `arrange()` sorts every one of the 64,248 short JFK flights by destination:
+
+```{webr-r}
+flights |>
+  filter(origin == "JFK") |>
+  filter(air_time <= 180) |>
+  arrange(dest)
+```
+
+All 19 columns are still there, and the rows with the same `dest` now sit together, starting with the flights to Nantucket. Comparing this result with the last one shows that it was `distinct()`, not `arrange()`, that collapsed 64,248 flights into 50 destinations.
+
+### Largest first
+
+To sort in **descending order**, largest first or Z to A, wrap the column in `desc()`. Which flights left latest?
+
+```{webr-r}
+flights |>
+  arrange(desc(dep_delay)) |>
+  select(month, day, carrier, origin, dest, dep_delay)
+```
+
+The longest departure delay in 2013 was 1,301 minutes, nearly 22 hours, on a flight from JFK to Honolulu on January 9. (The `select()` at the end keeps a few columns so the result fits on the screen. It is the subject of the next section.)
+
+For a numeric column, a minus sign does the same job: `arrange(-dep_delay)` sorts from largest to smallest. The minus sign only works on numbers, though, while `desc()` also works on text, so `desc()` is the safer habit.
+
+Missing values always go to the end, whichever direction you sort. The flights with no `dep_delay` (the cancelled flights) are at the bottom of both `arrange(dep_delay)` and `arrange(desc(dep_delay))`.
+
+### Sorting by two columns
+
+What does this code do? Read it one step at a time, and predict the order of the Atlanta (`ATL`) rows before you run it.
+
+```{webr-r}
+flights |>
+  distinct(origin, dest) |>
+  arrange(dest, origin)
+```
+
+`distinct(origin, dest)` keeps the 224 unique pairs. `arrange(dest, origin)` sorts them by destination first. When two rows have the same destination, which is called a **tie**, it uses the second column, `origin`, to decide their order. All three New York airports fly to Atlanta, so `ATL` appears three times, and those three rows are sorted by origin: `EWR`, `JFK`, `LGA`. You can name as many columns as you like; each one breaks the ties left by the one before.
+
+## Keeping columns with select() {#sec-select}
+
+### Naming the columns you want
+
+`flights` has 19 columns, too many to see at once. `select()` keeps the columns you name, in the order you name them, and every row:
+
+```{webr-r}
+flights_dates <- flights |>
+  select(year, month, day, dep_time)
+
+glimpse(flights_dates)
+```
+
+The result has all 336,776 rows but only 4 columns. Storing it with `<-` under a new name, `flights_dates`, leaves the original `flights` unchanged.
+
+`select()` and `filter()` are easy to mix up, because in everyday English you "select" the rows you want. Remember that **`filter()` picks rows** and **`select()` picks columns**.
+
+### Dropping and finding columns
+
+Typing out every column you want gets tedious with wide data. `select()` has shortcuts (@tbl-select-shortcuts).
+
+| Code | What it keeps |
+|:--------------------------------|:------------------------------------------|
+| `select(-tailnum)` | Every column except `tailnum` |
+| `select(year:day)` | Every column from `year` to `day`, in the order they sit in the data frame |
+| `select(starts_with("dep"))` | Columns whose names start with `dep`: `dep_time` and `dep_delay` |
+| `select(ends_with("delay"))` | Columns whose names end with `delay`: `dep_delay` and `arr_delay` |
+| `select(contains("time"))` | Columns whose names contain `time` anywhere |
+
+: Shortcuts for choosing columns with `select()`. {#tbl-select-shortcuts}
+
+`starts_with()`, `ends_with()`, and `contains()` are **selection helpers**: functions that only work inside `select()` (and a few other tidyverse functions), and that pick columns by their names. You can combine any of these, separated by commas:
+
+```{webr-r}
+flights |>
+  select(year:day, origin, dest, ends_with("delay"))
+```
+
+## Making new columns with mutate() {#sec-mutate}
+
+### Average speed
+
+`mutate()` adds new columns to a data frame, calculated from the columns it already has. Its arguments take the form `new_name = calculation`. How fast was each flight? `distance` is in miles and `air_time` is in minutes, so distance divided by air time is miles per minute, and multiplying by 60 gives miles per hour:
+
+```{webr-r}
+flights |>
+  mutate(avg_speed = distance / air_time * 60) |>
+  select(origin, dest, distance, air_time, avg_speed)
+```
+
+`mutate()` did the calculation for every one of the 336,776 flights at once. That is because arithmetic in R is **vectorized**: dividing one column by another divides each value by the value in the same row, without a loop. The new column goes at the end of the data frame. Here, `select()` keeps it and the columns it was made from, so you can check the arithmetic: the first flight flew 1,400 miles in 227 minutes, or about 370 miles per hour.
+
+The 9,430 flights with no `air_time` (most of them cancelled) get an `avg_speed` of `NA`, because any arithmetic with a missing value gives a missing value.
+
+### Several columns at once
+
+Separate several new columns with commas. A later column can use one made earlier in the same `mutate()`:
+
+```{webr-r}
+flights |>
+  mutate(
+    hours = air_time / 60,
+    avg_speed = distance / hours
+  ) |>
+  select(origin, dest, distance, hours, avg_speed)
+```
+
+This gives the same speeds as before, in two steps. If you give a new column the name of one that already exists, `mutate()` replaces the old column with the new values, so pick new names unless you mean to overwrite.
+
+### Slowest and fastest
+
+Put `mutate()`, `arrange()`, and `select()` together to find the slowest flights:
+
+```{webr-r}
+flights |>
+  mutate(avg_speed = distance / air_time * 60) |>
+  arrange(avg_speed) |>
+  select(origin, dest, avg_speed)
+```
+
+The slowest flight, from LaGuardia to Philadelphia, averaged about 77 miles per hour. Philadelphia is less than 100 miles from New York, so a flight there spends most of its time taking off, circling, and landing.
+
+Change `arrange(avg_speed)` to `arrange(desc(avg_speed))` to find the fastest:
+
+```{webr-r}
+flights |>
+  mutate(avg_speed = distance / air_time * 60) |>
+  arrange(desc(avg_speed)) |>
+  select(month, day, carrier, origin, dest, distance, air_time, avg_speed)
+```
+
+::: {.callout-important appearance="simple"}
+## Think about it
+
+The fastest flight averaged 703 miles per hour: a Delta flight from LaGuardia to Atlanta on May 25, which flew 762 miles in 65 minutes. A passenger jet usually cruises at about 550 to 580 miles per hour. The typical LaGuardia to Atlanta flight in 2013 took 112 minutes, at about 408 miles per hour.
+
+Do you believe it? A strong tailwind can push a plane's speed over the ground well above its cruising speed, but a 65-minute flight to Atlanta is still extraordinary. It could also be an error in the recorded air time. Either way, a value that is far from all the others, an **outlier**, deserves a second look before you report it. Sorting with `arrange()` is one of the quickest ways to find them.
+:::
+
+## Practice: the longest flight {#sec-longest-practice}
+
+Put it all together. These steps follow the in-class exercise.
+
+**Step 1: set up.** Start a new R Markdown file, and load the packages in the first chunk:
+
+``` r
+library(tidyverse)
+library(nycflights13)
+```
+
+Then take a quick look at the data with `glimpse(flights)`.
+
+**Step 2: the longest flight.** What is the longest domestic flight from New York? Sort by `distance`, largest first, and keep the columns that answer the question. Try it before you look at the answer:
+
+```{webr-r}
+flights |>
+  # sort, then select a few columns
+  head()
+```
+
+`r hide("Show the answer to step 2")`
+
+``` r
+flights |>
+  arrange(desc(distance)) |>
+  select(origin, dest, distance, air_time)
+```
+
+The longest flight is from JFK to Honolulu (`HNL`), 4,983 miles. Every one of the top rows is that same route, because it was flown every day. Add `distinct(origin, dest, distance)` after the `arrange()` to see the longest routes rather than the longest flights: the second is Newark to Honolulu, 4,963 miles.
+
+`r unhide()`
+
+**Step 3: how fast was it?** Add a `mutate()` that calculates `avg_speed`, and include it in the `select()`.
+
+```{webr-r}
+flights |>
+  arrange(desc(distance)) |>
+  # add mutate() here
+  select(origin, dest, distance, air_time)
+```
+
+`r hide("Show the answer to step 3")`
+
+``` r
+flights |>
+  arrange(desc(distance)) |>
+  mutate(avg_speed = distance / air_time * 60) |>
+  select(origin, dest, distance, air_time, avg_speed)
+```
+
+The first flight in the list took 659 minutes, an average of about 454 miles per hour. But the next took 638 minutes and the one after 616, so the speeds differ. Over the year, JFK to Honolulu flights averaged between about 433 and 516 miles per hour. The distance is the same every day, so the difference is all in `air_time`. Why might the same route take an hour longer on one day than another? Think about the wind over the Pacific, and the route each flight was cleared to fly.
+
+`r unhide()`
+
+## Check your understanding
+
+1.  Which verb sorts the rows of a data frame? `r mcq(c("filter()", answer = "arrange()", "distinct()", "select()"))`
+
+2.  `arrange()` can remove rows from a data frame. `r torf(FALSE)`
+
+3.  Complete the code to sort `flights` from the longest departure delay to the shortest: `flights |> arrange(___(dep_delay))` `r fitb("desc")`
+
+4.  `flights |> distinct(origin, dest)` returns: `r mcq(c("Every flight, sorted by origin and destination", answer = "One row for each unique pair of origin and destination", "The three origin airports", "The number of destinations"))`
+
+5.  Which verb keeps some of the **columns** of a data frame? `r mcq(c("filter()", answer = "select()", "mutate()", "arrange()"))`
+
+6.  What does `select(-tailnum)` do? `r mcq(c("Keeps only tailnum", answer = "Keeps every column except tailnum", "Sorts by tailnum, largest first", "Removes the rows where tailnum is missing"))`
+
+7.  `mutate()` puts a new column at the end of the data frame. `r torf(TRUE)`
+
+8.  `air_time` is in minutes. Complete the code to make a column of air time in hours: `mutate(hours = air_time ___ 60)` `r fitb("/")`
+
+`r hide("Show hint for question 4")`
+With more than one column, `distinct()` keeps each unique *combination* of their values. It keeps only the columns you name.
+`r unhide()`
+
+## Summary
+
+- dplyr verbs work either on **rows** (`filter()`, `distinct()`, `arrange()`) or on **columns** (`select()`, `mutate()`). Each takes a data frame first and returns a data frame, so they chain with the pipe.
+- **`distinct()`** keeps one row for each unique value of the columns you name, or each unique combination if you name several. It keeps only those columns.
+- **`arrange()`** sorts rows, in ascending order by default. Wrap a column in `desc()` for descending order. With several columns, each one breaks the ties left by the one before. Sorting never adds or removes rows, and missing values go last.
+- **`select()`** keeps the columns you name, in that order. `-` drops a column, `:` keeps a range, and `starts_with()`, `ends_with()`, and `contains()` pick columns by name. `filter()` picks rows; `select()` picks columns.
+- **`mutate()`** adds new columns calculated from existing ones, with `new_name = calculation`. The calculation is done for every row at once. Arithmetic with `NA` gives `NA`.
+- Sorting a new column with `arrange()` is a quick way to find **outliers**. Check them before you trust them.
+
+## Exercises
+
+Use the `flights` data from nycflights13 for these exercises, and answer each with a pipe chain.
+
+1.  **Airlines.** How many different airlines (`carrier`) flew out of New York in 2013? Which airlines flew from LaGuardia to Raleigh–Durham (`"RDU"`)?
+2.  **Early birds.** Which flight left earliest compared with its scheduled time? (Hint: sort by `dep_delay`.) Which airport did it leave from?
+3.  **Two-column sort.** Sort `flights` by `month`, and then by `dep_delay` from largest to smallest within each month. What was the longest delay in June?
+4.  **Pick your columns.** Write three different `select()` calls that each return exactly the columns `dep_time`, `dep_delay`, `arr_time`, and `arr_delay`. (Hint: try `starts_with()`, `ends_with()`, and `contains()`, or a range with `:`.)
+5.  **Delay in hours.** Use `mutate()` to add a column `dep_delay_hours` that gives the departure delay in hours. Sort by it and keep only `origin`, `dest`, and `dep_delay_hours`. How many hours late was the latest flight?
+6.  **Making up time.** Make a column `gain = dep_delay - arr_delay`. What does a positive `gain` mean? Which flight made up the most time in the air?
+7.  **Fix the code.** Each chain below has one mistake. Find and fix it.
+    ``` r
+    flights |> arrange(dest) |> distinct()        # wanted: one row per destination
+    flights |> select(origin == "JFK")
+    flights |> arrange(-dest)
+    flights |> mutate(avg_speed == distance / air_time * 60)
+    ```
+
+## Further reading
+
+- *R for Data Science* (2nd ed.) [@wickham2023r4ds], free at <https://r4ds.hadley.nz>, covers `arrange()`, `distinct()`, `select()`, and `mutate()` in its "Data transformation" chapter, with the same flights data.
+- The dplyr website, <https://dplyr.tidyverse.org>, has a reference page for each verb. The page for `select()` lists all of its selection helpers.
+- Posit's *Data transformation with dplyr* cheatsheet, <https://posit.co/resources/cheatsheets/>, shows `arrange()` and `distinct()` under **Manipulate Cases** and `select()` and `mutate()` under **Manipulate Variables**.

@@ -1,0 +1,397 @@
+---
+title: "Into the Tidyverse: summarize, group_by, and drop_na"
+engine: knitr
+webr:
+  # Installed in the browser for this chapter's live code boxes.
+  # drop_na() comes from tidyr.
+  packages: ["dplyr", "tidyr", "nycflights13"]
+---
+
+```{r}
+#| label: setup-webex
+#| include: false
+library(webexercises)
+```
+
+::: {.callout-note appearance="simple"}
+## Learning objectives
+
+By the end of this chapter you should be able to:
+
+1.  Collapse a data frame into summary statistics with `summarize()`.
+2.  Choose a summary function, such as `mean()`, `median()`, `max()`, or `n()`, for the question you are asking.
+3.  Calculate a statistic for each group of rows with `group_by()` and `summarize()`.
+4.  Handle missing values with `na.rm = TRUE` or `drop_na()`, and explain how the two differ.
+5.  Explain why the average of averages can mislead, and calculate a weighted average instead.
+:::
+
+So far, every verb you have used gives back one row for each flight, or fewer flights, or the same flights in a new order. But many questions are about *many* flights at once. What was the average departure delay in 2013? Which month had the worst delays? Which plane was late most often? This chapter introduces the verbs that answer them: `summarize()`, which collapses many rows into a few numbers, and `group_by()`, which makes `summarize()` give one answer for each group. Along the way you will meet `drop_na()`, a third way to deal with the missing values you met two chapters ago.
+
+The examples still use the **nycflights13** data, and the chapter ends with a question that looks simple but has a trap in it: how fast did planes fly each month?
+
+::: {.callout-tip appearance="simple"}
+## Warm-up: why doesn't this code work?
+
+This code is meant to find the fastest flights in October. Read the error message, then trace the code one line at a time.
+
+```{webr-r}
+library(dplyr)
+library(tidyr)
+library(nycflights13)
+
+flights_new <- flights |>
+  filter(month == 10)
+  mutate(avg_speed = distance / air_time * 60) |>
+  arrange(desc(avg_speed))
+```
+
+`r hide("Show the answer")`
+R says `object 'distance' not found`. The `filter()` line has no pipe at the end, so the chain stops there: `flights_new` is just the October flights. R then runs `mutate()` as a separate command, with no data frame, so it can't find a column called `distance`. The fix is to add `|>` at the end of the `filter()` line. The error message names the *symptom* (a missing object), not the *cause* (a missing pipe), so when a column "can't be found," check that every line but the last ends with `|>`.
+`r unhide()`
+:::
+
+## Tidy data and the verbs so far {#sec-tidy-review}
+
+### Tidy data
+
+dplyr's verbs expect **tidy data**, which follows three rules [@wickham2023r4ds]:
+
+1.  Each variable is a column.
+2.  Each observation is a row.
+3.  Each value is a cell.
+
+`flights` is tidy. Each row is one flight, each column is one thing recorded about it, such as `dep_delay` or `carrier`, and each cell holds one value. Because every month is in the same column, and every delay in the same column, a single line of code can work on all of them at once. That is what makes this chapter's verbs possible.
+
+### Three new verbs
+
+@tbl-verbs-so-far adds this chapter's verbs to the ones you already know.
+
+| Works on | Verb | What it does |
+|:---------|:-------------|:---------------------------------------------|
+| Rows | `filter()` | Keeps the rows that meet a condition |
+| Rows | `arrange()` | Sorts the rows |
+| Rows | `distinct()` | Keeps one row for each unique value |
+| Rows | `group_by()` | Groups the rows that share a value (*new*) |
+| Rows | `drop_na()` | Removes the rows with missing values (*new*) |
+| Columns | `select()` | Keeps the columns you name |
+| Columns | `mutate()` | Adds new columns |
+| Columns | `summarize()` | Collapses many rows into summary columns (*new*) |
+
+: The dplyr verbs so far, and this chapter's three new ones. {#tbl-verbs-so-far}
+
+`drop_na()` comes from the **tidyr** package rather than dplyr, but `library(tidyverse)` loads both, so you don't need to do anything extra. The live code boxes in this chapter load dplyr and tidyr separately, because that is faster in a web browser.
+
+## Summarizing with summarize() {#sec-summarize}
+
+### One number from many rows
+
+How late, on average, did flights leave New York in 2013? `summarize()` collapses a whole data frame into a single row of **summary statistics**. Inside it, name the new column and say how to calculate it:
+
+```{webr-r}
+flights |>
+  summarize(delay = mean(dep_delay, na.rm = TRUE))
+```
+
+The answer is one row and one column: across all 336,776 flights, the average departure delay was about 12.6 minutes. `delay` is the name we chose for the result; you can call it anything. `mean(dep_delay)` is the calculation.
+
+`na.rm = TRUE` ("remove `NA`s") tells `mean()` to skip the missing values. Without it, the answer is `NA`, because the 8,255 cancelled flights have no departure delay, and any calculation that includes an unknown number gives an unknown answer. Try it: delete `, na.rm = TRUE` and run the box again.
+
+`summarize()` is also spelled `summarise()`. The two are the same function; use whichever spelling you like.
+
+### Summary functions
+
+The calculation inside `summarize()` can be any function that takes a column and returns one number (@tbl-summary-functions).
+
+| Function | What it returns | `dep_delay` in 2013 |
+|:-------------------------|:---------------------------------|:--------------|
+| `mean()` | The average | 12.6 minutes |
+| `median()` | The middle value: half are above, half below | −2 minutes |
+| `min()`, `max()` | The smallest and largest values | −43 and 1,301 minutes |
+| `quantile(x, 0.25)` | The value below which a given share falls; here the 25th percentile | −5 minutes |
+| `sd()` | The standard deviation: how spread out the values are | 40.2 minutes |
+| `var()` | The variance, the standard deviation squared | 1,617 |
+| `sum()` | The total | |
+| `n()` | The number of rows | 336,776 |
+
+: Functions to use inside `summarize()`, with their results for departure delays in 2013. All but `n()` need `na.rm = TRUE` for `dep_delay`. {#tbl-summary-functions}
+
+`n()` is different from the others: it takes no arguments, and it counts rows rather than looking at a column. It only works inside dplyr verbs such as `summarize()`.
+
+Look at the first two rows of the table. The **mean** delay is 12.6 minutes, but the **median** is −2 minutes: more than half of all flights left *early*. How can both be true? Delays are **skewed**. Most flights leave a few minutes early or late, but a few leave hours late, and those few pull the mean up a long way. The median only cares about the middle flight, so it ignores them. When a variable has a long tail like this, report the median as well as the mean, or instead of it.
+
+### Several statistics at once
+
+Separate several statistics with commas. Each becomes its own column, still in a single row:
+
+```{webr-r}
+flights |>
+  summarize(
+    max_delay = max(dep_delay, na.rm = TRUE),
+    min_delay = min(dep_delay, na.rm = TRUE),
+    n_flights = n()
+  )
+```
+
+The longest delay was 1,301 minutes, almost 22 hours. The shortest is negative: one flight left 43 minutes before its scheduled time. One maximum for the whole year is a start, but it would be more useful to know the longest delay in each month. That is the job of `group_by()`.
+
+## One result per group with group_by() {#sec-group-by}
+
+### Grouping, then summarizing
+
+`group_by()` sorts the rows into groups that share a value. On its own it changes nothing you can see. But every verb after it then works on each group separately. Put `group_by(month)` in front of the `summarize()` from the last section:
+
+```{webr-r}
+flights |>
+  group_by(month) |>
+  summarize(
+    max_delay = max(dep_delay, na.rm = TRUE),
+    min_delay = min(dep_delay, na.rm = TRUE)
+  )
+```
+
+The `summarize()` code is exactly the same, but now there are 12 rows, one per month, instead of one. `group_by(month)` split the 336,776 flights into 12 groups, and `summarize()` ran once for each. The grouping column, `month`, stays in the result so you can tell the rows apart. The longest delay of the year was in January, and the longest in June was 1,137 minutes.
+
+Which month had the worst delays on average? Group by month, take the mean, and sort:
+
+```{webr-r}
+flights |>
+  group_by(month) |>
+  summarize(
+    mean_delay = mean(dep_delay, na.rm = TRUE),
+    n_flights = n()
+  ) |>
+  arrange(desc(mean_delay))
+```
+
+July (21.7 minutes) and June (20.8) were the worst; October and November, at around 6 minutes, were the best. Summer thunderstorms are a likely suspect. `n()` counts the flights in each group, here between about 25,000 and 29,000 a month.
+
+You can group by any column, and by more than one: `group_by(origin)` gives one row per airport, and `group_by(origin, month)` gives one row for each airport in each month, 36 rows in all.
+
+### group_by() on its own
+
+What does `group_by()` do without `summarize()`?
+
+```{webr-r}
+flights |>
+  group_by(month) |>
+  glimpse()
+```
+
+Nothing seems to change: there are still 336,776 rows and 19 columns, with the same values. The only difference is a new line at the top, `Groups: month [12]`. The data frame is now a **grouped data frame**: it carries a hidden note saying that its rows belong to 12 groups by month.
+
+That note matters, because every verb that comes later works *within* each group, until you remove it with `ungroup()`. That is what you want right before `summarize()`, but it can surprise you later in a chain. For example, `mutate(mean_delay = mean(dep_delay, na.rm = TRUE))` on a grouped data frame gives each flight the mean delay *for its month*, not for the year. When you have finished working by group, add `ungroup()`:
+
+``` r
+flights |>
+  group_by(month) |>
+  mutate(month_mean = mean(dep_delay, na.rm = TRUE)) |>
+  ungroup()
+```
+
+`summarize()` removes one level of grouping for you, so after `group_by(month) |> summarize(...)` the result is no longer grouped. After `group_by(origin, month)`, it is still grouped by `origin`, and dplyr prints a message to say so.
+
+## Removing missing values with drop_na() {#sec-drop-na}
+
+### Two ways to skip NAs
+
+You have now seen `na.rm = TRUE` many times. `drop_na()`, from tidyr, is another way to deal with missing values: it removes every row where a column you name is `NA`. These two chains give exactly the same 12 rows:
+
+```{webr-r}
+# Skip the NAs inside each calculation
+flights |>
+  group_by(month) |>
+  summarize(
+    max_delay = max(dep_delay, na.rm = TRUE),
+    min_delay = min(dep_delay, na.rm = TRUE)
+  )
+
+# Remove the rows with NAs first
+flights |>
+  group_by(month) |>
+  drop_na(dep_delay) |>
+  summarize(
+    max_delay = max(dep_delay),
+    min_delay = min(dep_delay)
+  )
+```
+
+In the second, `drop_na(dep_delay)` removes the 8,255 flights with no departure delay before `summarize()` sees them, so `max()` and `min()` never meet an `NA` and don't need `na.rm`.
+
+### They are not the same thing
+
+Here the results match, but the two approaches do different things (@tbl-narm-dropna).
+
+| | `na.rm = TRUE` | `drop_na()` |
+|:--------------|:--------------------------------|:--------------------------------|
+| Where it goes | Inside one summary function | As its own step in the pipe chain |
+| What it changes | Only that one calculation | The data: whole rows are removed for every later step |
+| Columns affected | The one being summarized | All columns, because whole rows go |
+
+: How `na.rm = TRUE` and `drop_na()` differ. {#tbl-narm-dropna}
+
+The difference shows up when you count. `n()` counts rows, whether or not they have missing values. With `na.rm = TRUE`, `n()` still counts the cancelled flights; after `drop_na(dep_delay)`, it doesn't. Neither is wrong, but they answer different questions ("how many flights were scheduled?" against "how many flights have a delay recorded?"), so choose on purpose.
+
+### Name your columns
+
+`drop_na()` with no columns named removes every row that has an `NA` in *any* column. That can remove more than you meant to:
+
+```{webr-r}
+flights |> drop_na(dep_delay) |> nrow()
+flights |> drop_na() |> nrow()
+```
+
+`drop_na(dep_delay)` keeps 328,521 flights. `drop_na()` keeps only 327,346, because it also removes flights that departed but have no arrival delay or air time recorded. Always name the columns your question needs.
+
+## Practice: how fast did planes fly each month? {#sec-weighted-speed}
+
+### The obvious way
+
+Here is a question that combines everything so far: what was the average air speed of flights from New York in each month? A first attempt might calculate the speed of every flight with `mutate()`, then take the mean for each month:
+
+```{webr-r}
+flights |>
+  group_by(month) |>
+  drop_na(distance, air_time) |>
+  mutate(speed = distance / air_time * 60) |>
+  summarize(avg_speed = mean(speed))
+```
+
+That runs without errors and gives one speed per month: about 370 miles per hour in January. But is it the right answer?
+
+### The average of averages
+
+The problem isn't the code; it is the statistics. `mean(speed)` gives every flight an equal say. A half-hour hop to Philadelphia counts as much as a 6-hour flight to San Francisco. Short flights spend most of their time climbing and descending, so they are slow, and there are a lot of them, so they drag the average down.
+
+What does "the average speed in January" really ask for? A good definition is the total distance flown in January, divided by the total time spent in the air:
+
+$$
+\text{speed}_{\text{month}} = \frac{\sum \text{distance}_{\text{month}}}{\sum \text{air\_time}_{\text{month}}} \times 60
+$$
+
+This is a **weighted average** of the flights' speeds. Each flight counts in proportion to its air time, so a 6-hour flight counts twelve times as much as a 30-minute one.
+
+### Sum first, then divide
+
+To calculate it, add up the distances and air times in each month with `summarize()`, and *then* divide the totals with `mutate()`:
+
+```{webr-r}
+flights |>
+  group_by(month) |>
+  drop_na(distance, air_time) |>
+  summarize(
+    distance = sum(distance),
+    air_time = sum(air_time)
+  ) |>
+  mutate(speed = distance / air_time * 60)
+```
+
+The order matters: `summarize()` runs first to get one total per month, and `mutate()` then works on those 12 rows. In January the speed is 394 miles per hour, against 370 from averaging the flights' speeds, and the weighted speed is higher in every month. Long flights, which spend most of their time at cruising speed, now count in proportion to the time they spend in the air.
+
+Here `drop_na(distance, air_time)` does more than clean up. Every cancelled flight still has a `distance`, because the route is known, but no `air_time`. If you used `sum(air_time, na.rm = TRUE)` without dropping those rows, the total distance would include miles that were never flown, and January's speed would come out at about 401 miles per hour, too fast. Dropping the rows keeps the distances and the times about the same flights.
+
+## Practice: the least punctual plane {#sec-late-plane-practice}
+
+These steps follow the in-class exercise. Every plane has a tail number, in the `tailnum` column. Which plane had the worst on-time record, meaning it left late the most times?
+
+**Step 1: set up.** Start a new R Markdown file, and load the packages and look at the data:
+
+``` r
+library(tidyverse)
+library(nycflights13)
+
+glimpse(flights)
+```
+
+**Step 2: decide what "late" means.** This is a choice, not a fact in the data. Is a flight late if it leaves one minute after its scheduled time (`dep_delay > 0`)? Or if it arrives more than 15 minutes late (`arr_delay > 15`)? The US Department of Transportation counts a flight as late if it arrives 15 minutes or more after its scheduled time (`arr_delay >= 15`). Pick one and write it down.
+
+**Step 3: count the late flights for each plane.** Keep the late flights with `filter()`, group them by plane, count each group with `n()`, and sort. Try it first:
+
+```{webr-r}
+flights |>
+  filter(dep_delay > 0)
+  # group, summarize, and sort
+```
+
+`r hide("Show the answer to step 3")`
+
+``` r
+flights |>
+  filter(dep_delay > 0) |>
+  group_by(tailnum) |>
+  summarize(n_late = n()) |>
+  arrange(desc(n_late))
+```
+
+N258JB, a JetBlue plane, left late 186 times in 2013. If you define late as `arr_delay > 15` instead, N258JB still comes first, with 121 late arrivals. But with the Department of Transportation's rule, `arr_delay >= 15`, a different plane wins: N725MQ, with 126 late arrivals to N258JB's 123. Changing `>` to `>=` changed the answer, which is why step 2 matters.
+
+`r unhide()`
+
+**Step 4: be fair to busy planes.** N258JB flew 427 times in 2013, so of course it was late a lot: it flew a lot. A fairer measure is the *share* of each plane's flights that left late. Count all the flights and the late ones for each plane, then divide:
+
+``` r
+flights |>
+  group_by(tailnum) |>
+  summarize(
+    n_flights = n(),
+    n_late = sum(dep_delay > 0, na.rm = TRUE)
+  ) |>
+  mutate(share_late = n_late / n_flights) |>
+  arrange(desc(share_late))
+```
+
+`sum()` of a logical vector counts the `TRUE`s, because R treats `TRUE` as 1 and `FALSE` as 0. Look at the top of the result. Planes that flew once or twice, and were late once, have a share of 1, which tells you nothing. Add `filter(n_flights >= 100)` before the `arrange()` to keep the planes with a decent record. Also look for a row where `tailnum` is `NA`: 2,512 flights, all of them cancelled, have no tail number, and `group_by()` puts them together in one group. `drop_na(tailnum)` removes it.
+
+## Check your understanding
+
+1.  `flights |> summarize(delay = mean(dep_delay, na.rm = TRUE))` returns how many rows? `r mcq(c(answer = "1", "12", "105", "336,776"))`
+
+2.  Without `na.rm = TRUE`, `mean(dep_delay)` returns `NA` for the `flights` data. `r torf(TRUE)`
+
+3.  Which function counts the rows in each group, and takes no arguments? `r fitb(c("n", "n()"))`
+
+4.  The mean departure delay is 12.6 minutes but the median is −2 minutes. Why? `r mcq(c("One of them was calculated wrongly", answer = "A few very long delays pull the mean up, but not the median", "The median ignores negative values", "The mean ignores missing values"))`
+
+5.  `flights |> group_by(month)` on its own returns 12 rows. `r torf(FALSE)`
+
+6.  `flights |> group_by(origin) |> summarize(n = n())` returns how many rows? `r mcq(c("1", answer = "3", "12", "105"))`
+
+7.  `drop_na()` with no columns named removes the rows that have an `NA` in: `r mcq(c("The first column", "The column you last used", answer = "Any column", "No columns"))`
+
+8.  To find the average speed for a month, it is better to divide the total distance by the total air time than to take the mean of the flights' speeds. `r torf(TRUE)`
+
+`r hide("Show hint for question 5")`
+`group_by()` doesn't change the rows. It only notes which group each row is in. It takes `summarize()` to collapse each group into one row.
+`r unhide()`
+
+## Summary
+
+- dplyr's verbs work on **tidy data**: each variable a column, each observation a row, each value a cell.
+- **`summarize()`** collapses a data frame into one row of summary statistics, with `name = function(column)`. Separate several statistics with commas.
+- Useful summary functions include `mean()`, `median()`, `min()`, `max()`, `quantile()`, `sd()`, `var()`, `sum()`, and `n()`. Skewed data, like flight delays, can have a mean far from the median.
+- **`group_by()`** splits the rows into groups. On its own it changes nothing you can see, but `summarize()` after it gives one row per group. Use `ungroup()` when you have finished working by group.
+- **`na.rm = TRUE`** skips missing values in one calculation. **`drop_na()`** removes whole rows with missing values from the data. Always name the columns in `drop_na()`.
+- The average of averages gives every row an equal say. To find a rate such as speed for a group, sum first, then divide: that is a **weighted average**.
+
+## Exercises
+
+Use the `flights` data from nycflights13 for these exercises, and answer each with a pipe chain.
+
+1.  **Busiest airport.** Use `group_by()` and `summarize()` with `n()` to count the flights from each of the three New York airports. Then try `flights |> count(origin)`. What does `count()` do?
+2.  **Most popular destinations.** Which three destinations had the most flights from New York in 2013?
+3.  **Delays by airport.** For each `origin`, calculate the mean and median departure delay. Which airport had the worst delays? Do the mean and the median agree?
+4.  **Arrivals.** Calculate the mean arrival delay (`arr_delay`) for each airline (`carrier`), and sort from worst to best. How many flights does each airline have? Would you trust the average for an airline with very few flights?
+5.  **Two groups.** Group by `origin` and `month` and count the flights. Which airport was busiest in which month? Is the result still grouped?
+6.  **Counting NAs.** Without using `drop_na()`, count how many flights in each month have a missing `dep_delay`. (Hint: `sum(is.na(dep_delay))`.) Which month had the most cancelled flights?
+7.  **Fix the code.** Each chain below has one mistake. Find and fix it.
+    ``` r
+    flights |> summarize(mean(dep_delay))          # result is NA
+    flights |> group_by(month) summarize(n = n())
+    flights |> summarize(n = n(month))
+    flights |> group_by(month) |> summarize(delay = mean(dep_delay, na.rm = TRUE) |> arrange(delay)
+    ```
+
+## Further reading
+
+- *R for Data Science* (2nd ed.) [@wickham2023r4ds], free at <https://r4ds.hadley.nz>. The "Data transformation" chapter covers `group_by()` and `summarize()` with the flights data, and the "Data tidying" chapter explains tidy data.
+- The tidyr website, <https://tidyr.tidyverse.org>, has the reference page for `drop_na()`.
+- Posit's *Data transformation with dplyr* cheatsheet, <https://posit.co/resources/cheatsheets/>, shows `summarize()`, `group_by()`, and the summary functions under **Summarize Cases** and **Group Cases**.

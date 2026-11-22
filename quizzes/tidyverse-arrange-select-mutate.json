@@ -1,0 +1,396 @@
+{
+  "id": "tidyverse-arrange-select-mutate",
+  "title": "Into the Tidyverse: arrange, distinct, select, and mutate",
+  "perSession": 10,
+  "minR": 4,
+  "questions": [
+    {
+      "id": "warmup-equals",
+      "type": "choice",
+      "r": true,
+      "prompt": "Why does `flights |> filter(month = 1)` give an error?",
+      "choices": [
+        "A single `=` names an argument; a comparison needs `==`",
+        "`month` should be in quotation marks",
+        "`filter()` can't be used with the pipe",
+        "January is month 0 in R"
+      ],
+      "answer": 0,
+      "explain": "dplyr says it \"detected a named input\" and asks \"Did you mean `month == 1`?\""
+    },
+    {
+      "id": "verb-sorts",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which dplyr verb sorts the rows of a data frame?",
+      "choices": [
+        "`arrange()`",
+        "`distinct()`",
+        "`select()`",
+        "`mutate()`"
+      ],
+      "answer": 0,
+      "explain": "`arrange()` changes the order of the rows, never how many there are."
+    },
+    {
+      "id": "verb-unique",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which dplyr verb keeps one row for each unique value?",
+      "choices": [
+        "`distinct()`",
+        "`filter()`",
+        "`arrange()`",
+        "`select()`"
+      ],
+      "answer": 0,
+      "explain": "`distinct(dest)` keeps each destination once."
+    },
+    {
+      "id": "verb-columns",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which dplyr verb keeps only the **columns** you name?",
+      "choices": [
+        "`select()`",
+        "`filter()`",
+        "`distinct()`",
+        "`arrange()`"
+      ],
+      "answer": 0,
+      "explain": "`select()` picks columns. `filter()` picks rows."
+    },
+    {
+      "id": "verb-new-col",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which dplyr verb adds a new column calculated from existing ones?",
+      "choices": [
+        "`mutate()`",
+        "`select()`",
+        "`arrange()`",
+        "`summarize()`"
+      ],
+      "answer": 0,
+      "explain": "`mutate(avg_speed = distance / air_time * 60)` adds an `avg_speed` column."
+    },
+    {
+      "id": "rows-or-columns",
+      "type": "choice",
+      "prompt": "Which of these verbs work on **rows**?",
+      "choices": [
+        "`filter()`, `distinct()`, and `arrange()`",
+        "`select()` and `mutate()`",
+        "`select()`, `filter()`, and `mutate()`",
+        "Only `filter()`"
+      ],
+      "answer": 0,
+      "explain": "`filter()`, `distinct()`, and `arrange()` change which rows you have or their order. `select()` and `mutate()` change the columns."
+    },
+    {
+      "id": "distinct-origin",
+      "type": "choice",
+      "r": true,
+      "prompt": "`flights` has 336,776 rows. How many rows does this return?",
+      "code": "flights |>\n  distinct(origin)",
+      "choices": [
+        "3",
+        "336,776",
+        "19",
+        "105"
+      ],
+      "answer": 0,
+      "explain": "There are only three New York City airports in the data: EWR, JFK, and LGA."
+    },
+    {
+      "id": "distinct-columns",
+      "type": "choice",
+      "r": true,
+      "prompt": "What columns does `flights |> distinct(dest)` return?",
+      "choices": [
+        "Only `dest`",
+        "All 19 columns",
+        "`dest` and a count",
+        "`origin` and `dest`"
+      ],
+      "answer": 0,
+      "explain": "`distinct()` keeps only the columns you name (unless you add `.keep_all = TRUE`)."
+    },
+    {
+      "id": "distinct-two",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `flights |> distinct(origin, dest)` return?",
+      "choices": [
+        "One row for each unique combination of origin and destination",
+        "Every flight, sorted by origin and destination",
+        "The three origin airports",
+        "One row for each destination"
+      ],
+      "answer": 0,
+      "explain": "With more than one column, `distinct()` keeps each unique combination: 224 origin and destination pairs."
+    },
+    {
+      "id": "filter-before-distinct",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which question does this code answer?",
+      "code": "flights |>\n  filter(origin == \"JFK\") |>\n  distinct(dest)",
+      "choices": [
+        "Where can I fly from JFK?",
+        "How many flights left JFK?",
+        "Which airports fly to JFK?",
+        "Which JFK flights were the longest?"
+      ],
+      "answer": 0,
+      "explain": "`filter()` keeps the JFK flights, and `distinct(dest)` lists each of their destinations once: 70 of them."
+    },
+    {
+      "id": "arrange-removes",
+      "type": "truefalse",
+      "r": true,
+      "prompt": "`arrange()` can remove rows from a data frame.",
+      "answer": false,
+      "explain": "`arrange()` only changes the order of the rows. It never adds or drops any."
+    },
+    {
+      "id": "arrange-default",
+      "type": "choice",
+      "r": true,
+      "prompt": "By default, `arrange(dest)` sorts text:",
+      "choices": [
+        "A to Z",
+        "Z to A",
+        "In the order the rows first appear",
+        "By how often each value appears"
+      ],
+      "answer": 0,
+      "explain": "`arrange()` sorts in ascending order by default: A to Z for text, smallest to largest for numbers."
+    },
+    {
+      "id": "fill-desc",
+      "type": "fill",
+      "prompt": "Complete the code to sort the flights from the longest departure delay to the shortest.",
+      "code": "flights |> arrange(___(dep_delay))",
+      "answers": [
+        "desc"
+      ],
+      "explain": "`desc()` sorts in descending order. For numbers, `-dep_delay` works too."
+    },
+    {
+      "id": "minus-text",
+      "type": "truefalse",
+      "r": true,
+      "prompt": "`arrange(-dest)` sorts the destination codes from Z to A.",
+      "answer": false,
+      "explain": "The minus sign only works on numbers, and `dest` is text, so R gives an error. Use `arrange(desc(dest))`."
+    },
+    {
+      "id": "arrange-two",
+      "type": "choice",
+      "r": true,
+      "prompt": "In what order are the three Atlanta (`ATL`) rows?",
+      "code": "flights |>\n  distinct(origin, dest) |>\n  arrange(dest, origin)",
+      "choices": [
+        "EWR, JFK, LGA",
+        "LGA, JFK, EWR",
+        "The order they first appear in `flights`",
+        "ATL appears only once"
+      ],
+      "answer": 0,
+      "explain": "`arrange(dest, origin)` sorts by `dest`, then breaks the tie between the three ATL rows with `origin`, A to Z."
+    },
+    {
+      "id": "na-sort",
+      "type": "choice",
+      "r": true,
+      "prompt": "Where do missing values go when you sort with `arrange(desc(dep_delay))`?",
+      "choices": [
+        "At the end",
+        "At the start",
+        "They are removed",
+        "Wherever they were before"
+      ],
+      "answer": 0,
+      "explain": "Missing values always go last, whichever direction you sort."
+    },
+    {
+      "id": "select-rows",
+      "type": "choice",
+      "r": true,
+      "prompt": "How many rows does this return? (`flights` has 336,776 rows and 19 columns.)",
+      "code": "flights |>\n  select(year, month, day, dep_time)",
+      "choices": [
+        "336,776",
+        "4",
+        "19",
+        "1"
+      ],
+      "answer": 0,
+      "explain": "`select()` keeps every row; it only removes columns. The result is 336,776 rows by 4 columns."
+    },
+    {
+      "id": "select-minus",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `select(-tailnum)` do?",
+      "choices": [
+        "Keeps every column except `tailnum`",
+        "Keeps only `tailnum`",
+        "Sorts by `tailnum`, largest first",
+        "Removes the rows where `tailnum` is missing"
+      ],
+      "answer": 0,
+      "explain": "A minus sign in `select()` drops that column."
+    },
+    {
+      "id": "fill-starts-with",
+      "type": "fill",
+      "prompt": "Complete the code to keep the columns whose names start with `dep`.",
+      "code": "flights |> select(___(\"dep\"))",
+      "answers": [
+        "starts_with"
+      ],
+      "explain": "`starts_with()` is a selection helper. `ends_with()` and `contains()` work the same way."
+    },
+    {
+      "id": "select-vs-filter",
+      "type": "choice",
+      "r": true,
+      "prompt": "You want only the flights to Raleigh–Durham. Which code is right?",
+      "choices": [
+        "`flights |> filter(dest == \"RDU\")`",
+        "`flights |> select(dest == \"RDU\")`",
+        "`flights |> select(\"RDU\")`",
+        "`flights |> distinct(\"RDU\")`"
+      ],
+      "answer": 0,
+      "explain": "Keeping flights means keeping rows, which is `filter()`'s job. `select()` picks columns."
+    },
+    {
+      "id": "mutate-position",
+      "type": "choice",
+      "prompt": "Where does `mutate()` put a new column?",
+      "choices": [
+        "At the end of the data frame",
+        "At the start",
+        "In alphabetical order",
+        "It replaces the first column"
+      ],
+      "answer": 0,
+      "explain": "New columns go at the end. Use `select()` to bring them into view."
+    },
+    {
+      "id": "fill-hours",
+      "type": "fill",
+      "prompt": "`air_time` is in minutes. Complete the code to make a column of air time in hours.",
+      "code": "flights |> mutate(hours = air_time ___ 60)",
+      "answers": [
+        "/"
+      ],
+      "explain": "Divide minutes by 60 to get hours."
+    },
+    {
+      "id": "mutate-na",
+      "type": "choice",
+      "r": true,
+      "prompt": "What is `avg_speed` for a cancelled flight, whose `air_time` is `NA`?",
+      "choices": [
+        "`NA`",
+        "0",
+        "The average of the other flights",
+        "R stops with an error"
+      ],
+      "answer": 0,
+      "explain": "Any arithmetic with a missing value gives a missing value."
+    },
+    {
+      "id": "mutate-equals",
+      "type": "choice",
+      "r": true,
+      "prompt": "What is wrong with `mutate(avg_speed == distance / air_time * 60)`?",
+      "choices": [
+        "`==` compares; naming a new column needs a single `=`",
+        "`avg_speed` must be in quotation marks",
+        "`mutate()` can't divide",
+        "Nothing; it works"
+      ],
+      "answer": 0,
+      "explain": "In `mutate()`, `new_name = calculation` uses one `=`. With `==`, R tries to compare `avg_speed` with the speeds, and can't find `avg_speed`."
+    },
+    {
+      "id": "outlier",
+      "type": "choice",
+      "prompt": "Sorting by `avg_speed` shows one flight averaged 703 mph, though airliners cruise at about 550–580 mph. What should you do?",
+      "choices": [
+        "Check it: it's an outlier and may be an error",
+        "Report it as the fastest flight",
+        "Delete every flight over 500 mph",
+        "Nothing; the computer can't be wrong"
+      ],
+      "answer": 0,
+      "explain": "A value far from all the others deserves a second look before you report it. The 65-minute air time for that 762-mile flight may be wrong."
+    },
+    {
+      "id": "order-speed",
+      "type": "order",
+      "prompt": "Put the tiles in order to find the fastest flights, fastest first.",
+      "answer": [
+        "flights",
+        "|>",
+        "mutate(avg_speed = distance / air_time * 60)",
+        "|>",
+        "arrange(desc(avg_speed))"
+      ],
+      "extra": [
+        "arrange(avg_speed)"
+      ],
+      "explain": "First make the column with `mutate()`, and then sort it, largest first, with `desc()`."
+    },
+    {
+      "id": "order-jfk",
+      "type": "order",
+      "prompt": "Put the tiles in order to list, A to Z, the places you can fly from JFK.",
+      "answer": [
+        "flights",
+        "|>",
+        "filter(origin == \"JFK\")",
+        "|>",
+        "distinct(dest)",
+        "|>",
+        "arrange(dest)"
+      ],
+      "extra": [
+        "select(origin == \"JFK\")"
+      ],
+      "explain": "Keep the JFK flights, and then list each destination once, and then sort them."
+    },
+    {
+      "id": "code-speed",
+      "type": "code",
+      "prompt": "`distance` (miles) and `air_time` (minutes) are for three flights. Store each flight's average speed in miles per hour in `avg_speed`, in one line, without a loop.",
+      "starter": "distance <- c(1400, 762, 4983)\nair_time <- c(227, 116, 659)\n",
+      "check": "isTRUE(all.equal(avg_speed, c(1400, 762, 4983) / c(227, 116, 659) * 60))",
+      "solution": "distance <- c(1400, 762, 4983)\nair_time <- c(227, 116, 659)\navg_speed <- distance / air_time * 60",
+      "explain": "Arithmetic in R is vectorized: `distance / air_time` divides each distance by the air time in the same position. That is what `mutate()` does for every row."
+    },
+    {
+      "id": "code-unique",
+      "type": "code",
+      "prompt": "`dests` holds the destinations of seven flights. Store the **number** of different destinations in `n_dest`. (Hint: `unique()` keeps one of each value.)",
+      "starter": "dests <- c(\"ATL\", \"ORD\", \"ATL\", \"RDU\", \"ORD\", \"ATL\", \"LAX\")\n",
+      "check": "isTRUE(all.equal(n_dest, 4))",
+      "solution": "dests <- c(\"ATL\", \"ORD\", \"ATL\", \"RDU\", \"ORD\", \"ATL\", \"LAX\")\nn_dest <- length(unique(dests))",
+      "explain": "`unique()` returns ATL, ORD, RDU, LAX, and `length()` counts them. It is the vector version of `distinct()` followed by `nrow()`."
+    },
+    {
+      "id": "code-sort",
+      "type": "code",
+      "prompt": "Store the delays sorted from **largest to smallest** in `sorted`. (Hint: `sort()` has a `decreasing` argument.)",
+      "starter": "delays <- c(12, -3, 45, 0, 7)\n",
+      "check": "isTRUE(all.equal(sorted, c(45, 12, 7, 0, -3)))",
+      "solution": "delays <- c(12, -3, 45, 0, 7)\nsorted <- sort(delays, decreasing = TRUE)",
+      "explain": "`sort(decreasing = TRUE)` sorts a vector largest first, as `arrange(desc())` does for a data frame."
+    }
+  ]
+}
