@@ -1,8 +1,8 @@
 # Full site (default profile): course pages, top menu, and the textbook.
 # Used for geog215.org (`--profile geog215` turns this on too).
 book:
-  # Top menu on every page. Welcome, Syllabus, and About are public on
-  # geog215.org; every other page asks students to sign in (see
+  # Top menu on every page. Welcome, Syllabus, About, and Privacy policy
+  # (sidebar and footer only) are public on geog215.org; every other page asks students to sign in (see
   # PUBLIC_PAGES in assets/auth-gate.html).
   navbar:
     left:
@@ -23,6 +23,7 @@ book:
         - syllabus.qmd
         - materials.qmd
         - about.qmd
+        - privacy.qmd
     - part: "Textbook"
       chapters:
         - preface.qmd
