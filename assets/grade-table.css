@@ -17,3 +17,19 @@
 .grade-bundles table tbody tr:nth-child(6) > * { background-color: #f9cb9c; } /* C  */
 .grade-bundles table tbody tr:nth-child(7) > * { background-color: #d9d2e9; } /* D  */
 .grade-bundles table tbody tr:nth-child(8) > * { background-color: #f4cccc; } /* F  */
+
+/* Keep the 9-column table inside the text column so it doesn't run under
+   the right-hand table of contents: smaller text and padding, and a
+   horizontal scrollbar on narrow screens instead of overflowing. */
+.grade-bundles {
+  overflow-x: auto;
+}
+.grade-bundles table {
+  width: 100%;
+  font-size: 0.8em;
+}
+.grade-bundles table th,
+.grade-bundles table td {
+  padding: 0.4rem 0.25rem;
+  hyphens: auto;
+}
