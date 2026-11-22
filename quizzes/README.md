@@ -13,6 +13,11 @@ answer it frowns and says something kind ("Oops! So close."). The drawing (`coac
 faces in `COACH_FACES`) and the phrases (`CHEERS`, `CONSOLES`, `FINISH_CHEERS`) are near the top of
 `quiz.js`.
 
+Right answers play a short happy chime, wrong answers a buzzer, and finishing a quiz a little
+fanfare. They are made in the browser with the Web Audio API (`SOUNDS` in `quiz.js`), so there are
+no sound files. A speaker button next to the progress bar turns sound on and off, and the browser
+remembers the choice.
+
 On geog215.org every answer is saved for the admin page's **Chapter quizzes** tab (see
 `supabase/README.md`). On daveparr.com the quiz works the same way but nothing is saved.
 

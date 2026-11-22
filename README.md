@@ -62,7 +62,8 @@ Each chapter is followed by a **chapter quiz** page. Readers also get:
   chapter's bank in `quizzes/`: multiple choice, true/false, fill in the blank, put the tiles in
   order, and write R code that is checked by running it with webR. Missed questions come back at the
   end until every one is right. A cartoon of the instructor cheers on right answers, looks sad at
-  wrong ones, and appears on the end-of-quiz screen with confetti.
+  wrong ones, and appears on the end-of-quiz screen with confetti. Right answers play a happy chime
+  and wrong ones a buzzer (made with the Web Audio API; a speaker button turns sound off).
 
 ## How the site works
 
