@@ -132,6 +132,11 @@
   .section-title { font-size: 0.95rem; margin: 18px 0 8px; }
   .section-title:first-of-type { margin-top: 4px; }
   tr.group td { background: var(--surface-2); font-weight: 600; }
+  th.sortable { cursor: pointer; user-select: none; }
+  th.sortable:hover, th.sortable:focus-visible { color: var(--text, inherit); }
+  th.sortable::after { content: "\2195"; margin-left: 4px; opacity: 0.35; font-weight: 400; }
+  th.sortable[aria-sort="ascending"]::after { content: "\25B2"; opacity: 0.9; color: var(--accent); }
+  th.sortable[aria-sort="descending"]::after { content: "\25BC"; opacity: 0.9; color: var(--accent); }
   details summary { cursor: pointer; color: var(--accent); white-space: nowrap; }
   details pre {
     margin: 6px 0 0; padding: 8px; max-width: 420px; max-height: 240px; overflow: auto;
@@ -247,7 +252,7 @@
               <th class="num" title="Chapter quizzes: total points across all quizzes">Quiz score</th>
               <th class="num" title="Chapter quizzes: correct answers as a share of all answers">Quiz success</th>
               <th class="num" title="Self-check questions answered correctly at least once, of those answered">Self-checks right</th>
-              <th class="num">Code runs</th><th>Last active</th><th>Actions</th>
+              <th class="num">Code runs</th><th>Last active</th><th data-nosort>Actions</th>
             </tr>
           </thead>
           <tbody id="students-body"></tbody>
@@ -459,7 +464,7 @@
     return new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
   }
   const full = (ts) => (ts ? new Date(ts).toLocaleString() : "");
-  const when = (ts) => `<span title="${esc(full(ts))}">${esc(ago(ts))}</span>`;
+  const when = (ts) => `<span data-ts="${ts ? new Date(ts).getTime() : ""}" title="${esc(full(ts))}">${esc(ago(ts))}</span>`;
   const pageTitle = (p) => state.titles[p] || p;
 
   function statusOf(r) {
@@ -680,7 +685,13 @@
   }
   const STATUS_TEXT = { locked: "Locked out", signedin: "Has signed in", new: "Not signed in yet" };
   function exportStudentsCsv() {
-    const rows = filteredStudents();
+    // Same order as the table on screen, so a column sort carries into the file.
+    const order = new Map([...$("students-body").rows].map((tr, i) => {
+      const b = tr.querySelector("[data-code]");
+      return [b ? b.dataset.code : null, i];
+    }));
+    const pos = (s) => (order.has(s.code) ? order.get(s.code) : Infinity);
+    const rows = filteredStudents().sort((a, b) => pos(a) - pos(b));
     if (!rows.length) { banner("No students to export with these filters.", true); return; }
     const head = ["Name", "Email", "Group / term", "Status", "Pages opened",
       "Quiz score", "Quiz success (%)", "Quiz answers correct", "Quiz answers incorrect", "Quizzes finished",
@@ -814,7 +825,7 @@
     }).sort((a, b) => (b.answered > 0) - (a.answered > 0) || b.total - a.total ||
       a.s.student_name.localeCompare(b.s.student_name));
 
-    $("scores-head").innerHTML = `<tr><th class="num">Rank</th><th>Student</th><th class="num">Total</th>` +
+    $("scores-head").innerHTML = `<tr><th class="num" data-sort-first="asc">Rank</th><th>Student</th><th class="num">Total</th>` +
       chs.map((c) => `<th class="num">${esc(c.title)}</th>`).join("") +
       `<th class="num">Quizzes finished</th><th class="num">Best streak</th></tr>`;
 
@@ -946,7 +957,7 @@
     }
     $("code-hint").textContent = "The code cells this student has run, with the code as they last ran it.";
     $("code-head").innerHTML = `<tr><th>Code cell</th><th class="num">Runs</th>
-      <th class="num">Ended in an error</th><th>Last run</th><th>Code last run</th></tr>`;
+      <th class="num">Ended in an error</th><th>Last run</th><th data-nosort>Code last run</th></tr>`;
     if (!state.codeFor || state.codeFor.code !== code) {
       $("code-body").innerHTML = `<tr><td colspan="5" class="empty">Loading…</td></tr>`;
       return;
@@ -959,6 +970,127 @@
         <td>${when(c.last_run)}</td>
         <td>${c.last_code ? `<details><summary>Show code</summary><pre>${esc(c.last_code)}</pre></details>` : ""}</td>
       </tr>`) : `<tr><td colspan="5" class="empty">This student hasn't run any code yet.</td></tr>`;
+  }
+
+  // ---- Sortable columns ------------------------------------------------------
+  // Click a column heading to sort: first click A to Z for text, or highest /
+  // newest first for numbers and dates; second click flips it; third goes back
+  // to the table's own order. Tables keep their sort when they re-render (new
+  // filters, Refresh). Tables grouped by page sort within each page. Headings
+  // marked data-nosort are left alone.
+  const sortState = new WeakMap();   // table -> { key: heading text, dir: 1 | -1 }
+  const headKey = (th) => th.textContent.trim();
+
+  // A cell's sort value: a number (counts, %, scores, "3 of 10", timestamps), a
+  // string, or null for blanks and dashes, which always go last.
+  function cellValue(td) {
+    if (!td) return null;
+    if (td.dataset.sort != null) {
+      const v = td.dataset.sort;
+      return v === "" ? null : isNaN(Number(v)) ? v : Number(v);
+    }
+    const t = td.querySelector("[data-ts]");
+    if (t) return t.dataset.ts ? Number(t.dataset.ts) : null;
+    const text = td.textContent.replace(/\s+/g, " ").trim();
+    if (!text || text === "–" || text === "-") return null;
+    const n = text.replace(/−/g, "-").replace(/,/g, "");
+    const m = n.match(/^(-?\d+(?:\.\d+)?)%?(?: of \d+)?$/);
+    return m ? Number(m[1]) : text;
+  }
+
+  function columnIsNumeric(rows, col) {
+    let any = false;
+    for (const tr of rows) {
+      const v = cellValue(tr.cells[col]);
+      if (v == null) continue;
+      if (typeof v !== "number") return false;
+      any = true;
+    }
+    return any;
+  }
+
+  function headersOf(table) {
+    const tr = table.tHead && table.tHead.rows[0];
+    return tr ? [...tr.cells] : [];
+  }
+
+  // Mark headings as sortable and show the current direction.
+  function decorateHead(table) {
+    const st = sortState.get(table);
+    headersOf(table).forEach((th) => {
+      if (th.hasAttribute("data-nosort")) return;
+      th.classList.add("sortable");
+      th.tabIndex = 0;
+      const on = st && st.key === headKey(th);
+      th.setAttribute("aria-sort", on ? (st.dir > 0 ? "ascending" : "descending") : "none");
+    });
+  }
+
+  // Put rows in order. Rows remember their original place (data-orig) so a
+  // third click can restore it.
+  function applySort(table) {
+    const body = table.tBodies[0];
+    if (!body) return;
+    const all = [...body.rows];
+    all.forEach((tr, i) => { if (tr.dataset.orig == null) tr.dataset.orig = i; });
+    decorateHead(table);
+    if (all.length < 2 || all.some((tr) => tr.querySelector("td.empty"))) return;
+
+    const st = sortState.get(table);
+    const col = st ? headersOf(table).findIndex((th) => headKey(th) === st.key) : -1;
+    const data = all.filter((tr) => !tr.classList.contains("group"));
+    const numeric = col >= 0 && columnIsNumeric(data, col);
+    const orig = (a, b) => a.dataset.orig - b.dataset.orig;
+    const cmp = col < 0 ? orig : (a, b) => {
+      const x = cellValue(a.cells[col]), y = cellValue(b.cells[col]);
+      if (x == null || y == null) return (x == null) - (y == null) || orig(a, b);
+      const d = numeric ? x - y : String(x).localeCompare(String(y), undefined, { numeric: true, sensitivity: "base" });
+      return d * st.dir || orig(a, b);
+    };
+
+    // Sort each run of rows between group headings on its own.
+    const out = [];
+    let run = [];
+    const flush = () => { out.push(...run.sort(cmp)); run = []; };
+    all.forEach((tr) => {
+      if (tr.classList.contains("group")) { flush(); out.push(tr); } else run.push(tr);
+    });
+    flush();
+    if (out.some((tr, i) => tr !== all[i])) body.append(...out);
+  }
+
+  function onHeadClick(event) {
+    if (event.type === "keydown" && event.key !== "Enter" && event.key !== " ") return;
+    const th = event.target.closest("th.sortable");
+    if (!th) return;
+    event.preventDefault();
+    const table = th.closest("table");
+    const key = headKey(th);
+    const body = table.tBodies[0];
+    const col = headersOf(table).indexOf(th);
+    const rows = body ? [...body.rows].filter((tr) => !tr.classList.contains("group")) : [];
+    // Numbers and dates: highest / newest first, unless the heading says otherwise (Rank).
+    const first = th.dataset.sortFirst === "asc" ? 1 : columnIsNumeric(rows, col) ? -1 : 1;
+    const st = sortState.get(table);
+    if (!st || st.key !== key) sortState.set(table, { key, dir: first });
+    else if (st.dir === first) st.dir = -first;
+    else sortState.delete(table);
+    applySort(table);
+  }
+
+  // Watch every admin table so new rows get the current sort.
+  function initSorting() {
+    document.querySelectorAll(".panel table").forEach((table) => {
+      const observer = new MutationObserver(() => {
+        applySort(table);
+        observer.takeRecords();   // ignore our own reordering
+      });
+      observer.observe(table, { childList: true, subtree: true });
+      applySort(table);
+      observer.takeRecords();
+      table.addEventListener("click", onHeadClick);
+      table.addEventListener("keydown", onHeadClick);
+    });
   }
 
   // ---- Actions -------------------------------------------------------------
@@ -1146,6 +1278,7 @@
     $("quiz-student").addEventListener("input", () => { renderQuiz(); loadQuizFor(); });
     $("code-student").addEventListener("input", () => { renderCode(); loadCodeFor(); });
     $("add-form").addEventListener("submit", onAdd);
+    initSorting();
   }
 
   async function init() {
