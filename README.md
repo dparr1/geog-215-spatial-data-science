@@ -1,4 +1,4 @@
-# Spatial Data Science (GEOG 215)
+# Introduction to Spatial Data Science (GEOG 215)
 
 A working-draft textbook for **GEOG 215, Introduction to Spatial Data Science**, at UNC-Chapel Hill,
 written by David Parr from the course lectures. It is a [Quarto](https://quarto.org) book: every

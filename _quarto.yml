@@ -8,8 +8,8 @@ project:
     - assets/quiz/
 
 book:
-  title: "Spatial Data Science"
-  subtitle: "Working draft"
+  title: "Introduction to Spatial Data Science"
+  subtitle: "The textbook for GEOG 215"
   author: "David Parr"
   date: last-modified
   chapters:
