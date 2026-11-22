@@ -28,8 +28,13 @@ Every page has a top menu: **Welcome**, **Syllabus**, **Textbook**, **Course mat
 | Textbook: preface, chapters, chapter quizzes, glossary | `preface.qmd`, `chapters/`, `glossary.qmd` | Students only |
 
 The public pages are listed in `PUBLIC_PAGES` in `assets/auth-gate.html`; keep that list in step with
-the menu in `_quarto.yml`. The course pages are copied from the Fall 2026 Course Resources doc in
+the menu in `_quarto-site.yml`. The course pages are copied from the Fall 2026 Course Resources doc in
 Google Drive, so update them each semester.
+
+daveparr.com/geog215/ gets **only the textbook**: the chapters, chapter quizzes, and glossary, with
+the Preface as its home page and no top menu. The `textbook` profile (`_quarto-textbook.yml`) lists
+those chapters, and `_quarto-site.yml` lists the full site; one of the two is always active, and
+`site` is the default. A new chapter goes in both files.
 
 ## What's in the book
 
@@ -63,8 +68,8 @@ Each chapter is followed by a **chapter quiz** page. Readers also get:
   installing R. Re-render a chapter locally (with R) whenever you change its code, and commit the
   updated `_freeze/` files.
 - **geog215.org profile.** `quarto render --profile geog215` (`_quarto-geog215.yml`) adds the sign-in
-  gate (`assets/auth-gate.html`) and Google Analytics. The default render, used for daveparr.com, has
-  neither.
+  gate (`assets/auth-gate.html`) and Google Analytics. The publish Action builds daveparr.com with
+  `--profile textbook` (textbook only), which has neither.
 - **Sign-in and progress.** [Supabase](https://supabase.com) holds the class roster and progress.
   Students type their email and receive a one-time code or link, sent through Resend from
   `mail.geog215.org`. Only roster and instructor emails can sign in. The gate records pages opened,
@@ -101,8 +106,10 @@ See `supabase/README.md` for the one-time setup, the admin page and troubleshoot
 ## Working on the book
 
 ```sh
-quarto preview                      # public version, live reload
+quarto preview                      # full site without the sign-in gate, live reload
 quarto render --profile geog215     # geog215.org version, with the sign-in gate
+quarto preview --profile textbook   # daveparr.com version: textbook only (the Action also
+                                    # copies preface.qmd over index.qmd first)
 ```
 
 Chapters use `tidyverse`, `sf`, `tigris`, `tidycensus`, `tmap`, `httr2` and `webexercises`. The

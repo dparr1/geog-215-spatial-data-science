@@ -1,6 +1,7 @@
 name: Render and Publish Quarto Book
 
-# Every push to main renders the public book and commits it to
+# Every push to main renders the textbook (chapters, quizzes, glossary; not
+# the course pages) and commits it to
 # dparr1/daveparr.com under geog215/, which triggers Cloudflare's build of
 # daveparr.com (https://daveparr.com/geog215/).
 #
@@ -33,8 +34,13 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Render public book
-        run: quarto render --to html
+      # daveparr.com/geog215/ gets the textbook only (no Welcome, Syllabus,
+      # Course materials, or About pages; those are on geog215.org). A book
+      # must start at index.qmd, so the Preface becomes the home page here.
+      - name: Render textbook only
+        run: |
+          cp preface.qmd index.qmd
+          quarto render --to html --profile textbook
 
       - name: Check out daveparr.com
         uses: actions/checkout@v4
