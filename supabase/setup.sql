@@ -403,6 +403,14 @@ grant execute on function public.record_code_run(text, text, text, text, boolean
 -- until all are right. Every answer counts: "correct" and "incorrect" include
 -- the re-asks, so success = correct / (correct + incorrect). Each run through a
 -- quiz is a session; students can take as many as they like.
+--
+-- Score (worked out here, not in the browser): every answer, re-asks included,
+-- is +100 if right and -100 if wrong. A right answer also earns a streak bonus
+-- of 10 for each right answer in a row just before it in the same quiz, so a
+-- run of right answers scores 100, 110, 120, 130, ... A wrong answer resets the
+-- streak to 0, and each new quiz starts at 0. A student's total score is the sum
+-- over all their quizzes. assets/quiz/quiz.js shows the same numbers to the
+-- student as they go (QUIZ_POINTS there must match these).
 
 create table if not exists public.chapter_quiz_sessions (
   id                uuid primary key,             -- made in the browser
@@ -414,10 +422,30 @@ create table if not exists public.chapter_quiz_sessions (
   correct           integer not null default 0,
   incorrect         integer not null default 0,
   first_try_correct integer not null default 0,   -- right the first time they were asked
+  score             integer not null default 0,   -- points, see above
+  streak            integer not null default 0,   -- right answers in a row right now
+  best_streak       integer not null default 0,
   started_at        timestamptz not null default now(),
   last_at           timestamptz not null default now(),
   completed_at      timestamptz                   -- null until every question is right
 );
+
+-- Scores were added in November 2026. Sessions from before then get 100 per
+-- right answer and -100 per wrong one (the order of their answers wasn't kept,
+-- so no streak bonus). This runs only the first time, when the column is added.
+do $$
+begin
+  if not exists (select 1 from information_schema.columns
+                 where table_schema = 'public' and table_name = 'chapter_quiz_sessions'
+                   and column_name = 'score') then
+    alter table public.chapter_quiz_sessions
+      add column score       integer not null default 0,
+      add column streak      integer not null default 0,
+      add column best_streak integer not null default 0;
+    update public.chapter_quiz_sessions set score = 100 * (correct - incorrect);
+  end if;
+end;
+$$;
 
 create index if not exists chapter_quiz_sessions_user_idx
   on public.chapter_quiz_sessions (user_id, chapter);
@@ -485,10 +513,16 @@ begin
 
   -- Only the student's own, unfinished session (a session id can't be reused
   -- to add answers to someone else's).
+  -- Score: +100 plus 10 per right answer in a row before this one, or -100.
+  -- (The right-hand sides all see the row as it was before this update.)
   update public.chapter_quiz_sessions s
   set correct           = s.correct + v_correct::int,
       incorrect         = s.incorrect + (not v_correct)::int,
       first_try_correct = s.first_try_correct + (v_correct and v_first)::int,
+      score             = s.score + case when v_correct then 100 + 10 * s.streak else -100 end,
+      streak            = case when v_correct then s.streak + 1 else 0 end,
+      best_streak       = case when v_correct then greatest(s.best_streak, s.streak + 1)
+                               else s.best_streak end,
       last_at           = now()
   where s.id = p_session and s.user_id = auth.uid() and s.completed_at is null;
   if not found then
@@ -567,7 +601,7 @@ $$;
 
 -- Every student with their status and activity totals.
 -- (Dropped first because its columns change from time to time: passwords were
--- retired, then quiz and code totals were added.)
+-- retired, then quiz and code totals were added, then chapter quiz scores.)
 drop function if exists public.admin_roster();
 create or replace function public.admin_roster()
 returns table (
@@ -575,7 +609,7 @@ returns table (
   signed_in boolean, claimed_at timestamptz, added_at timestamptz,
   pages_opened bigint, total_visits bigint, last_active timestamptz,
   quiz_answered bigint, quiz_correct bigint, code_runs bigint, code_errors bigint,
-  cq_correct bigint, cq_incorrect bigint, cq_completed bigint
+  cq_correct bigint, cq_incorrect bigint, cq_completed bigint, cq_score bigint
 )
 language plpgsql
 stable
@@ -600,7 +634,8 @@ begin
            (select coalesce(sum(c.error_runs), 0) from public.code_runs c where c.user_id = r.user_id)::bigint,
            (select coalesce(sum(s.correct), 0) from public.chapter_quiz_sessions s where s.user_id = r.user_id)::bigint,
            (select coalesce(sum(s.incorrect), 0) from public.chapter_quiz_sessions s where s.user_id = r.user_id)::bigint,
-           (select count(*) from public.chapter_quiz_sessions s where s.user_id = r.user_id and s.completed_at is not null)
+           (select count(*) from public.chapter_quiz_sessions s where s.user_id = r.user_id and s.completed_at is not null),
+           (select coalesce(sum(s.score), 0) from public.chapter_quiz_sessions s where s.user_id = r.user_id)::bigint
     from public.roster r
     left join public.page_progress p on p.user_id = r.user_id
     group by r.code
@@ -843,12 +878,16 @@ begin
 end;
 $$;
 
--- Chapter quizzes: one row per student and chapter.
+-- Chapter quizzes: one row per student and chapter. score is the sum over all
+-- of that student's quizzes for the chapter; best_score is their best one quiz.
+-- (Dropped first because scores were added to its columns.)
+drop function if exists public.admin_chapter_quizzes();
 create or replace function public.admin_chapter_quizzes()
 returns table (
   student_name text, code text, chapter text, chapter_title text,
   started bigint, completed bigint, correct bigint, incorrect bigint,
-  best_first_try numeric, last_at timestamptz
+  best_first_try numeric, last_at timestamptz,
+  score bigint, best_score integer, best_streak integer
 )
 language plpgsql
 stable
@@ -865,7 +904,8 @@ begin
            -- best share of a finished session's questions right on the first try
            max(round(100.0 * s.first_try_correct / nullif(s.questions, 0), 1))
              filter (where s.completed_at is not null),
-           max(s.last_at)
+           max(s.last_at),
+           sum(s.score)::bigint, max(s.score), max(s.best_streak)
     from public.chapter_quiz_sessions s
     join public.roster r on r.user_id = s.user_id
     group by r.code, r.student_name, s.chapter

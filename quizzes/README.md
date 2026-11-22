@@ -18,6 +18,15 @@ fanfare. They are made in the browser with the Web Audio API (`SOUNDS` in `quiz.
 no sound files. A speaker button next to the progress bar turns sound on and off, and the browser
 remembers the choice.
 
+Each quiz keeps score. Every answer, re-asks included, is +100 if right and -100 if wrong, and a right
+answer earns a streak bonus of 10 for each right answer in a row just before it, so a run of right
+answers scores 100, 110, 120, 130, ... A wrong answer resets the streak, and every new quiz starts from
+0. The score and streak sit next to the progress bar, each answer's points show after Check, and the
+end-of-quiz screen gives the quiz's points and best streak. On geog215.org the official score is worked
+out by Supabase as answers are saved (`record_chapter_quiz_answer` in `supabase/setup.sql`), and each
+student's total is on the admin page's **Quiz scores** tab. `QUIZ_POINTS` in `quiz.js` only drives
+what students see, so change it and the SQL together.
+
 On geog215.org every answer is saved for the admin page's **Chapter quizzes** tab (see
 `supabase/README.md`). On daveparr.com the quiz works the same way but nothing is saved.
 

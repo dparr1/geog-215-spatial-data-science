@@ -22,7 +22,7 @@ only (never instructors) through `assets/auth-gate.html`:
 | What | Table | Recorded when |
 | --- | --- | --- |
 | Pages opened | `page_progress` | A student opens a page. |
-| Chapter quizzes | `chapter_quiz_sessions`, `chapter_quiz_answers` | A student answers a question on a chapter quiz page (see `quizzes/README.md`). Each run through a quiz is a session, with its correct answers, incorrect answers, and how many questions were right on the first try. The second table keeps each student's totals for each question. |
+| Chapter quizzes | `chapter_quiz_sessions`, `chapter_quiz_answers` | A student answers a question on a chapter quiz page (see `quizzes/README.md`). Each run through a quiz is a session, with its correct answers, incorrect answers, how many questions were right on the first try, and its score (+100 per right answer plus a 10-point bonus for each right answer in a row before it, -100 per wrong answer; worked out in `record_chapter_quiz_answer`). The second table keeps each student's totals for each question. |
 | Self-check quiz answers | `quiz_responses` | A student picks or types an answer to a webexercises question (`mcq()`, `torf()`, `fitb()`, `longmcq()`). Typed answers are saved when they leave the box or stop typing for 2 seconds. It keeps the latest answer, the number of attempts, and whether they got it right at least once. |
 | Code runs | `code_runs` | A student runs a webR cell with **Run Code** or Shift/Ctrl+Enter. Cells that run by themselves when the page loads don't count. It keeps the number of runs, how many ended in an R error, and the code as they last ran it. |
 
@@ -147,11 +147,12 @@ To add another instructor, insert their email the same way.
 
 | Tab | |
 | --- | --- |
-| **Students** | Every student with their email, status (*Has signed in* / *Not signed in yet* / *Locked out*), pages opened, chapter quiz success, self-check questions right (of those answered), code runs and last activity. Search by name or email, and filter by group/term or status. **Lock out** / **Let back in**, **Delete** (removes their account and progress). Click a name to see their activity, quiz answers and code runs. |
+| **Students** | Every student with their email, status (*Has signed in* / *Not signed in yet* / *Locked out*), pages opened, chapter quiz score and success, self-check questions right (of those answered), code runs and last activity. Search by name or email, and filter by group/term or status. **Lock out** / **Let back in**, **Delete** (removes their account and progress). Click a name to see their activity, quiz answers and code runs. |
 | **Add students** | Paste one student per line as `Name, email` (comma or tab, so two columns pasted from a spreadsheet or Canvas export work too), plus an optional group/term. Emails already on the roster are skipped. Added students can sign in straight away. |
 | **Activity** | The latest page opens, for everyone or one student. |
 | **Pages** | How many students have opened each page. |
-| **Chapter quizzes** | Results from the quiz page after each chapter, for everyone or one student, and for all chapters or one. **Correct** and **incorrect** count every answer, including re-asks of missed questions, and **success** is correct answers as a share of all answers. *By chapter* gives class totals. *By student* gives each student's quizzes finished, correct and incorrect answers, success, and best first-try score. *Questions* lists every question, hardest first. |
+| **Quiz scores** | A leaderboard of chapter quiz points: each student's rank, total score, score for each chapter, quizzes finished and best streak, highest total first. Filter by group/term. Click a name to see that student on the Chapter quizzes tab. |
+| **Chapter quizzes** | Results from the quiz page after each chapter, for everyone or one student, and for all chapters or one. **Correct** and **incorrect** count every answer, including re-asks of missed questions, and **success** is correct answers as a share of all answers. *By chapter* gives class totals. *By student* gives each student's quizzes finished, correct and incorrect answers, success, best first-try score, total points for the chapter and best single-quiz score. *Questions* lists every question, hardest first. |
 | **Self-checks** | Each self-check question in the chapters, by page: how many students answered it, how many got it right, and total attempts. Pick a student to see their last answer to each question. |
 | **Code** | Each webR code cell, by page: how many students ran it, total runs, and how many ended in an error. Pick a student to see the code they last ran in each cell. |
 
