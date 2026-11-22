@@ -9,3 +9,7 @@ format:
 # from that site's build, so this stays out of the default _quarto.yml.
 book:
   google-analytics: "G-E3QTGKCHDQ"
+
+  # Privacy policy link on every page (the sign-in screen links to it too).
+  page-footer:
+    center: "[Privacy policy](/privacy.html)"

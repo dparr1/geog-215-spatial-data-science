@@ -25,6 +25,7 @@ Every page has a top menu: **Welcome**, **Syllabus**, **Textbook**, **Course mat
 | Syllabus | `syllabus.qmd` | Public |
 | Course materials: staff and office hours, schedule, deadlines | `materials.qmd` | Students only |
 | About the author | `about.qmd` | Public |
+| Privacy policy (linked from the sign-in screen and page footer) | `privacy.qmd` | Public |
 | Textbook: preface, chapters, chapter quizzes, glossary | `preface.qmd`, `chapters/`, `glossary.qmd` | Students only |
 
 The public pages are listed in `PUBLIC_PAGES` in `assets/auth-gate.html`; keep that list in step with
