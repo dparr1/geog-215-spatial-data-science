@@ -126,6 +126,8 @@ There is a good deal of choice in how much you wish to learn and how hard you wa
 
 Final grades are awarded by the bundles below. You must meet **every** requirement in a row to earn that grade.
 
+::: {.grade-bundles}
+
 | Final grade | Reflection essay (1) | Quizzes (9) | Combined in-class exams (2) | Assignments scored S or E (9) | Absences allowed | Projects scored S or E (3) | Projects scored E (3) | Project presentations |
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | A | 1 | 9 | 80% | 8 | 3 | 3 | 2 | 1 |
@@ -136,6 +138,8 @@ Final grades are awarded by the bundles below. You must meet **every** requireme
 | C | 1 | 5 | 60% | 4✩ | – | 0 | 0 | 0 |
 | D | 1 | 4 | 50% | 0 | – | 0 | 0 | 0 |
 | F | 0 | 0 | 0% | 0 | – | 0 | 0 | 0 |
+
+:::
 
 ✩ A Satisfactory project can substitute for a Satisfactory assignment.
 

@@ -39,6 +39,8 @@ format:
       - include/webex.css
       # Indents chapter quiz pages in the left sidebar.
       - assets/sidebar.css
+      # Grade table row colors on the syllabus page.
+      - assets/grade-table.css
     include-after-body:
       - include/webex.js
       # Highlights the current page in the top menu.
