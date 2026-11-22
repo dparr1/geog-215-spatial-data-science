@@ -1,0 +1,394 @@
+{
+  "id": "indexing-vectors-data-frames",
+  "title": "Indexing Vectors and Data Frames",
+  "perSession": 10,
+  "minR": 4,
+  "questions": [
+    {
+      "id": "index-start",
+      "type": "choice",
+      "prompt": "In R, what is the index of the **first** element of a vector?",
+      "choices": [
+        "1",
+        "0",
+        "-1",
+        "It depends on the vector"
+      ],
+      "answer": 0,
+      "explain": "R counts positions from 1, not 0 as some other languages do."
+    },
+    {
+      "id": "vect-3",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does this code print?",
+      "code": "vect <- c(1, 2, 5, 10, 25, 50, 100, 200, 500, 1000)\nvect[3]",
+      "choices": [
+        "`[1] 5`",
+        "`[1] 3`",
+        "`[1] 2`",
+        "`[1] 10`"
+      ],
+      "answer": 0,
+      "explain": "Position 3 holds the value 5. The index says *where*; the value is *what is there*."
+    },
+    {
+      "id": "fill-vect-arith",
+      "type": "fill",
+      "prompt": "What does `vect[3] * vect[4]` return?",
+      "code": "vect <- c(1, 2, 5, 10, 25, 50, 100, 200, 500, 1000)",
+      "answers": [
+        "50"
+      ],
+      "numeric": true,
+      "explain": "`vect[3]` is 5 and `vect[4]` is 10, so the product is 50."
+    },
+    {
+      "id": "negative-index",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `vect[-3]` return?",
+      "choices": [
+        "Every element except the one in position 3",
+        "The element in position 3, made negative",
+        "The last three elements",
+        "An error"
+      ],
+      "answer": 0,
+      "explain": "A negative index drops that position and returns the rest. `vect` itself is unchanged."
+    },
+    {
+      "id": "colon",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `vect[6:8]` return?",
+      "code": "vect <- c(1, 2, 5, 10, 25, 50, 100, 200, 500, 1000)",
+      "choices": [
+        "`50 100 200`",
+        "`6 7 8`",
+        "`50 200`",
+        "`100`"
+      ],
+      "answer": 0,
+      "explain": "`6:8` is shorthand for `c(6, 7, 8)`, so this returns the values in positions 6, 7, and 8."
+    },
+    {
+      "id": "double-equals",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which operator tests whether two values are **equal**?",
+      "choices": [
+        "`==`",
+        "`=`",
+        "`<-`",
+        "`!=`"
+      ],
+      "answer": 0,
+      "explain": "`==` tests equality. A single `=` sets an argument inside a function call."
+    },
+    {
+      "id": "not-equal",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which operator means **not equal to**?",
+      "choices": [
+        "`!=`",
+        "`=/=`",
+        "`<>`",
+        "`!==`"
+      ],
+      "answer": 0,
+      "explain": "`!` means NOT, so `!=` is \"not equal to.\""
+    },
+    {
+      "id": "compare-5",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `5 >= 5` return?",
+      "choices": [
+        "`TRUE`",
+        "`FALSE`",
+        "`5`",
+        "`NA`"
+      ],
+      "answer": 0,
+      "explain": "5 is equal to 5, so \"greater than or equal to\" is TRUE."
+    },
+    {
+      "id": "logical-vector",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `vect > 10` return?",
+      "choices": [
+        "A logical vector with one `TRUE` or `FALSE` for each element",
+        "The values greater than 10",
+        "The number of values greater than 10",
+        "A single `TRUE` or `FALSE`"
+      ],
+      "answer": 0,
+      "explain": "A comparison checks every element. Put the result inside brackets, `vect[vect > 10]`, to keep the TRUE ones."
+    },
+    {
+      "id": "condition-index",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does this code print?",
+      "code": "vect <- c(1, 2, 5, 10, 25, 50, 100, 200, 500, 1000)\nvect[vect > 10]",
+      "choices": [
+        "`[1]   25   50  100  200  500 1000`",
+        "`[1] 1 2 5 10`",
+        "`[1] 5 6 7 8 9 10`",
+        "`[1] 6`"
+      ],
+      "answer": 0,
+      "explain": "The condition keeps every element greater than 10."
+    },
+    {
+      "id": "and-range",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `vect[vect > 10 & vect < 500]` return?",
+      "code": "vect <- c(1, 2, 5, 10, 25, 50, 100, 200, 500, 1000)",
+      "choices": [
+        "`25 50 100 200`",
+        "`25 50 100 200 500`",
+        "`1 2 5 10 500 1000`",
+        "All ten values"
+      ],
+      "answer": 0,
+      "explain": "Both conditions must be TRUE. 500 is excluded because the test is strictly less than 500."
+    },
+    {
+      "id": "or-everything",
+      "type": "truefalse",
+      "r": true,
+      "prompt": "`vect[vect > 10 | vect < 500]` returns every value in `vect`.",
+      "answer": true,
+      "explain": "Every number is either greater than 10 or less than 500, so the OR is TRUE everywhere. A careless OR can filter out nothing."
+    },
+    {
+      "id": "and-truth",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `TRUE & FALSE` return?",
+      "choices": [
+        "`FALSE`",
+        "`TRUE`",
+        "`NA`",
+        "An error"
+      ],
+      "answer": 0,
+      "explain": "With AND, both sides must be TRUE."
+    },
+    {
+      "id": "or-truth",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `FALSE | TRUE` return?",
+      "choices": [
+        "`TRUE`",
+        "`FALSE`",
+        "`NA`",
+        "An error"
+      ],
+      "answer": 0,
+      "explain": "With OR, either side can be TRUE."
+    },
+    {
+      "id": "sun-and",
+      "type": "truefalse",
+      "prompt": "\"The sun rises in the west AND humans breathe oxygen\" is true.",
+      "answer": false,
+      "explain": "An AND statement is true only when both parts are true, and the first part is false."
+    },
+    {
+      "id": "not-true",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `!TRUE` return?",
+      "choices": [
+        "`FALSE`",
+        "`TRUE`",
+        "`1`",
+        "`NA`"
+      ],
+      "answer": 0,
+      "explain": "`!` (NOT) flips TRUE to FALSE and FALSE to TRUE."
+    },
+    {
+      "id": "recycle",
+      "type": "choice",
+      "r": true,
+      "prompt": "`vect` has 10 elements. What does `vect[c(TRUE, FALSE)]` return?",
+      "choices": [
+        "Every other element, starting with the first",
+        "Only the first element",
+        "Only the first two elements",
+        "An error, because the lengths differ"
+      ],
+      "answer": 0,
+      "explain": "R recycles the short logical vector: TRUE, FALSE, TRUE, FALSE, and so on."
+    },
+    {
+      "id": "by-name",
+      "type": "choice",
+      "r": true,
+      "prompt": "After `names(vect) <- c(\"Kermit\", \"Piggy\", \"Gonzo\", \"Fozzie\", ...)`, what does `vect[\"Fozzie\"]` return?",
+      "code": "vect <- c(1, 2, 5, 10, 25, 50, 100, 200, 500, 1000)",
+      "choices": [
+        "10, labeled Fozzie",
+        "4",
+        "\"Fozzie\"",
+        "An error"
+      ],
+      "answer": 0,
+      "explain": "Fozzie is the fourth name, and position 4 holds 10."
+    },
+    {
+      "id": "fill-last",
+      "type": "fill",
+      "prompt": "Complete the code to return the last element of `vect`, whatever its length.",
+      "code": "vect[___(vect)]",
+      "answers": [
+        "length"
+      ],
+      "explain": "`length(vect)` is the position of the last element, so `vect[length(vect)]` works for any vector."
+    },
+    {
+      "id": "df-row",
+      "type": "choice",
+      "prompt": "In a data frame, what is each **row**?",
+      "choices": [
+        "An observation, such as one student or one county",
+        "A variable",
+        "A data type",
+        "A package"
+      ],
+      "answer": 0,
+      "explain": "Rows are observations; columns are variables."
+    },
+    {
+      "id": "df-column-type",
+      "type": "truefalse",
+      "prompt": "All the values in one column of a data frame must have the same data type.",
+      "answer": true,
+      "explain": "Each column is a vector, and a vector holds one type. Different columns can have different types."
+    },
+    {
+      "id": "df-row-col",
+      "type": "choice",
+      "r": true,
+      "prompt": "In `grades[2, 3]`, what do the 2 and the 3 mean?",
+      "choices": [
+        "Row 2, column 3",
+        "Column 2, row 3",
+        "The 2nd and 3rd rows",
+        "The 2nd and 3rd columns"
+      ],
+      "answer": 0,
+      "explain": "Data frame indexing takes two indexes: the row comes first, then the column."
+    },
+    {
+      "id": "df-dollar",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which line returns the `exam2` column of `grades` as a vector?",
+      "choices": [
+        "`grades$exam2`",
+        "`grades[exam2]`",
+        "`exam2$grades`",
+        "`grades(exam2)`"
+      ],
+      "answer": 0,
+      "explain": "The dollar sign pulls out one column by name."
+    },
+    {
+      "id": "read-csv",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which base R function reads a comma-separated file into a data frame?",
+      "choices": [
+        "`read.csv()`",
+        "`read.table.csv()`",
+        "`csv()`",
+        "`data.frame()`"
+      ],
+      "answer": 0,
+      "explain": "`read.csv()` is `read.table()` with its defaults set for CSV files."
+    },
+    {
+      "id": "read-table-sep",
+      "type": "choice",
+      "prompt": "In `read.table()`, what does the `sep` argument set?",
+      "choices": [
+        "The character that separates the values, such as a comma or a tab",
+        "Whether the first row holds column names",
+        "The number of rows to read",
+        "The file's name"
+      ],
+      "answer": 0,
+      "explain": "`sep` is the delimiter. `header` says whether the first row holds the column names."
+    },
+    {
+      "id": "order-and",
+      "type": "order",
+      "prompt": "Put the tiles in order to keep the values of `vect` that are greater than 10 **and** less than 500.",
+      "answer": [
+        "vect",
+        "[",
+        "vect > 10",
+        "&",
+        "vect < 500",
+        "]"
+      ],
+      "extra": [
+        "|",
+        "=="
+      ],
+      "explain": "Two conditions joined by `&` inside the brackets."
+    },
+    {
+      "id": "order-df",
+      "type": "order",
+      "prompt": "Put the tiles in order to make a data frame with a column `city`.",
+      "answer": [
+        "towns",
+        "<-",
+        "data.frame(",
+        "city = c(\"Durham\", \"Cary\")",
+        ")"
+      ],
+      "extra": [
+        "c("
+      ],
+      "explain": "Each argument to `data.frame()` becomes a column: the name before `=` and the values after it."
+    },
+    {
+      "id": "code-index-big",
+      "type": "code",
+      "prompt": "`pops` holds the populations of five NC towns. Store the populations **over 50,000** in a variable named `big`.",
+      "starter": "pops <- c(21295, 9660, 61960, 4537, 174721)\n",
+      "check": "isTRUE(all.equal(unname(big), c(61960, 174721)))",
+      "solution": "pops <- c(21295, 9660, 61960, 4537, 174721)\nbig <- pops[pops > 50000]",
+      "explain": "Put the condition inside the brackets: `pops[pops > 50000]`."
+    },
+    {
+      "id": "code-names",
+      "type": "code",
+      "prompt": "Name the elements of `temps` with the days `\"Mon\"`, `\"Tue\"`, and `\"Wed\"`, then store Tuesday's temperature in `tue`, selecting it **by name**.",
+      "starter": "temps <- c(71, 75, 68)\n",
+      "check": "identical(names(temps), c(\"Mon\", \"Tue\", \"Wed\")) && isTRUE(all.equal(unname(tue), 75)) && grepl(\"\\\"Tue\\\"\\\\s*\\\\]\", .sds_code)",
+      "solution": "temps <- c(71, 75, 68)\nnames(temps) <- c(\"Mon\", \"Tue\", \"Wed\")\ntue <- temps[\"Tue\"]",
+      "explain": "`names()` labels the elements, and `temps[\"Tue\"]` selects one by its label."
+    },
+    {
+      "id": "code-df-filter",
+      "type": "code",
+      "prompt": "Using brackets, store the **names** of the students who scored over 90 on `exam2` in a variable named `top`.",
+      "starter": "grades <- data.frame(\n  name  = c(\"Eliza\", \"Shonda\", \"Me'shelle\", \"Jack\"),\n  exam2 = c(98.1, 85.4, 74.3, 92.2)\n)\n",
+      "check": "identical(as.character(top), c(\"Eliza\", \"Jack\"))",
+      "solution": "grades <- data.frame(\n  name  = c(\"Eliza\", \"Shonda\", \"Me'shelle\", \"Jack\"),\n  exam2 = c(98.1, 85.4, 74.3, 92.2)\n)\ntop <- grades[grades$exam2 > 90, \"name\"]",
+      "explain": "Put the condition in the row position and the column you want in the column position: `grades[grades$exam2 > 90, \"name\"]`. `grades$name[grades$exam2 > 90]` works too."
+    }
+  ]
+}

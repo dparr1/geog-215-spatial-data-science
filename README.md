@@ -42,13 +42,16 @@ those chapters, and `_quarto-site.yml` lists the full site; one of the two is al
 |---|---|
 | What is Spatial Data Science? | 28 questions |
 | R, RStudio, and R Markdown | 27 questions |
+| R Basics | 30 questions |
+| Indexing Vectors and Data Frames | 30 questions |
+| Into the Tidyverse: glimpse, filter, and the Pipe | 29 questions |
 | Census Data and APIs | 32 questions |
 
 Each chapter is followed by a **chapter quiz** page. Readers also get:
 
 - **Runnable R in the browser.** Code cells use [webR](https://docs.r-wasm.org/webr/) through the
   `coatless/webr` Quarto extension, so students can edit and run R without installing anything.
-- **Hover definitions for key terms.** About 95 key terms (spatial autocorrelation, MAUP, GEOID,
+- **Hover definitions for key terms.** About 130 key terms (spatial autocorrelation, MAUP, GEOID,
   margin of error, knit, pipe, ...) are defined once in `glossary.yml`. In the chapters, the first
   use of each term in a section gets a dotted underline and shows its definition on hover, tap, or
   keyboard focus (`filters/glossary/`). The same file builds the **Glossary** page at the back of
@@ -116,7 +119,7 @@ Chapters use `tidyverse`, `sf`, `tigris`, `tidycensus`, `tmap`, `httr2` and `web
 Census chapter needs a free Census API key (see the Preface); chunks that call the API are skipped
 when no key is set.
 
-To add a chapter, add its `.qmd` to `chapters/` and `_quarto.yml`, then add its quiz by following
+To add a chapter, add its `.qmd` to `chapters/` and to both `_quarto-site.yml` and `_quarto-textbook.yml`, then add its quiz by following
 `quizzes/README.md`. Changes go through a pull request into `main`; Cloudflare builds a preview of
 each branch, and merging publishes both sites.
 

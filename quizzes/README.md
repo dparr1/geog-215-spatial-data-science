@@ -21,7 +21,7 @@ On geog215.org every answer is saved for the admin page's **Chapter quizzes** ta
 1. Write `quizzes/<chapter>.json`. Copy an existing bank as a starting point.
 2. Make `chapters/<chapter>-quiz.qmd` by copying another quiz page and changing the title, the link,
    and the `data-bank` path.
-3. In `_quarto.yml`, list the quiz page right after its chapter.
+3. In `_quarto-site.yml` and `_quarto-textbook.yml`, list the quiz page right after its chapter.
 4. In `admin/index.html`, add the bank's `id` to `BOOK_ORDER` so the admin page lists chapters in
    book order.
 
