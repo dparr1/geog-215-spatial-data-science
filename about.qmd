@@ -1,6 +1,6 @@
 # About the author {.unnumbered}
 
-![](images/dave-parr-headshot.jpg){fig-alt="Dave Parr" width="200" style="float: right; margin: 0 0 1rem 1.5rem; border-radius: 50%;"}
+![](images/dave-parr.jpg){fig-alt="Dave Parr" width="200" style="float: right; margin: 0 0 1rem 1.5rem; border-radius: 50%;"}
 
 I'm **Dr. David Parr**, a Teaching Assistant Professor in the Department of Geography and the Environment at the University of North Carolina at Chapel Hill. I teach classes in spatial data science, GIS, programming, web mapping, spatial databases, cartography, spatial modeling and analysis, and data acquisition and integration.
 
