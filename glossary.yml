@@ -31,7 +31,7 @@ exclude:
 
 terms:
 
-  # --- Introduction to Spatial Data Science ---------------------------------
+  # --- What is Spatial Data Science? -----------------------------------------
 
   - term: spatial data science
     definition: >-

@@ -18,7 +18,7 @@ Both rebuild automatically on every push to `main`.
 
 | Chapter | Quiz bank |
 |---|---|
-| Introduction to Spatial Data Science | 28 questions |
+| What is Spatial Data Science? | 28 questions |
 | R, RStudio, and R Markdown | 27 questions |
 | Census Data and APIs | 32 questions |
 
