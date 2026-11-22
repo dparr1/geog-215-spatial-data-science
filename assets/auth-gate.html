@@ -62,8 +62,26 @@
   }
 </style>
 
+<!--
+  Public pages: anyone can read these without signing in. Paths are as served
+  on geog215.org, without ".html" or a trailing "index". Keep in step with the
+  navbar in _quarto.yml.
+-->
+<script>
+  window.SDS_PUBLIC_PAGE = (function () {
+    const PUBLIC_PAGES = ["/", "/syllabus", "/about"];
+    const path = location.pathname
+      .replace(/\.html$/, "")
+      .replace(/\/index$/, "/")
+      .replace(/(.)\/$/, "$1");
+    return PUBLIC_PAGES.includes(path);
+  })();
+</script>
+
 <!-- Lock first, so the page never flashes before the check runs. -->
-<script>document.documentElement.classList.add("sds-locked");</script>
+<script>
+  if (!window.SDS_PUBLIC_PAGE) document.documentElement.classList.add("sds-locked");
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
 
@@ -317,7 +335,7 @@
     gate.id = "sds-gate";
     gate.innerHTML = `
       <div class="sds-card" role="dialog" aria-labelledby="sds-title">
-        <h1 id="sds-title">Spatial Data Science</h1>
+        <h1 id="sds-title">Introduction to Spatial Data Science</h1>
 
         <form id="sds-email-step">
           <p>GEOG 215 textbook. Enter your email and we'll send you a sign-in code.</p>
@@ -489,6 +507,8 @@
   }
 
   async function init() {
+    // Public pages (Welcome, Syllabus, About) need no sign-in.
+    if (window.SDS_PUBLIC_PAGE) return;
     const link = takeLinkToken();
     buildGate();
     if (!window.supabase || !window.supabase.createClient) {

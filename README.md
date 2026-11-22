@@ -1,4 +1,4 @@
-# Spatial Data Science (GEOG 215)
+# Introduction to Spatial Data Science (GEOG 215)
 
 A working-draft textbook for **GEOG 215, Introduction to Spatial Data Science**, at UNC-Chapel Hill,
 written by David Parr from the course lectures. It is a [Quarto](https://quarto.org) book: every
@@ -14,11 +14,28 @@ The book is published in two places from this repo:
 
 Both rebuild automatically on every push to `main`.
 
+## Site layout
+
+Every page has a top menu: **Welcome**, **Syllabus**, **Textbook**, **Course materials**, and
+**About**. In the sidebar these are two parts, *Course* and *Textbook*.
+
+| Page | File | Sign-in on geog215.org |
+|---|---|---|
+| Welcome (home page) | `index.qmd` | Public |
+| Syllabus | `syllabus.qmd` | Public |
+| Course materials: staff and office hours, schedule, deadlines | `materials.qmd` | Students only |
+| About the author | `about.qmd` | Public |
+| Textbook: preface, chapters, chapter quizzes, glossary | `preface.qmd`, `chapters/`, `glossary.qmd` | Students only |
+
+The public pages are listed in `PUBLIC_PAGES` in `assets/auth-gate.html`; keep that list in step with
+the menu in `_quarto.yml`. The course pages are copied from the Fall 2026 Course Resources doc in
+Google Drive, so update them each semester.
+
 ## What's in the book
 
 | Chapter | Quiz bank |
 |---|---|
-| Introduction to Spatial Data Science | 28 questions |
+| What is Spatial Data Science? | 28 questions |
 | R, RStudio, and R Markdown | 27 questions |
 | Census Data and APIs | 32 questions |
 
@@ -26,6 +43,11 @@ Each chapter is followed by a **chapter quiz** page. Readers also get:
 
 - **Runnable R in the browser.** Code cells use [webR](https://docs.r-wasm.org/webr/) through the
   `coatless/webr` Quarto extension, so students can edit and run R without installing anything.
+- **Hover definitions for key terms.** About 95 key terms (spatial autocorrelation, MAUP, GEOID,
+  margin of error, knit, pipe, ...) are defined once in `glossary.yml`. In the chapters, the first
+  use of each term in a section gets a dotted underline and shows its definition on hover, tap, or
+  keyboard focus (`filters/glossary/`). The same file builds the **Glossary** page at the back of
+  the book. To add or edit a term, edit `glossary.yml`; no chapter changes are needed.
 - **Self-check questions** inside chapters, from the
   [webexercises](https://psyteachr.github.io/webexercises/) R package.
 - **Duolingo-style chapter quizzes** (`assets/quiz/`). Each quiz draws 10 random questions from the
@@ -58,7 +80,8 @@ See `supabase/README.md` for the one-time setup, the admin page and troubleshoot
 
 | Path | Contents |
 |---|---|
-| `index.qmd` | Preface |
+| `index.qmd`, `syllabus.qmd`, `materials.qmd`, `about.qmd` | Course pages (Welcome, Syllabus, Course materials, About) |
+| `preface.qmd` | Textbook preface |
 | `chapters/` | One `.qmd` per chapter, plus its `-quiz.qmd` page |
 | `quizzes/` | Chapter quiz question banks (JSON) and how to write them |
 | `assets/quiz/` | The quiz engine (`quiz.js`, `quiz.css`), including the instructor cartoon |
@@ -67,6 +90,8 @@ See `supabase/README.md` for the one-time setup, the admin page and troubleshoot
 | `supabase/` | Database setup (`setup.sql`) and setup guide |
 | `data/`, `data-raw/` | Data used in chapters, and the scripts that build it |
 | `images/` | Figures and screenshots |
+| `glossary.yml`, `glossary.qmd` | Key terms and definitions, and the Glossary page built from them |
+| `filters/glossary/` | Lua filter, script, and styles for the hover definitions |
 | `include/` | webexercises CSS and JS |
 | `_extensions/` | Quarto extensions (webR) |
 | `_templates/` | PrettyPDF template for the PDF format |

@@ -1,0 +1,79 @@
+# Course materials {.unnumbered}
+
+Assignments, slides, readings, and quizzes are on **Canvas**, and announcements and discussion are on **Microsoft Teams** (the link is on Canvas). This page collects the course staff, the class schedule, and assignment deadlines in one place. Dates are subject to change; changes are announced in class, on Canvas, and on Teams.
+
+## Course staff and office hours
+
+<!-- Staff emails and office hours appear only on geog215.org, behind the
+     sign-in. The public copy on daveparr.com leaves them out. -->
+::: {.content-visible when-profile="geog215"}
+| Who | Email | Office hours | Where |
+|:--|:--|:--|:--|
+| **Dr. David Parr**, instructor | <daveparr@unc.edu> | Mondays 10–11 am<br>Tuesdays 4–5 pm<br>Wednesdays 1:30–2:30 pm | 317B Carolina Hall<br>[Zoom](https://unc.zoom.us/my/daveparr)<br>317B Carolina Hall |
+| **Braulio Lahuatte**, teaching assistant | <braucli@unc.edu> | Mondays and Wednesdays 9–10 am | [Zoom](https://unc.zoom.us/my/braulio.lahuatte) |
+| **Jacob Tafrate**, teaching assistant | <jdtaf@unc.edu> | Tuesdays and Thursdays 2–3 pm | Coates 201B |
+| **Harvey Chen**, learning assistant | <jiahaoc@unc.edu> | Mondays and Wednesdays 1:20–2:20 pm | [Zoom](https://unc.zoom.us/j/94262519731) |
+| **Rachel Johnson**, learning assistant | <ravaljo@unc.edu> | Fridays 10 am–noon | Cafe Converge, Genome Sciences Building |
+| **Esther Zhu**, learning assistant | <etzhu@unc.edu> | Mondays 2:30–4:30 pm | [Zoom](https://unc.zoom.us/j/96928331279) |
+:::
+
+::: {.content-hidden when-profile="geog215"}
+Course staff, their emails, and office hours are listed on Canvas.
+:::
+
+Free peer tutoring is also available from the [UNC Learning Center](https://learningcenter.unc.edu/appointment-peer-tutoring/).
+
+## Modules and the textbook
+
+| Unit | Module or project | In the textbook |
+|:--|:--|:--|
+| 1. Getting started with data science | Module 1: Getting started with R | [What is Spatial Data Science?](chapters/intro-spatial-data-science.qmd), [R, RStudio, and R Markdown](chapters/r-rstudio-rmarkdown.qmd) |
+| | Module 2: Processing data with the tidyverse | |
+| | Module 3: Exploring data for information | |
+| | Project 1: Map contest with tmap | |
+| 2. Working with spatial data | Module 4: Overlaying two spatial layers | |
+| | Module 5: Joining tables | |
+| | Module 6: Spatial statistics | |
+| | Project 2: Map contest with online data | [Census Data and APIs](chapters/census-data-apis.qmd) |
+| 3. Spatial data science | Module 7: ANOVA | |
+| | Module 8: Regression | |
+| | Module 9: Clustering | |
+| | Project 3: Spatial data science project | |
+
+## Class schedule
+
+| Date | Event |
+|:--|:--|
+| Monday, August 17 | First day of class |
+| Monday, September 7 | Labor Day, no class |
+| **Friday, September 18** | **Project 1 presentations in class** |
+| Monday, September 21 | Wellness Day, no class |
+| **Friday, September 25** | **Midterm exam in class** |
+| Friday, October 2 | Dr. Parr at the North Carolina Arc Users Group conference, no class |
+| Friday, October 16 | Fall Break, no class |
+| **Friday, October 23** | **Project 2 presentations in class** |
+| Wednesday, November 18 | GIS Day |
+| Wednesday, November 25 | Thanksgiving, no class |
+| Friday, November 27 | Thanksgiving, no class |
+| **November 30 and December 2** | **Project 3 presentations in class** |
+| Wednesday, December 2 | Last day of class |
+| **Friday, December 11** | **Final exam, noon–3 pm, in our classroom** |
+
+## Assignment and project deadlines
+
+All assignments and projects are submitted on Canvas. Every deadline is **11:59 pm Eastern**. See the [syllabus](syllabus.qmd#tokens) for how tokens work.
+
+| | Available on Canvas | Turn in early to earn a token | Due date | Late, 2 tokens | Late, 4 tokens | Late, 8 tokens (last day for late work) | Last day to resubmit (2 tokens each) |
+|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| **A1** | 8/17 | 8/21 | 8/25 | 8/28 | 9/1 | 9/4 | 9/22 |
+| **A2** | 8/21 | 8/28 | 9/1 | 9/4 | 9/8 | 9/11 | 9/29 |
+| **A3** | 8/28 | 9/4 | 9/8 | 9/11 | 9/15 | 9/18 | 10/6 |
+| **P1** | 9/4 | 9/11 | 9/15 | 9/18 | 9/22 | 9/25 | 10/13 |
+| **A4** | 9/25 | 10/2 | 10/6 | 10/9 | 10/13 | 10/16 | 11/3 |
+| **A5** | 10/2 | 10/9 | 10/13 | 10/16 | 10/20 | 10/23 | 11/10 |
+| **A6** | 10/9 | 10/16 | 10/20 | 10/23 | 10/27 | 10/30 | 11/17 |
+| **P2** | 10/16 | 10/23 | 10/27 | 10/30 | 11/3 | 11/6 | 11/24 |
+| **A7** | 10/23 | 10/30 | 11/3 | 11/6 | 11/10 | 11/13 | 12/1 |
+| **A8** | 10/30 | 11/6 | 11/10 | 11/13 | 11/17 | 11/20 | 12/2 |
+| **A9** | 11/6 | 11/13 | 11/17 | 11/20 | 11/24 | 11/27 | 12/3 |
+| **P3** | 11/13 | 11/20 | 11/24 | 11/27 | 12/1 | 12/3 | 12/3 |

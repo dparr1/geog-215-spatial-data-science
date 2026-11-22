@@ -1,0 +1,6 @@
+# Glossary {.unnumbered}
+
+Key terms used in this book. In the chapters, a term with a dotted underline shows its definition when you hover over it, tap it, or reach it with the Tab key.
+
+::: {#glossary}
+:::
