@@ -380,6 +380,225 @@ terms:
       R's table: rows are observations and columns are variables. A tibble is
       the tidyverse's version of a data frame.
 
+  # --- R Basics -------------------------------------------------------------
+
+  - term: interpreted language
+    aliases: [interpreter, interpreters, interpreted]
+    definition: >-
+      A language, like R, that runs code one line at a time: an interpreter
+      reads each line, translates it, and runs it before moving on.
+
+  - term: compiler
+    aliases: [compilers, compiled, compile]
+    definition: >-
+      A program that translates a whole program into machine code before any
+      of it runs. C and Java are compiled; R is interpreted.
+
+  - term: R session
+    aliases: [R sessions, fresh session, fresh R session]
+    definition: >-
+      One run of R, from start to finish. A new session starts with an empty
+      Environment and no packages loaded; knitting always starts a fresh one.
+
+  - term: library
+    aliases: [libraries]
+    chapters: [r-basics]
+    definition: >-
+      The folder on your computer where installed packages are stored. You
+      install packages into a library, then load them with `library()`.
+
+  - term: data type
+    aliases: [data types, atomic data type, atomic data types, atomic type, atomic types]
+    definition: >-
+      The kind of value R is storing. The four main atomic types are logical,
+      integer, numeric, and character; `class()` tells you which you have.
+
+  - term: logical
+    case_sensitive: true
+    chapters: [r-basics]
+    definition: >-
+      The data type for `TRUE` and `FALSE` values, written in capitals with no
+      quotation marks.
+
+  - term: integer
+    aliases: [integers]
+    chapters: [r-basics, tidyverse-filter-pipe]
+    definition: >-
+      The data type for whole numbers. R stores a typed number as numeric
+      unless you add an `L`, as in `21L`. Shown as `<int>` by `glimpse()`.
+
+  - term: numeric
+    aliases: [double, doubles]
+    chapters: [r-basics, tidyverse-filter-pipe]
+    definition: >-
+      The data type for numbers that can have a decimal part, such as 103.21.
+      Also called *double*, and shown as `<dbl>` by `glimpse()`.
+
+  - term: character
+    aliases: [string, strings]
+    case_sensitive: true
+    chapters: [r-basics, tidyverse-filter-pipe]
+    definition: >-
+      The data type for text, also called strings. Character values always go
+      inside quotation marks, as in `"Chapel Hill"`.
+
+  - term: coercion
+    aliases: [coerce, coerces, coerced]
+    definition: >-
+      R converting values from one data type to another. Mixing types in one
+      vector coerces them all to the type that can hold everything, usually
+      character.
+
+  - term: camelCase
+    case_sensitive: true
+    definition: >-
+      A way of naming variables that joins words and capitalizes every word
+      after the first, as in `popChapelHill`.
+
+  - term: snake_case
+    case_sensitive: true
+    definition: >-
+      A way of naming variables with lowercase words joined by underscores,
+      as in `pop_chapel_hill`. The tidyverse style guide uses it.
+
+  - term: debugging
+    aliases: [debug, bug, bugs]
+    definition: >-
+      Finding and fixing the mistakes (bugs) in code: read the error message,
+      find the line, make a guess, and test it.
+
+  - term: help page
+    aliases: [help pages]
+    definition: >-
+      A function's documentation, opened with `?name` or `help(name)`. Every
+      help page has a Description, Usage, Arguments, and Examples.
+
+  # --- Indexing Vectors and Data Frames -------------------------------------
+
+  - term: indexing
+    aliases: [index, indexes, indices, indexed]
+    chapters: [r-basics, indexing-vectors-data-frames, tidyverse-filter-pipe]
+    definition: >-
+      Selecting part of a vector or data frame with square brackets: by
+      position (`vect[3]`), by a condition (`vect[vect > 10]`), or by name
+      (`vect["Fozzie"]`).
+
+  - term: negative index
+    definition: >-
+      An index with a minus sign, such as `vect[-3]`, which drops that
+      position and returns the rest.
+
+  - term: colon operator
+    definition: >-
+      `:`, which makes a sequence of whole numbers: `6:8` is `c(6, 7, 8)`.
+
+  - term: comparison operator
+    aliases: [comparison operators]
+    definition: >-
+      An operator that compares two values and returns `TRUE` or `FALSE`:
+      `>`, `<`, `>=`, `<=`, `==` (equal to), and `!=` (not equal to).
+
+  - term: logical operator
+    aliases: [logical operators]
+    definition: >-
+      An operator that combines `TRUE` and `FALSE` values: `&` (AND, both
+      must be true), `|` (OR, either can be true), and `!` (NOT).
+
+  - term: Boolean
+    case_sensitive: true
+    definition: >-
+      Another name for logical (`TRUE` or `FALSE`) values, after the
+      mathematician George Boole.
+
+  - term: logical vector
+    aliases: [logical vectors]
+    definition: >-
+      A vector of `TRUE` and `FALSE` values, such as the result of
+      `vect > 10`. Inside square brackets it keeps the `TRUE` positions.
+
+  - term: truth table
+    aliases: [truth tables]
+    definition: >-
+      A table listing the result of a logical operator for every combination
+      of `TRUE` and `FALSE` inputs.
+
+  - term: recycling
+    aliases: [recycle, recycles, recycled]
+    definition: >-
+      R repeating a shorter vector until it matches the length of a longer
+      one, so `vect[c(TRUE, FALSE)]` keeps every other element.
+
+  - term: observation
+    aliases: [observations]
+    definition: >-
+      One thing that was measured or recorded, such as a student, a county,
+      or a flight. In a data frame, each row is an observation.
+
+  - term: CSV
+    aliases: [CSV file, CSV files, comma-separated values]
+    case_sensitive: true
+    definition: >-
+      A plain-text table in which each line is a row and commas separate the
+      values. Read one into R with `read.csv()` or `read_csv()`.
+
+  - term: header
+    chapters: [indexing-vectors-data-frames]
+    definition: >-
+      The first line of a data file, when it holds the column names.
+
+  - term: delimiter
+    aliases: [delimiters, separator]
+    definition: >-
+      The character that separates values in a text file of data, such as a
+      comma in a CSV file or a tab.
+
+  # --- Into the Tidyverse ----------------------------------------------------
+
+  - term: data science workflow
+    definition: >-
+      The steps of a data analysis: import, tidy, then a loop of transform,
+      visualize, and model, and finally communicate.
+
+  - term: tidy data
+    aliases: [tidy, tidying]
+    chapters: [tidyverse-filter-pipe]
+    definition: >-
+      Data arranged so that each variable is a column, each observation is a
+      row, and each value has its own cell.
+
+  - term: nycflights13
+    case_sensitive: true
+    definition: >-
+      An R package of data on every flight that left New York City's three
+      airports in 2013, including the `flights` data frame.
+
+  - term: masking
+    aliases: [masks, mask, masked]
+    definition: >-
+      When two loaded packages have a function with the same name, the one
+      loaded later hides (masks) the other. Reach the hidden one with
+      `package::function()`.
+
+  - term: verb
+    aliases: [verbs]
+    chapters: [tidyverse-filter-pipe]
+    definition: >-
+      A dplyr function named for the job it does to a data frame, such as
+      `filter()`, `select()`, `arrange()`, and `mutate()`.
+
+  - term: cheatsheet
+    aliases: [cheatsheets]
+    definition: >-
+      A one-page summary of a package or tool. Posit publishes them for
+      dplyr, ggplot2, RStudio, and more.
+
+  - term: missing value
+    aliases: [missing values, NA, NAs]
+    case_sensitive: true
+    definition: >-
+      A value that is unknown, written `NA` ("not available") in R. Most
+      calculations with `NA` give `NA`; test for it with `is.na()`.
+
   # --- Census Data and APIs --------------------------------------------------
 
   - term: decennial census

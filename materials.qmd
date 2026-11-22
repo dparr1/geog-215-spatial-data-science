@@ -27,8 +27,8 @@ Free peer tutoring is also available from the [UNC Learning Center](https://lear
 
 | Unit | Module or project | In the textbook |
 |:--|:--|:--|
-| 1. Getting started with data science | Module 1: Getting started with R | [What is Spatial Data Science?](chapters/intro-spatial-data-science.qmd), [R, RStudio, and R Markdown](chapters/r-rstudio-rmarkdown.qmd) |
-| | Module 2: Processing data with the tidyverse | |
+| 1. Getting started with data science | Module 1: Getting started with R | [What is Spatial Data Science?](chapters/intro-spatial-data-science.qmd), [R, RStudio, and R Markdown](chapters/r-rstudio-rmarkdown.qmd), [R Basics](chapters/r-basics.qmd), [Indexing Vectors and Data Frames](chapters/indexing-vectors-data-frames.qmd) |
+| | Module 2: Processing data with the tidyverse | [Into the Tidyverse: glimpse, filter, and the Pipe](chapters/tidyverse-filter-pipe.qmd) |
 | | Module 3: Exploring data for information | |
 | | Project 1: Map contest with tmap | |
 | 2. Working with spatial data | Module 4: Overlaying two spatial layers | |

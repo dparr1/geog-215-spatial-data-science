@@ -50,6 +50,11 @@
   transition: width 0.45s cubic-bezier(0.3, 1.4, 0.6, 1);
 }
 .sds-q-count { font-weight: 700; color: var(--q-muted); font-variant-numeric: tabular-nums; }
+.sds-q-sound {
+  flex: none; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%;
+  background: transparent; font-size: 1.1rem; line-height: 1; cursor: pointer; opacity: 0.7;
+}
+.sds-q-sound:hover, .sds-q-sound:focus-visible { opacity: 1; background: rgba(0, 0, 0, 0.06); }
 
 /* Buttons */
 .sds-q-btn {

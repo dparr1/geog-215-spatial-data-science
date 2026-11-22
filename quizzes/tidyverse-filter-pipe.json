@@ -1,0 +1,381 @@
+{
+  "id": "tidyverse-filter-pipe",
+  "title": "Into the Tidyverse: glimpse, filter, and the Pipe",
+  "perSession": 10,
+  "minR": 4,
+  "questions": [
+    {
+      "id": "what-tidyverse",
+      "type": "choice",
+      "prompt": "What is the tidyverse?",
+      "choices": [
+        "A family of R packages for data science that are designed to work together",
+        "A single function for cleaning data",
+        "A newer version of RStudio",
+        "A website of free data sets"
+      ],
+      "answer": 0,
+      "explain": "Its packages share a design philosophy, a grammar, and a way of storing data."
+    },
+    {
+      "id": "workflow-order",
+      "type": "choice",
+      "prompt": "In the data science workflow, which step comes first?",
+      "choices": [
+        "Import",
+        "Model",
+        "Communicate",
+        "Visualize"
+      ],
+      "answer": 0,
+      "explain": "Import, then tidy, then a loop of transform, visualize, and model, and finally communicate."
+    },
+    {
+      "id": "order-workflow",
+      "type": "order",
+      "prompt": "Put the steps of the data science workflow in order.",
+      "answer": [
+        "Import",
+        "Tidy",
+        "Transform",
+        "Communicate"
+      ],
+      "r": false,
+      "explain": "Data are imported, tidied, and transformed (along with visualizing and modeling), and the results are communicated."
+    },
+    {
+      "id": "dplyr-package",
+      "type": "choice",
+      "prompt": "Which tidyverse package provides `filter()` and `glimpse()`?",
+      "choices": [
+        "dplyr",
+        "ggplot2",
+        "readr",
+        "lubridate"
+      ],
+      "answer": 0,
+      "explain": "dplyr is the tidyverse's package for transforming data frames."
+    },
+    {
+      "id": "conflict-message",
+      "type": "choice",
+      "prompt": "After `library(tidyverse)`, R prints `dplyr::filter() masks stats::filter()`. What does that mean?",
+      "choices": [
+        "When you type `filter()`, you'll get dplyr's version rather than the one in base R's stats package.",
+        "Something went wrong and the tidyverse didn't load.",
+        "You need to reinstall dplyr.",
+        "`filter()` won't work until you restart R."
+      ],
+      "answer": 0,
+      "explain": "Conflict messages are normal, not errors. You can still reach the other one with `stats::filter()`."
+    },
+    {
+      "id": "verb-select",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which dplyr verb picks **columns**?",
+      "choices": [
+        "`select()`",
+        "`filter()`",
+        "`arrange()`",
+        "`glimpse()`"
+      ],
+      "answer": 0,
+      "explain": "`select()` picks columns; `filter()` keeps rows; `arrange()` sorts rows."
+    },
+    {
+      "id": "verb-filter",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which dplyr verb keeps the **rows** that meet a condition?",
+      "choices": [
+        "`filter()`",
+        "`select()`",
+        "`mutate()`",
+        "`summarize()`"
+      ],
+      "answer": 0,
+      "explain": "`filter()` keeps the rows where the condition is TRUE."
+    },
+    {
+      "id": "glimpse-does",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `glimpse()` show?",
+      "choices": [
+        "The size of a data frame, and each column's name, type, and first values",
+        "A map of the data",
+        "Only the first six rows",
+        "A summary of each column's mean"
+      ],
+      "answer": 0,
+      "explain": "glimpse() turns the data on its side, with one line of output per column."
+    },
+    {
+      "id": "glimpse-dbl",
+      "type": "choice",
+      "r": true,
+      "prompt": "In `glimpse()` output, what does `<dbl>` mean?",
+      "choices": [
+        "Numeric: a number that can have decimals",
+        "A column with two values",
+        "Character (text)",
+        "A date and time"
+      ],
+      "answer": 0,
+      "explain": "`<dbl>` is short for double, R's numeric type. `<int>` is integer and `<chr>` is character."
+    },
+    {
+      "id": "flights-size",
+      "type": "choice",
+      "prompt": "How many rows does the `flights` data frame from nycflights13 have, according to `glimpse()`?",
+      "choices": [
+        "336,776",
+        "19",
+        "2013",
+        "3"
+      ],
+      "answer": 0,
+      "explain": "One row per flight from New York City's three airports in 2013, with 19 columns."
+    },
+    {
+      "id": "filter-day1",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does this code return?",
+      "code": "filter(flights, day == 1)",
+      "choices": [
+        "The flights that left on the 1st day of any month",
+        "The first row of `flights`",
+        "Only the flights on January 1",
+        "An error, because `day` isn't defined"
+      ],
+      "answer": 0,
+      "explain": "`filter()` finds `day` inside `flights`. Day 1 of each of the twelve months gives 11,036 flights."
+    },
+    {
+      "id": "fill-equals",
+      "type": "fill",
+      "prompt": "Complete the code to keep the flights that left from JFK.",
+      "code": "filter(flights, origin ___ \"JFK\")",
+      "answers": [
+        "=="
+      ],
+      "explain": "`==` tests equality. A single `=` would set an argument, and dplyr would ask \"Did you mean `==`?\""
+    },
+    {
+      "id": "filter-equals-bug",
+      "type": "choice",
+      "r": true,
+      "prompt": "What is wrong with this code?",
+      "code": "filter(flights, day = 1)",
+      "choices": [
+        "It uses `=` instead of `==`.",
+        "`day` needs quotation marks.",
+        "`filter()` needs the pipe.",
+        "Nothing is wrong."
+      ],
+      "answer": 0,
+      "explain": "Testing equality takes two equals signs: `day == 1`."
+    },
+    {
+      "id": "lga-quotes",
+      "type": "choice",
+      "r": true,
+      "prompt": "Why does `filter(flights, origin == LGA)` fail?",
+      "choices": [
+        "`LGA` is text and needs quotation marks: `\"LGA\"`.",
+        "`origin` needs quotation marks.",
+        "`==` should be `=`.",
+        "LaGuardia isn't in the data."
+      ],
+      "answer": 0,
+      "explain": "Without quotes, R looks for a column or variable named LGA and doesn't find one."
+    },
+    {
+      "id": "month-june",
+      "type": "choice",
+      "r": true,
+      "prompt": "`month` is stored as a number. Which condition keeps June?",
+      "choices": [
+        "`month == 6`",
+        "`month == \"June\"`",
+        "`month = 6`",
+        "`month == June`"
+      ],
+      "answer": 0,
+      "explain": "June is month 6. Numbers don't need quotation marks."
+    },
+    {
+      "id": "comma-and",
+      "type": "choice",
+      "r": true,
+      "prompt": "Inside `filter()`, what does a comma between two conditions mean?",
+      "choices": [
+        "AND: both must be TRUE",
+        "OR: either can be TRUE",
+        "NOT",
+        "Start a new data frame"
+      ],
+      "answer": 0,
+      "explain": "`filter(flights, month == 6, origin == \"LGA\")` is the same as joining the conditions with `&`."
+    },
+    {
+      "id": "june-or-july",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which condition keeps the flights in June **or** July?",
+      "choices": [
+        "`month == 6 | month == 7`",
+        "`month == 6 & month == 7`",
+        "`month == 6, month == 7`",
+        "`month == 6 or 7`"
+      ],
+      "answer": 0,
+      "explain": "`|` is OR. No month is both 6 and 7, so `&` (or a comma) would keep no rows at all."
+    },
+    {
+      "id": "pipe-read",
+      "type": "choice",
+      "r": true,
+      "prompt": "How do you read the pipe `|>` out loud?",
+      "choices": [
+        "\"and then\"",
+        "\"or\"",
+        "\"gets\"",
+        "\"is not\""
+      ],
+      "answer": 0,
+      "explain": "Take `flights`, and then filter, and then count."
+    },
+    {
+      "id": "pipe-equivalent",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which line does the same thing as `flights |> filter(day == 1)`?",
+      "choices": [
+        "`filter(flights, day == 1)`",
+        "`filter(day == 1, flights)`",
+        "`flights(filter(day == 1))`",
+        "`filter(flights |> day == 1)`"
+      ],
+      "answer": 0,
+      "explain": "The pipe passes what is on its left in as the first argument of the function on its right."
+    },
+    {
+      "id": "pipe-repeat",
+      "type": "choice",
+      "r": true,
+      "prompt": "What is wrong with this code?",
+      "code": "flights |> filter(flights, day == 1)",
+      "choices": [
+        "`flights` is passed in twice: once by the pipe and once inside `filter()`.",
+        "`|>` should be `%>%`.",
+        "`day` needs quotation marks.",
+        "Nothing is wrong."
+      ],
+      "answer": 0,
+      "explain": "Inside a pipe chain, don't repeat the data frame: write `flights |> filter(day == 1)`."
+    },
+    {
+      "id": "not-a-pipe",
+      "type": "truefalse",
+      "prompt": "`|>` is an operator that rewrites `x |> f(y)` as `f(x, y)`.",
+      "answer": true,
+      "explain": "Like Magritte's painting, it isn't really a pipe. It's a piece of R grammar."
+    },
+    {
+      "id": "na-meaning",
+      "type": "choice",
+      "prompt": "What does `NA` mean in R?",
+      "choices": [
+        "A missing or unknown value",
+        "Zero",
+        "Not applicable, so the row is deleted",
+        "A text value"
+      ],
+      "answer": 0,
+      "explain": "NA stands for \"not available.\" Cancelled flights have NA for their departure delay."
+    },
+    {
+      "id": "na-compare",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `NA <= 0` return?",
+      "choices": [
+        "`NA`",
+        "`TRUE`",
+        "`FALSE`",
+        "An error"
+      ],
+      "answer": 0,
+      "explain": "R can't tell whether an unknown number is at most zero, so the answer is unknown too."
+    },
+    {
+      "id": "filter-keeps-na",
+      "type": "truefalse",
+      "prompt": "`filter()` keeps the rows where the condition is `NA`.",
+      "answer": false,
+      "explain": "`filter()` keeps only rows where the condition is TRUE. Base R brackets, in contrast, return a row of NAs."
+    },
+    {
+      "id": "why-mismatch",
+      "type": "choice",
+      "prompt": "Base R brackets found 174 early flights from LaGuardia on January 1, but `filter()` found 172. Why?",
+      "choices": [
+        "Two flights were cancelled, so their `dep_delay` is `NA`, and the two methods treat `NA` differently.",
+        "`filter()` has a bug.",
+        "Base R counts the header row.",
+        "The pipe drops two rows."
+      ],
+      "answer": 0,
+      "explain": "Brackets return a row of NAs when the condition is NA; `filter()` drops those rows."
+    },
+    {
+      "id": "fill-isna",
+      "type": "fill",
+      "prompt": "Complete the code to keep flights that left on time or early, **plus** those with a missing delay.",
+      "code": "filter(flights, ___(dep_delay) | dep_delay <= 0)",
+      "answers": [
+        "is.na"
+      ],
+      "explain": "`is.na()` returns TRUE for missing values. You can't test for NA with `==`."
+    },
+    {
+      "id": "order-june-lga",
+      "type": "order",
+      "prompt": "Put the tiles in order to count the June flights from LaGuardia.",
+      "answer": [
+        "flights",
+        "|>",
+        "filter(month == 6)",
+        "|>",
+        "filter(origin == \"LGA\")",
+        "|>",
+        "count()"
+      ],
+      "extra": [
+        "filter(month = 6)"
+      ],
+      "explain": "Take flights, and then keep June, and then keep LGA, and then count."
+    },
+    {
+      "id": "code-na-count",
+      "type": "code",
+      "prompt": "`delays` holds five departure delays, two of them missing. Store the **number** of missing values in `n_missing`. (Hint: R counts `TRUE` as 1.)",
+      "starter": "delays <- c(2, -5, NA, 14, NA)\n",
+      "check": "isTRUE(all.equal(n_missing, 2)) && grepl(\"is.na\", .sds_code, fixed = TRUE)",
+      "solution": "delays <- c(2, -5, NA, 14, NA)\nn_missing <- sum(is.na(delays))",
+      "explain": "`is.na(delays)` is TRUE for each missing value, and `sum()` counts the TRUEs."
+    },
+    {
+      "id": "code-pipe-count",
+      "type": "code",
+      "prompt": "Use the pipe `|>` to count how many values in `delays` are greater than 0, treating missing values as not late. Store the result in `n_late`.",
+      "starter": "delays <- c(2, -5, NA, 14, NA, 31)\nn_late <- (delays > 0) |>\n",
+      "check": "isTRUE(all.equal(n_late, 3)) && grepl(\"|>\", .sds_code, fixed = TRUE)",
+      "solution": "delays <- c(2, -5, NA, 14, NA, 31)\nn_late <- (delays > 0) |>\n  sum(na.rm = TRUE)",
+      "explain": "`delays > 0` gives TRUE, FALSE, NA, TRUE, NA, TRUE. `sum(na.rm = TRUE)` counts the TRUEs and skips the NAs, giving 3. Put `delays > 0` in parentheses so the pipe gets the whole comparison."
+    }
+  ]
+}

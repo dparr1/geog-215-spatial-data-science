@@ -13,6 +13,9 @@
 
   "Write R code" questions run real R in the browser with webR, loaded only
   when a session includes one.
+
+  Right and wrong answers play a short sound (Web Audio, no files), which
+  students can turn off with the speaker button by the progress bar.
 */
 (function () {
   "use strict";
@@ -145,6 +148,72 @@
     great: ["Great work! Keep it up!", "Way to go! You've got this!", "Nice job sticking with it!"],
     done: ["You stuck with it. Good job!", "Practice pays off. Way to go!", "Try another set to keep improving!"],
   };
+
+  // ---- Sounds -------------------------------------------------------------------
+  // A happy chime on a right answer and a buzzer on a wrong one, made with the
+  // Web Audio API (no sound files to load). Students can turn sound off with
+  // the speaker button next to the progress bar; the choice is remembered in
+  // this browser.
+  const SOUND_KEY = "sds-quiz-sound";
+  let soundOn = true;
+  try { soundOn = localStorage.getItem(SOUND_KEY) !== "off"; } catch (_) { /* default on */ }
+  function setSound(on) {
+    soundOn = on;
+    try { localStorage.setItem(SOUND_KEY, on ? "on" : "off"); } catch (_) { /* not saved */ }
+  }
+
+  let audioCtx = null;
+  function audio() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!audioCtx) audioCtx = new AC();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    return audioCtx;
+  }
+
+  // One note: a pitch (Hz) that starts `at` seconds from now and fades out.
+  function tone(ctx, { freq, at = 0, dur = 0.15, type = "sine", vol = 0.2, slideTo = null }) {
+    const t0 = ctx.currentTime + at;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(vol, t0 + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  }
+
+  const SOUNDS = {
+    // A quick rising arpeggio (C, E, G, high C): bright and cheerful.
+    right(ctx) {
+      [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) =>
+        tone(ctx, { freq, at: i * 0.08, dur: i === 3 ? 0.35 : 0.14, type: "triangle", vol: 0.22 }));
+      tone(ctx, { freq: 2093, at: 0.24, dur: 0.3, type: "sine", vol: 0.05 });   // sparkle
+    },
+    // A low, buzzy "eh-ehh" that drops in pitch, like a game-show buzzer.
+    wrong(ctx) {
+      tone(ctx, { freq: 155, at: 0, dur: 0.16, type: "sawtooth", vol: 0.16 });
+      tone(ctx, { freq: 150, at: 0.19, dur: 0.38, type: "sawtooth", vol: 0.16, slideTo: 110 });
+      tone(ctx, { freq: 78, at: 0.19, dur: 0.38, type: "square", vol: 0.06, slideTo: 55 });
+    },
+    // A short fanfare for finishing the quiz.
+    finish(ctx) {
+      [[523.25, 0], [659.25, 0.12], [783.99, 0.24], [1046.5, 0.36], [783.99, 0.52], [1046.5, 0.64]]
+        .forEach(([freq, at], i) => tone(ctx, { freq, at, dur: i === 5 ? 0.6 : 0.14, type: "triangle", vol: 0.2 }));
+    },
+  };
+
+  function playSound(name) {
+    if (!soundOn) return;
+    try {
+      const ctx = audio();
+      if (ctx) SOUNDS[name](ctx);
+    } catch (_) { /* sound never breaks the quiz */ }
+  }
 
   // ---- webR (only for "code" questions) -------------------------------------
   let webRPromise = null;
@@ -317,6 +386,16 @@
              aria-valuenow="${done}" aria-label="Questions answered correctly">
           <span style="width:${pct}%"></span></div>
         <div class="sds-q-count">${done} / ${this.items.length}</div>`;
+      const btn = el("button", { type: "button", class: "sds-q-sound" });
+      const label = () => {
+        btn.textContent = soundOn ? "\u{1F50A}" : "\u{1F507}";
+        btn.setAttribute("aria-pressed", String(soundOn));
+        btn.setAttribute("aria-label", soundOn ? "Sound on. Turn sound off" : "Sound off. Turn sound on");
+        btn.title = soundOn ? "Turn sound off" : "Turn sound on";
+      };
+      label();
+      btn.addEventListener("click", () => { setSound(!soundOn); label(); if (soundOn) playSound("right"); });
+      wrap.appendChild(btn);
       return wrap;
     }
 
@@ -567,6 +646,7 @@
       if (top) top.replaceWith(this.progressBar());
 
       const right = !!result.correct;
+      playSound(right ? "right" : "wrong");
       const sheet = el("div", { class: "sds-q-sheet " + (right ? "is-right" : "is-wrong"), role: "status" });
       let html = `<div class="sds-q-sheet-title">${right ? "Correct!" : "Not quite"}</div>`;
       if (result.note) html += `<p>${esc(result.note)}</p>`;
@@ -633,6 +713,7 @@
       again.addEventListener("click", () => this.start());
       this.root.appendChild(card);
       again.focus();
+      playSound("finish");
       if (!reduceMotion()) confetti(this.root);
     }
   }

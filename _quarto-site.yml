@@ -31,6 +31,12 @@ book:
         - chapters/intro-spatial-data-science-quiz.qmd
         - chapters/r-rstudio-rmarkdown.qmd
         - chapters/r-rstudio-rmarkdown-quiz.qmd
+        - chapters/r-basics.qmd
+        - chapters/r-basics-quiz.qmd
+        - chapters/indexing-vectors-data-frames.qmd
+        - chapters/indexing-vectors-data-frames-quiz.qmd
+        - chapters/tidyverse-filter-pipe.qmd
+        - chapters/tidyverse-filter-pipe-quiz.qmd
         - chapters/census-data-apis.qmd
         - chapters/census-data-apis-quiz.qmd
   appendices:

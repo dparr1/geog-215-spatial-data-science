@@ -635,7 +635,8 @@
   }
 
   // Chapters seen in the data, in the book's order where possible.
-  const BOOK_ORDER = ["intro-spatial-data-science", "r-rstudio-rmarkdown", "census-data-apis"];
+  const BOOK_ORDER = ["intro-spatial-data-science", "r-rstudio-rmarkdown", "r-basics",
+    "indexing-vectors-data-frames", "tidyverse-filter-pipe", "census-data-apis"];
   function chapters() {
     const titles = {};
     state.cq.forEach((r) => { titles[r.chapter] = r.chapter_title || titles[r.chapter] || r.chapter; });
