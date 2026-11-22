@@ -14,6 +14,12 @@
   Only emails on the active roster (or the instructor list) can get an
   account; the database refuses anyone else.
 
+  One Supabase database serves several classes. SDS_COURSE below is this
+  site's course code (a row in the courses table): the gate only lets in
+  students on that course's roster, and everything it records is filed under
+  that course. Another class's site uses a copy of this file with its own
+  code (see "Adding another class" in supabase/README.md).
+
   This hides the page in the browser until an active student signs in. It is a
   front door, not encryption: the page text is still in the HTML that is
   downloaded.
@@ -92,6 +98,8 @@
   const SUPABASE_URL = "https://liihdtyoqneslfbfgqml.supabase.co";
   // Publishable key: safe to expose in frontend code (access is set by RLS).
   const SUPABASE_KEY = "sb_publishable_HIAkOd2ci4DGcgGMRMj-vQ_Ttu6WFqb";
+  // This site's course code (public.courses in supabase/setup.sql).
+  const SDS_COURSE = "geog215";
 
   let sb = null;
   let pendingEmail = "";
@@ -108,6 +116,7 @@
 
   // Calls a record_* function in Supabase. A plain fetch with keepalive, so
   // an answer given just before the student leaves the page is still saved.
+  // Every call says which course it's for; the database works out the term.
   function record(fn, args) {
     if (!tracking || !accessToken) return;
     fetch(SUPABASE_URL + "/rest/v1/rpc/" + fn, {
@@ -118,7 +127,7 @@
         Authorization: "Bearer " + accessToken,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(args),
+      body: JSON.stringify(Object.assign({}, args, { p_course: SDS_COURSE })),
     }).then(
       (res) => { if (!res.ok) console.warn("Progress not saved (" + fn + "):", res.status); },
       () => {}
@@ -408,15 +417,16 @@
     // Progress: note that this student opened this page, and start recording
     // quiz answers and code runs. Never blocks reading.
     tracking = true;
-    sb.rpc("record_page_visit", { p_page: location.pathname }).then(
+    sb.rpc("record_page_visit", { p_page: location.pathname, p_course: SDS_COURSE }).then(
       ({ error }) => { if (error) console.warn("Progress not saved:", error.message); },
       () => {}
     );
   }
 
-  // Ask Supabase whether the signed-in user is still an active student.
+  // Ask Supabase whether the signed-in user is still an active student in
+  // this course (or one of its instructors).
   async function isApproved() {
-    const { data, error } = await sb.rpc("is_current_user_approved");
+    const { data, error } = await sb.rpc("is_current_user_approved", { p_course: SDS_COURSE });
     if (error) throw error;
     return data === true;
   }
