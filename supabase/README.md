@@ -240,10 +240,13 @@ in `public.questions` (with the highlighted text, page and section) and emails
 it to you, one email per question:
 
 - **From** `GEOG 215 Questions <questions@mail.geog215.org>`, **to** the
-  course's `questions_email` (GEOG 215: `daveparr@unc.edu`), with **reply-to**
-  set to the student, so replying to the email writes to them directly.
-- It has the student's name and email, the highlighted text, the question, a
-  link that opens the page with that text marked, and a link to the admin page.
+  course's `questions_email` (GEOG 215: `daveparr@unc.edu`), with the subject
+  *New question on* and the page's title.
+- It says "A student asked a question" and has the page and section, the
+  highlighted text, the question, a link that opens the page with that text
+  marked, and a link to the admin page. It deliberately leaves out the
+  student's name and email address (UNC's mail filtering held emails that had
+  them); the admin page's Questions tab shows who asked.
 
 Answer on the admin page's **Questions** tab. Students see their questions and
 your answers under **My questions** in the bottom-right corner of every page
