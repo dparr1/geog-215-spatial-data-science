@@ -1064,6 +1064,11 @@ begin
   where x.user_id = v_user and x.course = v_course and x.term = v_term;
   delete from public.chapter_quiz_sessions x
   where x.user_id = v_user and x.course = v_course and x.term = v_term;
+  -- (questions exists once section 7 below has run.)
+  if to_regclass('public.questions') is not null then
+    delete from public.questions x
+    where x.user_id = v_user and x.course = v_course and x.term = v_term;
+  end if;
   if not exists (select 1 from public.roster r where r.user_id = v_user)
      and not exists (select 1 from public.instructors i, auth.users u
                      where u.id = v_user and i.email = lower(btrim(u.email))) then
@@ -1316,6 +1321,419 @@ begin
 end;
 $$;
 
+-- 7. Questions on highlighted text -------------------------------------------
+-- A signed-in student highlights text in a chapter, clicks "Ask a question",
+-- and types a question (assets/questions.html). record_question() saves it
+-- here and emails it to the course's questions_email (one email per question,
+-- sent through Resend by pg_net; see "Questions" in supabase/README.md). You
+-- answer on the admin page's Questions tab, and the student sees your answer
+-- under "My questions" on the site.
+--
+-- Email needs two things, both done once:
+--   * your Resend API key in Supabase Vault, named resend_api_key:
+--       select vault.create_secret('re_...', 'resend_api_key');
+--   * courses.questions_email set (GEOG 215 starts as daveparr@unc.edu).
+-- Without them, questions are still saved; they just aren't emailed.
+--
+-- Resend's free plan sends 100 emails a day, shared with sign-in codes. So
+-- question emails stop for the rest of a 24-hour window after
+-- sds_question_email_daily_limit() of them (questions are still saved and
+-- shown on the admin page), and one student can ask at most
+-- sds_question_student_daily_limit() questions in 24 hours.
+create extension if not exists pg_net;
+
+alter table public.courses add column if not exists questions_email text;
+update public.courses set questions_email = 'daveparr@unc.edu'
+where course = 'geog215' and questions_email is null;
+
+create table if not exists public.questions (
+  id               uuid primary key default gen_random_uuid(),
+  user_id          uuid not null references auth.users (id) on delete cascade,
+  course           text not null references public.courses (course) on update cascade,
+  term             text not null,
+  from_instructor  boolean not null default false,  -- a test question from an instructor
+  page             text not null,                    -- e.g. /chapters/r-basics
+  page_title       text,
+  section          text,                             -- the heading the text is under
+  anchor           text,                             -- that heading's id, e.g. sec-vectors
+  highlighted      text not null,                    -- the text the student highlighted
+  question         text not null,
+  asked_at         timestamptz not null default now(),
+  status           text not null default 'open'
+                   check (status in ('open', 'answered', 'closed')),
+  answer           text,
+  answered_at      timestamptz,
+  answered_by      text,
+  email_status     text,          -- queued / not sent: daily limit / not sent: no key / ...
+  email_request_id bigint         -- pg_net request, to look up whether Resend took it
+);
+
+create index if not exists questions_enrollment_idx on public.questions (course, term, asked_at desc);
+create index if not exists questions_user_idx on public.questions (user_id, asked_at desc);
+
+alter table public.questions enable row level security;
+revoke all on table public.questions from anon, authenticated;
+grant select on table public.questions to authenticated;
+
+-- Students see their own questions and your answers; nobody else's.
+drop policy if exists "Students read their own questions" on public.questions;
+create policy "Students read their own questions"
+  on public.questions for select
+  to authenticated
+  using (user_id = (select auth.uid()));
+
+create or replace function public.sds_question_email_daily_limit()
+returns integer language sql immutable set search_path = '' as $$ select 60 $$;
+
+create or replace function public.sds_question_student_daily_limit()
+returns integer language sql immutable set search_path = '' as $$ select 20 $$;
+
+-- Helpers for the email: HTML-escape student text, and percent-encode the
+-- highlighted text for the link back to it.
+create or replace function public.sds_html(p text)
+returns text
+language sql
+immutable
+set search_path = ''
+as $$
+  select replace(replace(replace(replace(replace(coalesce(p, ''),
+    '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '"', '&quot;'), '''', '&#39;');
+$$;
+
+create or replace function public.sds_urlencode(p text)
+returns text
+language sql
+immutable
+set search_path = ''
+as $$
+  select coalesce(string_agg(
+    case when t.ch ~ '^[A-Za-z0-9._~-]$' then t.ch
+         else (select string_agg('%' || upper(lpad(to_hex(get_byte(b.v, i)), 2, '0')), '' order by i)
+               from (select convert_to(t.ch, 'UTF8') as v) b,
+                    generate_series(0, length(convert_to(t.ch, 'UTF8')) - 1) as i)
+    end, '' order by t.n), '')
+  from regexp_split_to_table(coalesce(p, ''), '') with ordinality as t(ch, n);
+$$;
+
+-- The link in the email and on the admin page: the page, plus ?sds-ask= (the
+-- start of the highlighted text) and &sds-sec= (the heading's id). The site
+-- scrolls to that text and marks it (assets/questions.html).
+create or replace function public.sds_question_link(p_id uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(nullif(rtrim(c.site_url, '/'), ''), 'https://geog215.org')
+         || q.page
+         || '?sds-ask=' || public.sds_urlencode(left(regexp_replace(q.highlighted, '\s+', ' ', 'g'), 120))
+         || case when nullif(q.anchor, '') is null then ''
+                 else '&sds-sec=' || public.sds_urlencode(q.anchor) end
+  from public.questions q
+  join public.courses c on c.course = q.course
+  where q.id = p_id;
+$$;
+
+revoke all on function public.sds_question_link(uuid) from public, anon, authenticated;
+
+-- Email one question to the course's questions_email through Resend. Never
+-- raises: a question is saved even if the email can't be sent. Returns the
+-- email status it recorded.
+create or replace function public.sds_email_question(p_id uuid)
+returns text
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  q        public.questions;
+  v_to     text;
+  v_title  text;
+  v_key    text;
+  v_name   text;
+  v_email  text;
+  v_link   text;
+  v_status text;
+  v_req    bigint;
+  v_html   text;
+  v_text   text;
+begin
+  select * into q from public.questions where id = p_id;
+  if not found then
+    return null;
+  end if;
+  select c.questions_email, c.title into v_to, v_title
+  from public.courses c where c.course = q.course;
+
+  if nullif(btrim(coalesce(v_to, '')), '') is null then
+    v_status := 'not sent: no questions_email for the course';
+  elsif (select count(*) from public.questions x
+         where x.email_status = 'queued' and x.asked_at > now() - interval '24 hours')
+        >= public.sds_question_email_daily_limit() then
+    v_status := 'not sent: daily email limit';
+  else
+    begin
+      select s.decrypted_secret into v_key
+      from vault.decrypted_secrets s where s.name = 'resend_api_key' limit 1;
+    exception when others then
+      v_key := null;
+    end;
+    if v_key is null then
+      v_status := 'not sent: no resend_api_key in Vault';
+    end if;
+  end if;
+
+  if v_status is null then
+    select r.student_name, r.email into v_name, v_email
+    from public.roster r
+    where r.user_id = q.user_id and r.course = q.course and r.term = q.term
+    order by r.added_at desc limit 1;
+    if v_email is null then
+      select lower(u.email) into v_email from auth.users u where u.id = q.user_id;
+    end if;
+    v_name := coalesce(v_name, case when q.from_instructor then 'Instructor (test)' end, v_email, 'A student');
+    v_link := public.sds_question_link(q.id);
+
+    v_html :=
+      '<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.45;color:#1f2933">'
+      || '<p><strong>' || public.sds_html(v_name) || '</strong>'
+      || coalesce(' (' || public.sds_html(v_email) || ')', '')
+      || ' asked a question on <a href="' || public.sds_html(v_link) || '">'
+      || public.sds_html(coalesce(nullif(q.page_title, ''), q.page)) || '</a>'
+      || coalesce(', in <em>' || public.sds_html(nullif(q.section, '')) || '</em>', '') || '.</p>'
+      || '<p style="margin:0 0 4px;color:#52606d;font-size:13px">They highlighted:</p>'
+      || '<blockquote style="margin:0 0 16px;padding:8px 12px;border-left:4px solid #f2c94c;background:#fffbea">'
+      || replace(public.sds_html(q.highlighted), E'\n', '<br>') || '</blockquote>'
+      || '<p style="margin:0 0 4px;color:#52606d;font-size:13px">Their question:</p>'
+      || '<p style="margin:0 0 16px;white-space:pre-wrap">' || public.sds_html(q.question) || '</p>'
+      || '<p><a href="' || public.sds_html(v_link) || '">Open this spot in the textbook</a>'
+      || ' &middot; <a href="https://geog215.org/admin/">Answer on the admin page</a></p>'
+      || '<p style="color:#52606d;font-size:13px">Replying to this email writes to the student directly. '
+      || 'An answer on the admin page also shows on the site under "My questions".</p>'
+      || '</div>';
+    v_text :=
+      v_name || coalesce(' (' || v_email || ')', '') || ' asked a question on '
+      || coalesce(nullif(q.page_title, ''), q.page)
+      || coalesce(', in "' || nullif(q.section, '') || '"', '') || E'.\n\n'
+      || E'They highlighted:\n> ' || replace(q.highlighted, E'\n', E'\n> ') || E'\n\n'
+      || E'Their question:\n' || q.question || E'\n\n'
+      || 'Open this spot: ' || v_link || E'\n'
+      || E'Answer on the admin page: https://geog215.org/admin/\n';
+
+    begin
+      select net.http_post(
+        url     := 'https://api.resend.com/emails',
+        headers := jsonb_build_object('Authorization', 'Bearer ' || v_key,
+                                      'Content-Type', 'application/json'),
+        body    := jsonb_strip_nulls(jsonb_build_object(
+          'from',     coalesce(nullif(btrim(split_part(v_title, ':', 1)), ''), upper(q.course))
+                      || ' Questions <questions@mail.geog215.org>',
+          'to',       jsonb_build_array(btrim(v_to)),
+          'reply_to', v_email,
+          'subject',  'Question from ' || v_name || ': '
+                      || left(regexp_replace(q.question, '\s+', ' ', 'g'), 60)
+                      || case when length(q.question) > 60 then '…' else '' end,
+          'html',     v_html,
+          'text',     v_text))
+      ) into v_req;
+      v_status := 'queued';
+    exception when others then
+      v_status := 'not sent: ' || left(sqlerrm, 200);
+    end;
+  end if;
+
+  update public.questions
+  set email_status = v_status, email_request_id = v_req
+  where id = p_id;
+  return v_status;
+end;
+$$;
+
+revoke all on function public.sds_email_question(uuid) from public, anon, authenticated;
+
+-- Ask a question. Active students of the course, plus instructors (whose
+-- questions are marked as tests, so you can try it yourself). Returns the
+-- new question's id.
+create or replace function public.record_question(
+  p_page text, p_highlighted text, p_question text,
+  p_page_title text default null, p_section text default null, p_anchor text default null,
+  p_course text default null)
+returns uuid
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_course text;
+  v_term   text;
+  v_test   boolean := false;
+  v_high   text := btrim(left(coalesce(p_highlighted, ''), 2000));
+  v_q      text := btrim(left(coalesce(p_question, ''), 4000));
+  v_anchor text := nullif(left(btrim(coalesce(p_anchor, '')), 120), '');
+  v_id     uuid;
+begin
+  if auth.uid() is null then
+    raise exception 'Sign in to ask a question.' using errcode = '42501';
+  end if;
+  select e.course, e.term into v_course, v_term from public.current_enrollment(p_course) e;
+  if v_course is null then
+    v_course := nullif(lower(btrim(coalesce(p_course, ''))), '');
+    if v_course is null or not public.is_instructor(v_course)
+       or not exists (select 1 from public.courses c where c.course = v_course) then
+      raise exception 'Only students in this course can ask questions here.' using errcode = '42501';
+    end if;
+    v_test := true;
+    select r.term into v_term from public.roster r
+    where r.course = v_course order by r.added_at desc limit 1;
+    v_term := coalesce(v_term, 'Test');
+  end if;
+  if length(v_high) < 1 then
+    raise exception 'Highlight some text to ask about.';
+  end if;
+  if length(v_q) < 2 then
+    raise exception 'Type your question.';
+  end if;
+  if v_anchor is not null and v_anchor !~ '^[A-Za-z0-9_:.-]+$' then
+    v_anchor := null;
+  end if;
+  if (select count(*) from public.questions x
+      where x.user_id = auth.uid() and x.asked_at > now() - interval '24 hours')
+     >= public.sds_question_student_daily_limit() then
+    raise exception 'You''ve asked % questions today, the most for one day. Email your instructor, or ask again tomorrow.',
+      public.sds_question_student_daily_limit();
+  end if;
+
+  insert into public.questions (user_id, course, term, from_instructor, page, page_title,
+                                section, anchor, highlighted, question)
+  values (auth.uid(), v_course, v_term, v_test, public.normalize_page(left(p_page, 300)),
+          nullif(btrim(left(coalesce(p_page_title, ''), 200)), ''),
+          nullif(btrim(left(coalesce(p_section, ''), 200)), ''),
+          v_anchor, v_high, v_q)
+  returning id into v_id;
+
+  perform public.sds_email_question(v_id);
+  return v_id;
+end;
+$$;
+
+revoke all on function public.record_question(text, text, text, text, text, text, text) from public, anon;
+grant execute on function public.record_question(text, text, text, text, text, text, text) to authenticated;
+
+-- Questions for the admin page's Questions tab, newest first. p_status is
+-- open / answered / closed, or null for all. email_status becomes 'sent' or
+-- 'failed (HTTP ...)' once Resend has replied (pg_net keeps replies for about
+-- 6 hours; after that a queued email just shows as queued).
+create or replace function public.admin_questions(
+  p_course text default null, p_term text default null, p_status text default null,
+  p_limit integer default 500)
+returns table (
+  id uuid, course text, term text, student_name text, email text, code text,
+  from_instructor boolean, page text, page_title text, section text, anchor text,
+  highlighted text, question text, asked_at timestamptz, status text,
+  answer text, answered_at timestamptz, answered_by text, email_status text, link text
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_courses text[] := public.require_instructor(p_course);
+begin
+  return query
+    select q.id, q.course, q.term,
+           coalesce(r.student_name, case when q.from_instructor then 'Instructor (test)' end, u.email),
+           coalesce(r.email, lower(u.email)), r.code, q.from_instructor,
+           q.page, q.page_title, q.section, q.anchor, q.highlighted, q.question, q.asked_at,
+           q.status, q.answer, q.answered_at, q.answered_by,
+           case
+             when q.email_status = 'queued' and resp.status_code between 200 and 299 then 'sent'
+             when q.email_status = 'queued' and resp.status_code is not null
+               then 'failed (HTTP ' || resp.status_code || ': ' || left(coalesce(resp.content, ''), 120) || ')'
+             when q.email_status = 'queued' and resp.error_msg is not null
+               then 'failed (' || left(resp.error_msg, 120) || ')'
+             else q.email_status
+           end,
+           public.sds_question_link(q.id)
+    from public.questions q
+    left join auth.users u on u.id = q.user_id
+    left join lateral (
+      select r.student_name, r.email, r.code from public.roster r
+      where r.user_id = q.user_id and r.course = q.course and r.term = q.term
+      order by r.added_at desc limit 1) r on true
+    left join net._http_response resp on resp.id = q.email_request_id
+    where q.course = any (v_courses) and (p_term is null or q.term = p_term)
+      and (p_status is null or q.status = p_status)
+    order by q.asked_at desc
+    limit least(greatest(coalesce(p_limit, 500), 1), 5000);
+end;
+$$;
+
+-- Answer a question (p_answer), or just change its status: 'answered' with an
+-- answer, 'closed' (dealt with, e.g. in class or by email, without an answer
+-- here), or 'open' to reopen it. The student sees the answer on the site.
+create or replace function public.admin_answer_question(
+  p_id uuid, p_answer text default null, p_status text default null)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_course text;
+  v_answer text := nullif(btrim(left(coalesce(p_answer, ''), 8000)), '');
+  v_status text := coalesce(nullif(btrim(coalesce(p_status, '')), ''),
+                            case when v_answer is not null then 'answered' end);
+begin
+  select q.course into v_course from public.questions q where q.id = p_id;
+  if v_course is null then
+    raise exception 'That question no longer exists.';
+  end if;
+  perform public.require_instructor(v_course);
+  if v_status is null or v_status not in ('open', 'answered', 'closed') then
+    raise exception 'Status must be open, answered or closed.';
+  end if;
+  if v_status = 'answered' and v_answer is null
+     and not exists (select 1 from public.questions q where q.id = p_id and q.answer is not null) then
+    raise exception 'Type an answer first.';
+  end if;
+  update public.questions q
+  set status      = v_status,
+      answer      = coalesce(v_answer, q.answer),
+      answered_at = case when v_answer is not null and v_answer is distinct from q.answer
+                         then now() else q.answered_at end,
+      answered_by = case when v_answer is not null and v_answer is distinct from q.answer
+                         then (select lower(u.email) from auth.users u where u.id = auth.uid())
+                         else q.answered_by end
+  where q.id = p_id;
+end;
+$$;
+
+-- Delete a question (for example a test one).
+create or replace function public.admin_delete_question(p_id uuid)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_course text;
+begin
+  select q.course into v_course from public.questions q where q.id = p_id;
+  if v_course is null then
+    return;
+  end if;
+  perform public.require_instructor(v_course);
+  delete from public.questions q where q.id = p_id;
+end;
+$$;
+
 do $$
 declare f text;
 begin
@@ -1327,7 +1745,9 @@ begin
     'admin_pages(text, text)',
     'admin_quiz(text, text)', 'admin_quiz_responses(text, integer, text, text)',
     'admin_code(text, text)', 'admin_code_runs(text, integer, text, text)',
-    'admin_chapter_quizzes(text, text)', 'admin_chapter_quiz_questions(text, text)'
+    'admin_chapter_quizzes(text, text)', 'admin_chapter_quiz_questions(text, text)',
+    'admin_questions(text, text, text, integer)', 'admin_answer_question(uuid, text, text)',
+    'admin_delete_question(uuid)'
   ] loop
     execute format('revoke all on function public.%s from public, anon', f);
     execute format('grant execute on function public.%s to authenticated', f);
