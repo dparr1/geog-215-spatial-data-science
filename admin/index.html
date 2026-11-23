@@ -152,6 +152,28 @@
     font: 0.82rem ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap;
   }
   .row-gap { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+
+  /* Questions tab */
+  .tabs .count {
+    display: inline-block; min-width: 1.5em; margin-left: 4px; padding: 0 6px; border-radius: 999px;
+    background: var(--warn-bg); color: var(--warn); font-size: 0.78rem; text-align: center;
+  }
+  .q-list { display: grid; gap: 12px; }
+  .q-card { padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+  .q-card.open { border-left: 4px solid var(--warn); }
+  .q-card.answered { border-left: 4px solid var(--ok); }
+  .q-card.closed { border-left: 4px solid var(--border); }
+  .q-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
+  .q-meta strong { color: var(--text); }
+  .q-quote {
+    margin: 0 0 8px; padding: 6px 10px; max-height: 8em; overflow: auto;
+    border-left: 4px solid #f2c94c; background: var(--surface-2); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.9rem;
+  }
+  .q-text { margin: 0 0 10px; white-space: pre-wrap; overflow-wrap: anywhere; font-weight: 600; }
+  .q-card textarea { min-height: 90px; }
+  .q-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; align-items: center; }
+  .q-actions .spacer { flex: 1; }
+  .q-answered-by { font-size: 0.8rem; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -223,6 +245,7 @@
 
     <div class="tabs" role="tablist">
       <button role="tab" data-tab="students" aria-selected="true">Students</button>
+      <button role="tab" data-tab="questions" aria-selected="false">Questions<span class="count" id="questions-count" hidden></span></button>
       <button role="tab" data-tab="add" aria-selected="false">Add students</button>
       <button role="tab" data-tab="activity" aria-selected="false">Activity</button>
       <button role="tab" data-tab="pages" aria-selected="false">Pages</button>
@@ -412,6 +435,30 @@
       </div>
     </div>
 
+    <!-- Questions students asked about highlighted text (assets/questions.html) -->
+    <div class="panel" data-panel="questions" hidden>
+      <div class="toolbar">
+        <div>
+          <label for="questions-status">Show</label>
+          <select id="questions-status">
+            <option value="open">Open</option>
+            <option value="answered">Answered</option>
+            <option value="closed">Closed</option>
+            <option value="">All</option>
+          </select>
+        </div>
+        <div>
+          <label for="questions-search">Search</label>
+          <input id="questions-search" type="search" placeholder="Student, page or text">
+        </div>
+      </div>
+      <p class="hint">Students highlight text in the textbook and ask about it. Each question is also emailed to
+        the course's questions address; replying to that email goes straight to the student. An answer saved here
+        shows on the site under <strong>My questions</strong>. <strong>Close</strong> a question you've dealt with
+        some other way (in class, or by email).</p>
+      <div class="q-list" id="questions-list"></div>
+    </div>
+
     <!-- Self-checks (webexercises questions in the chapters) -->
     <div class="panel" data-panel="quiz" hidden>
       <div class="toolbar">
@@ -478,6 +525,7 @@
     cq: [], cqQuestions: [],   // chapter quizzes: per student and chapter, per question
     // One student's quiz answers / code runs, loaded when picked: { code, rows }
     quizFor: null, codeFor: null,
+    questions: [],   // every question for the course and term (all statuses)
   };
   let pendingEmail = "";
 
@@ -613,7 +661,7 @@
   async function refresh() {
     $("refresh").disabled = true;
     try {
-      const [roster, activity, pages, quiz, code, cq, cqQuestions] = await Promise.all([
+      const [roster, activity, pages, quiz, code, cq, cqQuestions, questions] = await Promise.all([
         rpc("admin_roster", scopeArgs()),
         rpc("admin_activity", scopeArgs({ p_limit: 500 })),
         rpc("admin_pages", scopeArgs()),
@@ -621,6 +669,9 @@
         rpc("admin_code", scopeArgs()),
         rpc("admin_chapter_quizzes", scopeArgs()),
         rpc("admin_chapter_quiz_questions", scopeArgs()),
+        // Questions need the questions section of setup.sql; until it has
+        // been run, the tab just says so.
+        rpc("admin_questions", scopeArgs({ p_limit: 2000 })).catch((e) => ({ error: e.message })),
       ]);
       state.roster = roster || [];
       state.activity = activity || [];
@@ -629,6 +680,8 @@
       state.code = code || [];
       state.cq = cq || [];
       state.cqQuestions = cqQuestions || [];
+      state.questionsError = questions && questions.error ? questions.error : "";
+      state.questions = Array.isArray(questions) ? questions : [];
       state.quizFor = null;
       state.codeFor = null;
       renderAll();
@@ -670,6 +723,95 @@
     renderChapterQuizzes();
     renderQuiz();
     renderCode();
+    renderQuestions();
+  }
+
+  // ---- Questions -------------------------------------------------------------
+  const Q_STATUS = {
+    open: '<span class="badge warn">Open</span>',
+    answered: '<span class="badge ok">Answered</span>',
+    closed: '<span class="badge neutral">Closed</span>',
+  };
+
+  function emailBadge(s) {
+    if (!s) return "";
+    if (s === "sent") return '<span class="badge ok" title="Resend accepted the email">Emailed</span>';
+    if (s === "queued") return '<span class="badge neutral" title="Handed to Resend">Emailed</span>';
+    return `<span class="badge danger" title="${esc(s)}">Email ${esc(s.replace(/^not sent: /, "not sent: "))}</span>`;
+  }
+
+  function renderQuestions() {
+    const open = state.questions.filter((q) => q.status === "open").length;
+    $("questions-count").textContent = open;
+    $("questions-count").hidden = !open;
+    const list = $("questions-list");
+    if (state.questionsError) {
+      list.innerHTML = `<p class="empty">Questions aren't set up yet: run supabase/setup.sql again in the SQL Editor (${esc(state.questionsError)}).</p>`;
+      return;
+    }
+    const want = $("questions-status").value;
+    const term = $("questions-search").value.trim().toLowerCase();
+    const rows = state.questions.filter((q) => (!want || q.status === want) && (!term ||
+      [q.student_name, q.email, q.page, q.page_title, q.section, q.highlighted, q.question, q.answer]
+        .some((v) => String(v || "").toLowerCase().includes(term))));
+    if (!rows.length) {
+      list.innerHTML = `<p class="empty">${state.questions.length ? "No questions match." : "No questions yet."}</p>`;
+      return;
+    }
+    list.innerHTML = rows.map((q) => `
+      <div class="q-card ${esc(q.status)}" data-id="${esc(q.id)}">
+        <div class="q-meta">
+          ${Q_STATUS[q.status] || ""}
+          <span><strong>${esc(q.student_name)}</strong>${q.email ? " · " + esc(q.email) : ""}${scope.term ? "" : " · " + esc(q.term)}</span>
+          <span>${when(q.asked_at)}</span>
+          <a href="${esc(q.link)}" target="_blank" rel="noopener">${esc(q.page_title || pageTitle(q.page))}${q.section ? " · " + esc(q.section) : ""}</a>
+          ${emailBadge(q.email_status)}
+        </div>
+        <blockquote class="q-quote">${esc(q.highlighted)}</blockquote>
+        <p class="q-text">${esc(q.question)}</p>
+        <label for="answer-${esc(q.id)}">Answer</label>
+        <textarea id="answer-${esc(q.id)}" placeholder="Shown to the student under My questions">${esc(q.answer || "")}</textarea>
+        <div class="q-actions">
+          <button class="btn small" type="button" data-q="answer">${q.answer ? "Update answer" : "Save answer"}</button>
+          ${q.status === "open"
+            ? '<button class="btn secondary small" type="button" data-q="closed">Close without answering</button>'
+            : '<button class="btn secondary small" type="button" data-q="open">Reopen</button>'}
+          ${q.email ? `<a class="btn secondary small" href="mailto:${esc(q.email)}?subject=${encodeURIComponent("Your question in " + (q.page_title || q.page))}">Email student</a>` : ""}
+          <span class="spacer"></span>
+          ${q.answered_at ? `<span class="q-answered-by">Answered ${when(q.answered_at)}${q.answered_by ? " by " + esc(q.answered_by) : ""}</span>` : ""}
+          <button class="btn danger small" type="button" data-q="delete">Delete</button>
+        </div>
+      </div>`).join("");
+  }
+
+  async function onQuestionAction(event) {
+    const btn = event.target.closest("button[data-q]");
+    if (!btn) return;
+    const card = btn.closest(".q-card");
+    const id = card.dataset.id;
+    const action = btn.dataset.q;
+    if (action === "delete" && !confirm("Delete this question? The student won't see it any more.")) return;
+    btn.disabled = true;
+    try {
+      if (action === "answer") {
+        const answer = card.querySelector("textarea").value.trim();
+        if (!answer) { banner("Type an answer first.", true); btn.disabled = false; return; }
+        await rpc("admin_answer_question", { p_id: id, p_answer: answer, p_status: "answered" });
+        banner("Answer saved. The student will see it under My questions.");
+      } else if (action === "delete") {
+        await rpc("admin_delete_question", { p_id: id });
+        banner("Question deleted.");
+      } else {
+        await rpc("admin_answer_question", { p_id: id, p_status: action });
+        banner(action === "open" ? "Question reopened." : "Question closed.");
+      }
+      const fresh = await rpc("admin_questions", scopeArgs({ p_limit: 2000 }));
+      state.questions = fresh || [];
+      renderQuestions();
+    } catch (e) {
+      banner("Couldn't update the question: " + e.message, true);
+      btn.disabled = false;
+    }
   }
 
   function renderStats() {
@@ -1387,6 +1529,8 @@
     $("quiz-student").addEventListener("input", () => { renderQuiz(); loadQuizFor(); });
     $("code-student").addEventListener("input", () => { renderCode(); loadCodeFor(); });
     $("add-form").addEventListener("submit", onAdd);
+    $("questions-list").addEventListener("click", onQuestionAction);
+    ["questions-status", "questions-search"].forEach((id) => $(id).addEventListener("input", renderQuestions));
     initSorting();
   }
 

@@ -1,0 +1,473 @@
+<!--
+  Questions on highlighted text (geog215.org only; added after the body by the
+  `geog215` profile, _quarto-geog215.yml, after the sign-in gate has loaded).
+
+  A signed-in student highlights text in a page and an "Ask a question" button
+  appears under it. They type a question, and record_question() in
+  supabase/setup.sql saves it (with the highlighted text, the page and the
+  section) and emails it to the instructor. The instructor answers on the admin
+  page's Questions tab, and the student reads answers under "My questions" in
+  the bottom-right corner.
+
+  Links in the instructor's email and on the admin page end in
+  ?sds-ask=<start of the highlighted text>&sds-sec=<section id>. This script
+  finds that text on the page, marks it and scrolls to it (or to the section,
+  if the text has changed since).
+
+  Everything waits for the gate's "sds:unlocked" event, so nothing here runs
+  on public pages, for signed-out readers, or on daveparr.com (no gate).
+-->
+<style>
+  #sds-ask-btn {
+    position: absolute; z-index: 9998; display: none;
+    padding: 6px 12px; font-size: 0.85rem; font-weight: 600; line-height: 1.2;
+    color: #fff; background: #2c5f8a; border: 0; border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); cursor: pointer;
+    font-family: inherit;
+  }
+  #sds-ask-btn.sds-show { display: block; }
+  #sds-ask-btn:focus-visible { outline: 3px solid #f2c94c; outline-offset: 2px; }
+
+  .sds-dialog {
+    width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px);
+    padding: 0; border: 1px solid #d9dee3; border-radius: 10px;
+    color: #1f2933; background: #fff; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  }
+  .sds-dialog::backdrop { background: rgba(15, 23, 32, 0.45); }
+  .sds-dialog form, .sds-dialog .sds-body { padding: 20px 20px 16px; }
+  .sds-dialog h2 { font-size: 1.15rem; margin: 0 0 12px; border: 0; padding: 0; }
+  .sds-dialog .sds-quote {
+    margin: 0 0 14px; padding: 8px 12px; max-height: 9em; overflow: auto;
+    border-left: 4px solid #f2c94c; background: #fffbea; font-size: 0.92rem;
+    white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  .sds-dialog label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; }
+  .sds-dialog textarea {
+    width: 100%; box-sizing: border-box; min-height: 7em; padding: 8px 10px;
+    font: inherit; font-size: 0.95rem; border: 1px solid #bcc5ce; border-radius: 6px; resize: vertical;
+  }
+  .sds-dialog .sds-note { margin: 8px 0 0; font-size: 0.8rem; color: #52606d; }
+  .sds-dialog .sds-msg { min-height: 1.2em; margin: 10px 0 0; font-size: 0.9rem; }
+  .sds-dialog .sds-msg.sds-error { color: #b42318; }
+  .sds-dialog .sds-msg.sds-ok { color: #1e7b4f; }
+  .sds-dialog .sds-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+  .sds-dialog .sds-buttons button {
+    padding: 7px 14px; font: inherit; font-size: 0.9rem; font-weight: 600;
+    border-radius: 6px; cursor: pointer; border: 1px solid #2c5f8a;
+  }
+  .sds-dialog .sds-primary { color: #fff; background: #2c5f8a; }
+  .sds-dialog .sds-primary:disabled { opacity: 0.6; cursor: wait; }
+  .sds-dialog .sds-secondary { color: #2c5f8a; background: transparent; }
+
+  .sds-dialog .sds-list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+  .sds-dialog .sds-item { padding: 12px; border: 1px solid #e4e7eb; border-radius: 8px; }
+  .sds-dialog .sds-item .sds-where { font-size: 0.82rem; color: #52606d; margin-bottom: 6px; }
+  .sds-dialog .sds-item .sds-quote { max-height: 5em; margin-bottom: 8px; font-size: 0.85rem; }
+  .sds-dialog .sds-item .sds-q { margin: 0 0 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .sds-dialog .sds-item .sds-a {
+    margin: 0; padding: 8px 10px; border-radius: 6px; background: #e6f4ec;
+    white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.93rem;
+  }
+  .sds-dialog .sds-item .sds-a strong { display: block; font-size: 0.8rem; color: #1e7b4f; margin-bottom: 2px; }
+  .sds-dialog .sds-item.sds-new { border-color: #1e7b4f; }
+  .sds-dialog .sds-empty { color: #52606d; }
+  .sds-badge {
+    display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+    background: #eef1f4; color: #52606d; vertical-align: 1px;
+  }
+  .sds-badge.sds-answered { background: #e6f4ec; color: #1e7b4f; }
+
+  #sds-myq-btn .sds-dot {
+    display: inline-block; min-width: 1.4em; margin-left: 4px; padding: 0 5px; border-radius: 999px;
+    background: #1e7b4f; color: #fff; font-weight: 700; text-align: center;
+  }
+
+  #sds-ask-tip {
+    position: fixed; left: 16px; right: 16px; bottom: 60px; z-index: 9999;
+    width: fit-content; max-width: 560px; margin: 0 auto; padding: 8px 12px 8px 14px; border-radius: 8px;
+    display: flex; gap: 10px; align-items: center;
+    color: #fff; background: #1f2933; font-size: 0.88rem; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  }
+  #sds-ask-tip button {
+    padding: 2px 8px; border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 4px;
+    color: #fff; background: transparent; cursor: pointer; font: inherit; font-size: 0.82rem;
+  }
+
+  /* The passage a link points to (?sds-ask=...). */
+  ::highlight(sds-asked) { background-color: #ffe58a; }
+  mark.sds-asked { background-color: #ffe58a; padding: 0; }
+</style>
+
+<script>
+(function () {
+  "use strict";
+
+  const MIN_CHARS = 2;        // shortest highlight that gets the button
+  const MAX_CHARS = 2000;     // longest highlight saved (record_question keeps 2000)
+  const MAX_QUESTION = 4000;
+
+  let auth = null;            // { client, course, user } from the gate
+  let picked = null;          // what was highlighted when the button was shown
+  const $ = (id) => document.getElementById(id);
+  const clean = (s) => String(s || "").replace(/\s+/g, " ").trim();
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (_) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (_) { /* fine */ } },
+  };
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+  function contentRoot() {
+    return document.getElementById("quarto-document-content") || document.querySelector("main");
+  }
+
+  // ---- Highlight -> "Ask a question" ----------------------------------------
+  // Places that aren't book text: form fields, webR's code editors, the
+  // sign-in card and these dialogs, quiz drop-downs.
+  const SKIP = "input, textarea, select, button, .monaco-editor, .qwebr-editor, [contenteditable], " +
+               "#sds-gate, #sds-corner, .sds-dialog, #sds-ask-btn, .webex-radiogroup";
+
+  function currentPick() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
+    const range = sel.getRangeAt(0);
+    const root = contentRoot();
+    if (!root || !root.contains(range.commonAncestorContainer)) return null;
+    const startEl = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
+    const endEl = range.endContainer.nodeType === 1 ? range.endContainer : range.endContainer.parentElement;
+    if ((startEl && startEl.closest(SKIP)) || (endEl && endEl.closest(SKIP))) return null;
+    const raw = sel.toString().replace(/ /g, " ");
+    const text = raw.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+    if (clean(text).length < MIN_CHARS) return null;
+    return { range: range.cloneRange(), text: text.slice(0, MAX_CHARS) };
+  }
+
+  // The section the highlight starts in: its heading text and id.
+  function sectionOf(range) {
+    let el = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
+    const sec = el && el.closest("section[id]");
+    if (sec) {
+      const h = sec.querySelector(":scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h1");
+      return { anchor: sec.id, section: h ? clean(h.textContent) : "" };
+    }
+    return { anchor: "", section: "" };
+  }
+
+  function pageTitle() {
+    const h1 = document.querySelector("h1.title, #title-block-header h1, main h1");
+    return clean(h1 ? h1.textContent : document.title).slice(0, 200);
+  }
+
+  function positionButton(range) {
+    const btn = $("sds-ask-btn");
+    const rects = range.getClientRects();
+    const last = rects.length ? rects[rects.length - 1] : range.getBoundingClientRect();
+    if (!last || (last.width === 0 && last.height === 0)) { hideButton(); return; }
+    btn.classList.add("sds-show");
+    const w = btn.offsetWidth || 140;
+    // Under the end of the highlight, so it doesn't sit under the phone's own
+    // copy/paste menu (which appears above).
+    let left = last.right + window.scrollX - w / 2;
+    left = Math.max(window.scrollX + 8, Math.min(left, window.scrollX + document.documentElement.clientWidth - w - 8));
+    btn.style.left = left + "px";
+    btn.style.top = (last.bottom + window.scrollY + 8) + "px";
+  }
+
+  function hideButton() {
+    const btn = $("sds-ask-btn");
+    if (btn) btn.classList.remove("sds-show");
+  }
+
+  let selTimer = null;
+  function onSelection() {
+    clearTimeout(selTimer);
+    selTimer = setTimeout(() => {
+      if ($("sds-ask-dialog") && $("sds-ask-dialog").open) return;
+      picked = currentPick();
+      if (picked) positionButton(picked.range); else hideButton();
+    }, 250);
+  }
+
+  // ---- Ask dialog ------------------------------------------------------------
+  function buildUi() {
+    const btn = document.createElement("button");
+    btn.id = "sds-ask-btn";
+    btn.type = "button";
+    btn.textContent = "Ask a question";
+    // Keep the highlight when the button is pressed.
+    btn.addEventListener("mousedown", (e) => e.preventDefault());
+    btn.addEventListener("click", openAsk);
+    document.body.appendChild(btn);
+
+    const ask = document.createElement("dialog");
+    ask.id = "sds-ask-dialog";
+    ask.className = "sds-dialog";
+    ask.setAttribute("aria-labelledby", "sds-ask-title");
+    ask.innerHTML = `
+      <form method="dialog" id="sds-ask-form">
+        <h2 id="sds-ask-title">Ask about this</h2>
+        <blockquote class="sds-quote" id="sds-ask-quote"></blockquote>
+        <label for="sds-ask-text">Your question</label>
+        <textarea id="sds-ask-text" maxlength="${MAX_QUESTION}" required
+          placeholder="What doesn't make sense? The more specific, the better."></textarea>
+        <p class="sds-note">Your instructor gets your name, the highlighted text and your
+          question, and will answer under <strong>My questions</strong> (bottom right). See the
+          <a href="/privacy.html" target="_blank" rel="noopener">privacy policy</a>.</p>
+        <p class="sds-msg" id="sds-ask-msg" role="status"></p>
+        <div class="sds-buttons">
+          <button type="button" class="sds-secondary" id="sds-ask-cancel">Cancel</button>
+          <button type="submit" class="sds-primary" id="sds-ask-send">Send question</button>
+        </div>
+      </form>`;
+    document.body.appendChild(ask);
+    $("sds-ask-cancel").addEventListener("click", () => ask.close());
+    $("sds-ask-form").addEventListener("submit", onSend);
+
+    const mine = document.createElement("dialog");
+    mine.id = "sds-myq-dialog";
+    mine.className = "sds-dialog";
+    mine.setAttribute("aria-labelledby", "sds-myq-title");
+    mine.innerHTML = `
+      <div class="sds-body">
+        <h2 id="sds-myq-title">My questions</h2>
+        <div id="sds-myq-list"><p class="sds-empty">Loading…</p></div>
+        <div class="sds-buttons"><button type="button" class="sds-primary" id="sds-myq-close">Close</button></div>
+      </div>`;
+    document.body.appendChild(mine);
+    $("sds-myq-close").addEventListener("click", () => mine.close());
+    // Click outside a dialog closes it.
+    [ask, mine].forEach((d) => d.addEventListener("click", (e) => { if (e.target === d) d.close(); }));
+
+    const corner = $("sds-corner");
+    if (corner) {
+      const my = document.createElement("button");
+      my.id = "sds-myq-btn";
+      my.type = "button";
+      my.textContent = "My questions";
+      my.addEventListener("click", openMine);
+      corner.insertBefore(my, corner.firstChild);
+    }
+  }
+
+  function openAsk() {
+    if (!picked) return;
+    // They've found it: no need for the tip any more.
+    store.set("sds-ask-tip", "1");
+    if ($("sds-ask-tip")) $("sds-ask-tip").remove();
+    const where = sectionOf(picked.range);
+    picked.anchor = where.anchor;
+    picked.section = where.section;
+    $("sds-ask-quote").textContent = picked.text;
+    $("sds-ask-msg").textContent = "";
+    $("sds-ask-msg").className = "sds-msg";
+    $("sds-ask-send").disabled = false;
+    $("sds-ask-send").hidden = false;
+    $("sds-ask-cancel").textContent = "Cancel";
+    $("sds-ask-text").disabled = false;
+    hideButton();
+    $("sds-ask-dialog").showModal();
+    $("sds-ask-text").focus();
+  }
+
+  async function onSend(event) {
+    event.preventDefault();
+    const question = $("sds-ask-text").value.trim();
+    const msg = $("sds-ask-msg");
+    if (question.length < 2) {
+      msg.textContent = "Type your question first.";
+      msg.className = "sds-msg sds-error";
+      return;
+    }
+    $("sds-ask-send").disabled = true;
+    msg.textContent = "Sending…";
+    msg.className = "sds-msg";
+    const { error } = await auth.client.rpc("record_question", {
+      p_page: location.pathname,
+      p_highlighted: picked.text,
+      p_question: question.slice(0, MAX_QUESTION),
+      p_page_title: pageTitle(),
+      p_section: picked.section || null,
+      p_anchor: picked.anchor || null,
+      p_course: auth.course,
+    });
+    if (error) {
+      $("sds-ask-send").disabled = false;
+      msg.textContent = "Couldn't send it: " + error.message;
+      msg.className = "sds-msg sds-error";
+      return;
+    }
+    $("sds-ask-text").value = "";
+    $("sds-ask-text").disabled = true;
+    $("sds-ask-send").hidden = true;
+    $("sds-ask-cancel").textContent = "Close";
+    msg.textContent = "Sent. You'll find the answer under My questions.";
+    msg.className = "sds-msg sds-ok";
+    const sel = window.getSelection();
+    if (sel) sel.removeAllRanges();
+    picked = null;
+    loadMine();
+  }
+
+  // ---- My questions ---------------------------------------------------------
+  let mineRows = [];
+  const SEEN_KEY = () => "sds-questions-seen:" + auth.course;
+
+  async function loadMine() {
+    const { data, error } = await auth.client
+      .from("questions")
+      .select("id, page, page_title, section, anchor, highlighted, question, asked_at, status, answer, answered_at")
+      .eq("course", auth.course)
+      .order("asked_at", { ascending: false })
+      .limit(200);
+    if (error) { console.warn("Couldn't load your questions:", error.message); return null; }
+    mineRows = data || [];
+    updateDot();
+    return mineRows;
+  }
+
+  function newAnswers() {
+    const seen = Number(store.get(SEEN_KEY()) || 0);
+    return mineRows.filter((q) => q.answer && q.answered_at && new Date(q.answered_at).getTime() > seen);
+  }
+
+  function updateDot() {
+    const btn = $("sds-myq-btn");
+    if (!btn) return;
+    const n = newAnswers().length;
+    btn.innerHTML = "My questions" + (n ? `<span class="sds-dot" aria-label="${n} new">${n}</span>` : "");
+    btn.title = n ? n + (n === 1 ? " new answer" : " new answers") : "Questions you've asked and their answers";
+  }
+
+  function linkFor(q) {
+    const params = new URLSearchParams();
+    params.set("sds-ask", clean(q.highlighted).slice(0, 120));
+    if (q.anchor) params.set("sds-sec", q.anchor);
+    return q.page + "?" + params.toString().replace(/\+/g, "%20");
+  }
+
+  async function openMine() {
+    const dlg = $("sds-myq-dialog");
+    dlg.showModal();
+    const fresh = new Set(newAnswers().map((q) => q.id));
+    if (!(await loadMine()) && !mineRows.length) {
+      $("sds-myq-list").innerHTML = '<p class="sds-empty">Couldn\'t load your questions. Try again in a moment.</p>';
+      return;
+    }
+    newAnswers().forEach((q) => fresh.add(q.id));
+    if (!mineRows.length) {
+      $("sds-myq-list").innerHTML = '<p class="sds-empty">You haven\'t asked anything yet. Highlight any text ' +
+        'in the textbook and click <strong>Ask a question</strong>.</p>';
+    } else {
+      $("sds-myq-list").innerHTML = '<ul class="sds-list">' + mineRows.map((q) => {
+        const status = q.answer
+          ? '<span class="sds-badge sds-answered">Answered</span>'
+          : q.status === "closed" ? '<span class="sds-badge">Closed</span>' : '<span class="sds-badge">Waiting for an answer</span>';
+        const when = new Date(q.asked_at).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        return `<li class="sds-item${fresh.has(q.id) ? " sds-new" : ""}">
+          <div class="sds-where">${status} · ${esc(when)} · <a href="${esc(linkFor(q))}">${esc(q.page_title || q.page)}${q.section ? " · " + esc(q.section) : ""}</a></div>
+          <blockquote class="sds-quote">${esc(q.highlighted)}</blockquote>
+          <p class="sds-q">${esc(q.question)}</p>
+          ${q.answer ? `<p class="sds-a"><strong>Answer</strong>${esc(q.answer)}</p>` : ""}
+        </li>`;
+      }).join("") + "</ul>";
+    }
+    store.set(SEEN_KEY(), String(Date.now()));
+    updateDot();
+  }
+
+  // ---- Links to a highlighted passage (?sds-ask=...&sds-sec=...) ------------
+  // Joins the page's text with whitespace collapsed, remembering where each
+  // character came from, so text that spans several elements can be found.
+  function findText(root, needle) {
+    const nodes = [], map = [];
+    let flat = "", lastSpace = true;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: (n) => n.parentElement && n.parentElement.closest("script, style, #sds-corner, .sds-dialog")
+        ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT,
+    });
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const s = n.nodeValue;
+      for (let i = 0; i < s.length; i++) {
+        const space = /\s/.test(s[i]) || s[i] === " ";
+        if (space && lastSpace) continue;
+        flat += space ? " " : s[i];
+        map.push([n, i]);
+        lastSpace = space;
+      }
+      nodes.push(n);
+    }
+    const tries = [needle, needle.slice(0, 60), needle.slice(0, 30)].filter((t) => t.length >= MIN_CHARS);
+    for (const t of tries) {
+      let at = flat.indexOf(t);
+      if (at < 0) at = flat.toLowerCase().indexOf(t.toLowerCase());
+      if (at >= 0) {
+        const range = document.createRange();
+        const [sn, so] = map[at];
+        const [en, eo] = map[at + t.length - 1];
+        range.setStart(sn, so);
+        range.setEnd(en, eo + 1);
+        return range;
+      }
+    }
+    return null;
+  }
+
+  function showLinkedPassage() {
+    const params = new URLSearchParams(location.search);
+    const text = clean(params.get("sds-ask"));
+    const sec = params.get("sds-sec");
+    if (!text && !sec) return;
+    params.delete("sds-ask");
+    params.delete("sds-sec");
+    const rest = params.toString();
+    history.replaceState(null, "", location.pathname + (rest ? "?" + rest : "") + location.hash);
+
+    const root = contentRoot();
+    const range = text && root ? findText(root, text) : null;
+    if (range) {
+      if (window.CSS && CSS.highlights && typeof Highlight === "function") {
+        CSS.highlights.set("sds-asked", new Highlight(range));
+      } else {
+        try { const m = document.createElement("mark"); m.className = "sds-asked"; range.surroundContents(m); } catch (_) {
+          const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+        }
+      }
+      const r = range.getBoundingClientRect();
+      window.scrollTo({ top: Math.max(0, r.top + window.scrollY - window.innerHeight / 3), behavior: "smooth" });
+    } else if (sec && document.getElementById(sec)) {
+      document.getElementById(sec).scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  // ---- One-time tip ---------------------------------------------------------
+  function maybeTip() {
+    if (store.get("sds-ask-tip") || !document.querySelector("#quarto-document-content section[id]")) return;
+    const tip = document.createElement("div");
+    tip.id = "sds-ask-tip";
+    tip.setAttribute("role", "status");
+    tip.innerHTML = "<span>New: highlight any text you don't understand, then click <strong>Ask a question</strong>.</span>" +
+                    '<button type="button">Got it</button>';
+    tip.querySelector("button").addEventListener("click", () => { store.set("sds-ask-tip", "1"); tip.remove(); });
+    document.body.appendChild(tip);
+  }
+
+  // ---- Start (once the gate lets a student or instructor in) ----------------
+  function start(detail) {
+    if (auth || !detail || !detail.client) return;
+    auth = detail;
+    buildUi();
+    document.addEventListener("selectionchange", onSelection);
+    document.addEventListener("mouseup", onSelection);
+    document.addEventListener("keyup", onSelection);
+    document.addEventListener("touchend", onSelection);
+    window.addEventListener("resize", () => { if (picked) positionButton(picked.range); });
+    loadMine();
+    maybeTip();
+    // Let the page finish laying out (webR cells, callouts) before looking.
+    setTimeout(showLinkedPassage, 400);
+  }
+
+  document.addEventListener("sds:unlocked", (e) => start(e.detail));
+  if (window.sdsAuth) start(window.sdsAuth);
+})();
+</script>
