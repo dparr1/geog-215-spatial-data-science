@@ -1439,7 +1439,9 @@ revoke all on function public.sds_question_link(uuid) from public, anon, authent
 
 -- Email one question to the course's questions_email through Resend. Never
 -- raises: a question is saved even if the email can't be sent. Returns the
--- email status it recorded.
+-- email status it recorded. The email never names the student or includes
+-- their email address (UNC's mail filtering held emails that did); who asked
+-- is on the admin page's Questions tab.
 create or replace function public.sds_email_question(p_id uuid)
 returns text
 language plpgsql
@@ -1452,8 +1454,7 @@ declare
   v_to     text;
   v_title  text;
   v_key    text;
-  v_name   text;
-  v_email  text;
+  v_who    text;
   v_link   text;
   v_status text;
   v_req    bigint;
@@ -1486,39 +1487,30 @@ begin
   end if;
 
   if v_status is null then
-    select r.student_name, r.email into v_name, v_email
-    from public.roster r
-    where r.user_id = q.user_id and r.course = q.course and r.term = q.term
-    order by r.added_at desc limit 1;
-    if v_email is null then
-      select lower(u.email) into v_email from auth.users u where u.id = q.user_id;
-    end if;
-    v_name := coalesce(v_name, case when q.from_instructor then 'Instructor (test)' end, v_email, 'A student');
+    v_who := case when q.from_instructor then 'An instructor (test question)' else 'A student' end;
     v_link := public.sds_question_link(q.id);
 
     v_html :=
       '<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.45;color:#1f2933">'
-      || '<p><strong>' || public.sds_html(v_name) || '</strong>'
-      || coalesce(' (' || public.sds_html(v_email) || ')', '')
-      || ' asked a question on <a href="' || public.sds_html(v_link) || '">'
+      || '<p>' || v_who || ' asked a question on <a href="' || public.sds_html(v_link) || '">'
       || public.sds_html(coalesce(nullif(q.page_title, ''), q.page)) || '</a>'
       || coalesce(', in <em>' || public.sds_html(nullif(q.section, '')) || '</em>', '') || '.</p>'
-      || '<p style="margin:0 0 4px;color:#52606d;font-size:13px">They highlighted:</p>'
+      || '<p style="margin:0 0 4px;color:#52606d;font-size:13px">Highlighted text:</p>'
       || '<blockquote style="margin:0 0 16px;padding:8px 12px;border-left:4px solid #f2c94c;background:#fffbea">'
       || replace(public.sds_html(q.highlighted), E'\n', '<br>') || '</blockquote>'
-      || '<p style="margin:0 0 4px;color:#52606d;font-size:13px">Their question:</p>'
+      || '<p style="margin:0 0 4px;color:#52606d;font-size:13px">Question:</p>'
       || '<p style="margin:0 0 16px;white-space:pre-wrap">' || public.sds_html(q.question) || '</p>'
       || '<p><a href="' || public.sds_html(v_link) || '">Open this spot in the textbook</a>'
       || ' &middot; <a href="https://geog215.org/admin/">Answer on the admin page</a></p>'
-      || '<p style="color:#52606d;font-size:13px">Replying to this email writes to the student directly. '
-      || 'An answer on the admin page also shows on the site under "My questions".</p>'
+      || '<p style="color:#52606d;font-size:13px">The admin page shows who asked. '
+      || 'An answer there shows to the student on the site under "My questions".</p>'
       || '</div>';
     v_text :=
-      v_name || coalesce(' (' || v_email || ')', '') || ' asked a question on '
+      v_who || ' asked a question on '
       || coalesce(nullif(q.page_title, ''), q.page)
       || coalesce(', in "' || nullif(q.section, '') || '"', '') || E'.\n\n'
-      || E'They highlighted:\n> ' || replace(q.highlighted, E'\n', E'\n> ') || E'\n\n'
-      || E'Their question:\n' || q.question || E'\n\n'
+      || E'Highlighted text:\n> ' || replace(q.highlighted, E'\n', E'\n> ') || E'\n\n'
+      || E'Question:\n' || q.question || E'\n\n'
       || 'Open this spot: ' || v_link || E'\n'
       || E'Answer on the admin page: https://geog215.org/admin/\n';
 
@@ -1531,10 +1523,7 @@ begin
           'from',     coalesce(nullif(btrim(split_part(v_title, ':', 1)), ''), upper(q.course))
                       || ' Questions <questions@mail.geog215.org>',
           'to',       jsonb_build_array(btrim(v_to)),
-          'reply_to', v_email,
-          'subject',  'Question from ' || v_name || ': '
-                      || left(regexp_replace(q.question, '\s+', ' ', 'g'), 60)
-                      || case when length(q.question) > 60 then '…' else '' end,
+          'subject',  'New question on ' || left(coalesce(nullif(q.page_title, ''), q.page), 80),
           'html',     v_html,
           'text',     v_text))
       ) into v_req;

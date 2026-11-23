@@ -47,13 +47,13 @@ Your information is never sold, never used for advertising, and never used to ca
 
 - **You.** When signed in, you can only see your own records. Other students cannot see your name, email, or activity.
 - **Your instructor.** The instructor can view the class roster and activity on a protected admin page and can download it as a spreadsheet for course purposes. Instructors can only see the courses they are assigned to.
-- **Questions you ask** are also sent to your instructor's university email address, with your name, your email address, the highlighted text, and your question, so the instructor can answer quickly or reply to you by email. That copy is kept in the instructor's UNC email under the university's email policies.
+- **Questions you ask** are also sent to your instructor's university email address as a notice, with the page, the highlighted text, and your question, but not your name or email address. That copy is kept in the instructor's UNC email under the university's email policies.
 - **Service providers.** The companies below run the site on the course's behalf. They handle your information only to provide their service.
 
 | Provider | What it does | What it receives |
 |------------------------|------------------------|------------------------|
 | [Supabase](https://supabase.com/privacy) | Database and sign-in service. Servers are in the United States (US East). | Everything listed under "What the site stores". |
-| [Resend](https://resend.com/legal/privacy-policy) | Delivers the sign-in emails from mail.geog215.org, and emails each question you ask to your instructor. | Your email address and the sign-in email. For questions: your name, email address, the highlighted text, and your question. |
+| [Resend](https://resend.com/legal/privacy-policy) | Delivers the sign-in emails from mail.geog215.org, and emails each question you ask to your instructor. | Your email address and the sign-in email. For questions: the page, the highlighted text, and your question (not your name or email address). |
 | [Cloudflare](https://www.cloudflare.com/privacypolicy/) | Hosts the website and delivers its pages. | Standard web request data, such as IP address and browser type. |
 | [jsDelivr](https://www.jsdelivr.com/terms/privacy-policy-jsdelivr-net) | Delivers the sign-in software library to your browser. | Standard web request data. |
 | [Google Analytics](https://policies.google.com/privacy) | Measures overall site traffic (pages viewed, device type, approximate location) using cookies. | Usage data that is not linked to your name or email. |
