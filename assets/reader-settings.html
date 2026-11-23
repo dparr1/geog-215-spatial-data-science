@@ -7,6 +7,8 @@
 (function () {
   var FONTS = [
     { id: "", label: "Atkinson Hyperlegible (default)", css: '"Atkinson Hyperlegible Next", sans-serif' },
+    { id: "lexend", label: "Lexend", css: '"Lexend", sans-serif', href: "https://fonts.googleapis.com/css2?family=Lexend:wght@300..700&display=swap" },
+    { id: "cardo", label: "Cardo (serif)", css: '"Cardo", Georgia, serif', href: "https://fonts.googleapis.com/css2?family=Cardo:ital,wght@0,400;0,700;1,400&display=swap" },
     { id: "sans", label: "Standard sans-serif", css: 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif' },
     { id: "serif", label: "Serif", css: 'Georgia, Cambria, "Times New Roman", serif' },
     { id: "dyslexic", label: "OpenDyslexic", css: '"OpenDyslexic", sans-serif' }
@@ -24,7 +26,17 @@
   function currentFont() { return root.getAttribute("data-reader-font") || ""; }
   function currentSize() { return parseInt(root.getAttribute("data-reader-size") || "0", 10) || 0; }
 
+  // Add a Google Fonts stylesheet once (Lexend, Cardo). Fonts download only
+  // when text actually uses them.
+  function loadWebFont(f) {
+    if (!f.href || document.getElementById("sds-reader-webfont-" + f.id)) return;
+    var link = document.createElement("link");
+    link.rel = "stylesheet"; link.href = f.href; link.id = "sds-reader-webfont-" + f.id;
+    document.head.appendChild(link);
+  }
+
   function setFont(id) {
+    FONTS.forEach(function (f) { if (f.id === id) loadWebFont(f); });
     if (id) root.setAttribute("data-reader-font", id); else root.removeAttribute("data-reader-font");
     save("sds-reader-font", id);
   }
@@ -75,7 +87,7 @@
   function open(show) {
     panel.hidden = !show;
     toggle.setAttribute("aria-expanded", show ? "true" : "false");
-    if (show) { refreshFont(); refreshSize(); var c = panel.querySelector("input:checked"); if (c) c.focus(); }
+    if (show) { FONTS.forEach(loadWebFont); refreshFont(); refreshSize(); var c = panel.querySelector("input:checked"); if (c) c.focus(); }
   }
 
   toggle.addEventListener("click", function (e) { e.stopPropagation(); open(panel.hidden); });
