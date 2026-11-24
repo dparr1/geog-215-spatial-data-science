@@ -11,7 +11,7 @@ Dates are subject to change. Changes are announced in class, on Canvas, and on T
 
 **Dr. David Parr** (please call me Dr. Parr or Professor Parr)\
 **Office:** 317B Carolina Hall\
-**Email:** <daveparr@unc.edu>\
+**Email:** [daveparr\@unc.edu](mailto:daveparr@unc.edu){.email}\
 **Office hours:** Mondays 10–11 am (in my office), Tuesdays 4–5 pm (Zoom), Wednesdays 1:30–2:30 pm (in my office)
 
 Teaching assistants and undergraduate learning assistants also hold office hours each week. Free peer tutoring is available from the [UNC Learning Center](https://learningcenter.unc.edu/appointment-peer-tutoring/).
@@ -35,7 +35,7 @@ This course will introduce students to data science with a focus on spatial (geo
 ## Units and modules
 
 | Unit | Modules and projects |
-|:--|:--|
+|:-----------------------------------|:-----------------------------------|
 | **1. Getting Started with Data Science** | Module 1: Getting started with R<br>Module 2: Processing data with the tidyverse<br>Module 3: Exploring data for information<br>Project 1: Map contest with tmap |
 | **2. Working with Spatial Data** | Module 4: Overlaying two spatial layers<br>Module 5: Joining tables<br>Module 6: Spatial statistics<br>Project 2: Map contest with online data |
 | **3. Spatial Data Science** | Module 7: ANOVA<br>Module 8: Regression<br>Module 9: Clustering<br>Project 3: Spatial data science project |
@@ -67,9 +67,9 @@ Learning objectives describe the skills, knowledge, and abilities students gain 
 
 These are the types of questions you should be able to answer after completing the course:
 
-1. What is the role of mathematics in organizing and interpreting measurements of the world?
-2. How can mathematical models and quantitative analysis be used to summarize or synthesize data into knowledge and predictions?
-3. What methodology can we apply to validate or reject mathematical models or to express our degree of confidence in them?
+1.  What is the role of mathematics in organizing and interpreting measurements of the world?
+2.  How can mathematical models and quantitative analysis be used to summarize or synthesize data into knowledge and predictions?
+3.  What methodology can we apply to validate or reject mathematical models or to express our degree of confidence in them?
 
 ## Computers and software
 
@@ -78,9 +78,9 @@ You'll need a laptop or desktop computer (Mac, Linux, or PC), and optionally a m
 - **Canvas:** assignments, quizzes, exams, and projects, plus the syllabus, checklists, and links to Teams and office hours.
 - **Microsoft Teams:** office hours, group chats, questions about assignments, working with groups, and most announcements. Check it often.
 - **Zoom:** virtual office hours.
-- **[R and RStudio](https://posit.co/download/rstudio-desktop/):** the free, open-source programming language and workspace we use all semester.
+- [**R and RStudio**](https://posit.co/download/rstudio-desktop/)**:** the free, open-source programming language and workspace we use all semester.
 - **Gradescope** (optional): uploading in-class assignments and quizzes.
-- **[Poll Everywhere](https://pollev.com/drparr):** in-class discussions, attendance, and tokens.
+- [**Poll Everywhere**](https://pollev.com/drparr)**:** in-class discussions, attendance, and tokens.
 - **Pen and pencil:** bring something to write with!
 
 Readings are posted on Canvas, and the course [textbook](preface.qmd) is on this site.
@@ -109,14 +109,14 @@ Since this approach is new to most students, Dr. Parr will take however much tim
 
 ### Course assessment components
 
-| Component | Total |
-|:--|:-:|
-| Quizzes | 9 |
-| Assignments | 9 |
-| Projects | 3 |
-| Exams | 2 |
-| Presentation | 1 |
-| Reflection essay | 1 |
+| Component        | Total |
+|:-----------------|:-----:|
+| Quizzes          |   9   |
+| Assignments      |   9   |
+| Projects         |   3   |
+| Exams            |   2   |
+| Presentation     |   1   |
+| Reflection essay |   1   |
 
 You do not need to complete every component to pass this class.
 
@@ -126,10 +126,9 @@ There is a good deal of choice in how much you wish to learn and how hard you wa
 
 Final grades are awarded by the bundles below. You must meet **every** requirement in a row to earn that grade.
 
-::: {.grade-bundles}
-
+::: grade-bundles
 | Final grade | Reflection essay (1) | Quizzes (9) | Combined in-class exams (2) | Assignments scored S or E (9) | Absences allowed | Projects scored S or E (3) | Projects scored E (3) | Project presentations |
-|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|
 | A | 1 | 9 | 80% | 8 | 3 | 3 | 2 | 1 |
 | A- | 1 | 9 | 75% | 8 | 4 | 3 | 1 | 0 |
 | B+ | 1 | 8 | 75% | 7✩ | 5 | 2 | 0 | 0 |
@@ -138,7 +137,6 @@ Final grades are awarded by the bundles below. You must meet **every** requireme
 | C | 1 | 5 | 60% | 4✩ | – | 0 | 0 | 0 |
 | D | 1 | 4 | 50% | 0 | – | 0 | 0 | 0 |
 | F | 0 | 0 | 0% | 0 | – | 0 | 0 | 0 |
-
 :::
 
 ✩ A Satisfactory project can substitute for a Satisfactory assignment.
@@ -207,17 +205,6 @@ If you have negative tokens at the end of the semester, the assignments that use
 
 Attendance is taken in class with Poll Everywhere. You and your classmates learn better when you're present, both physically and mentally. If you miss class for any reason, you are still responsible for what was covered, including lecture material, discussions, assessments, and assignment requirements. Ask your classmates what you missed.
 
-## Top Student Award
-
-Grades are one measure, often an imperfect one, of your work in a class. Learning is about developing knowledge, skills, relationships, and capabilities that will serve you well in the future. These are principles I've found useful for thinking about how to learn:
-
-- *Learning* is more important than grades. Grades are, at best, an indicator of your work in a course, but learning is a lifelong process of growth and understanding.
-- *Process* is more important than product. There is no perfection. A true student works to improve the process of the work, not just the outcome.
-- *Curiosity* is more important than content. Facts matter, but a willingness to ask meaningful, deep, powerful questions matters a little more. *Why* is the most important letter in the alphabet.
-- *Collaboration* is more important than individual effort. The more you work to make others stronger, the stronger you become. Reach out to your instructors and your peers!
-
-One student who best embodies these principles of learning, process, curiosity, and collaboration will receive the **Top Student** award. Grades don't decide it: it could be any student.
-
 ## Frequently asked questions
 
 **"I'm not really a computer person…"**\
@@ -252,10 +239,12 @@ Life can be difficult at times, and most college students go through a hard seme
 
 Carolina students are expected to follow these AI guidelines:
 
-1. **AI should help you think, not think for you.** In this course, don't use AI unless an assignment's or project's guidelines say you may. Never use AI on an exam or quiz.
-2. **Engage responsibly with AI.** Evaluate AI output for bias, limitations, inaccuracies, false output, and ethical implications. Don't put personal or confidential data into these tools.
-3. **Use of AI must be open and documented.** When an assignment allows it, declare, explain, and cite any use of AI in your work using applicable standards (such as APA, MLA, or course guidelines). You are 100% responsible for your final product.
-4. **Follow this syllabus's AI guidelines.** If you're unsure, ask me. This guidance would be referenced if an issue were referred to Student Conduct for alleged academic misconduct.
+1.  **AI should help you think, not think for you.** In this course, don't use AI unless an assignment's or project's guidelines say you may. Never use AI on an exam or quiz.
+2.  **Engage responsibly with AI.** Evaluate AI output for bias, limitations, inaccuracies, false output, and ethical implications. Don't put personal or confidential data into these tools.
+3.  **Use of AI must be open and documented.** When an assignment allows it, declare, explain, and cite any use of AI in your work using applicable standards (such as APA, MLA, or course guidelines). You are 100% responsible for your final product.
+4.  **Follow this syllabus's AI guidelines.** If you're unsure, ask me. This guidance would be referenced if an issue were referred to Student Conduct for alleged academic misconduct.
+
+See the course [AI policy](ai-policy.qmd) for examples of allowed and not allowed uses of AI, and for how I use AI in this course.
 
 ### Code of conduct
 
@@ -265,9 +254,9 @@ All students are expected to follow University policy and the UNC Student Code o
 
 As stated in the University's [Class Attendance Policy](https://catalog.unc.edu/policies-procedures/attendance-grading-examination/#text), no right or privilege exists that permits a student to be absent from any class meetings, except for these University Approved Absences:
 
-1. Authorized University activities. The [University Approved Absence Office (UAAO)](https://uaao.unc.edu/) has information and [FAQs for students](https://uaao.unc.edu/faqs-for-students/).
-2. Disability, religious observance, pregnancy, or short-term military service, as required by law and approved by the [University Compliance Office](https://eoc.unc.edu/what-we-do/accommodations/), or for short-term military service, the Dean of Students.
-3. A significant health condition and/or personal or family emergency, as approved by the [Office of the Dean of Students](https://odos.unc.edu/), [Gender Violence Service Coordinators](https://gvsc.unc.edu/), and/or the [University Compliance Office](https://eoc.unc.edu/what-we-do/accommodations/).
+1.  Authorized University activities. The [University Approved Absence Office (UAAO)](https://uaao.unc.edu/) has information and [FAQs for students](https://uaao.unc.edu/faqs-for-students/).
+2.  Disability, religious observance, pregnancy, or short-term military service, as required by law and approved by the [University Compliance Office](https://eoc.unc.edu/what-we-do/accommodations/), or for short-term military service, the Dean of Students.
+3.  A significant health condition and/or personal or family emergency, as approved by the [Office of the Dean of Students](https://odos.unc.edu/), [Gender Violence Service Coordinators](https://gvsc.unc.edu/), and/or the [University Compliance Office](https://eoc.unc.edu/what-we-do/accommodations/).
 
 ### Acceptable use
 
@@ -291,32 +280,4 @@ This course engages diverse scholarly perspectives to develop critical thinking,
 
 ## Services and student support
 
-### Accommodations
-
-The University Compliance Office (UCO) [Accommodations team](https://eoc.unc.edu/accommodations/) receives requests for accommodations for disability, pregnancy and related conditions, and sincerely held religious beliefs and practices through the University's Policy on Accommodations, and determines eligibility and reasonable accommodations consistent with state and federal law.
-
-### Counseling and Psychological Services (CAPS)
-
-UNC-Chapel Hill is strongly committed to addressing the mental health needs of a diverse student body. The [Heels Care Network](http://care.unc.edu) is a place to find the many mental health resources at Carolina. CAPS is the primary mental health provider for students, offering timely consultation and connection to clinically appropriate services. Visit the [CAPS website](https://caps.unc.edu/), or go to the third floor of the Campus Health building for an initial evaluation. You can call CAPS 24/7 at 919-966-3658 for immediate help.
-
-### Title IX resources
-
-Any student affected by discrimination, harassment, interpersonal (relationship) violence, sexual violence, sexual exploitation, or stalking is encouraged to seek resources on campus or in the community. Reports can be made [online to the UCO](https://eoc.unc.edu/report-an-incident/) or by contacting the University's Title IX Coordinator or the Report and Response Managers in the University Compliance Office. I am a Responsible Employee, which means I must report to the UCO any information I receive about these forms of misconduct. Confidential resources include Counseling and Psychological Services, the University's Ombuds Office, and the Gender Violence Services Coordinators. More resources are at [safe.unc.edu](https://safe.unc.edu/).
-
-### Non-discrimination
-
-As set out in the University's [Policy Statement on Non-Discrimination](https://policies.unc.edu/TDClient/2833/Portal/KB/ArticleDet?ID=131717), the University is committed to providing an environment where all members of our community can learn, work, and thrive, and does not discriminate on the basis of age, color, disability, gender, gender expression, gender identity, genetic information, national origin, race, religion, sex, sexual orientation, or veteran status, consistent with its [Policy on Prohibited Discrimination, Harassment and Related Misconduct](https://policies.unc.edu/TDClient/2833/Portal/KB/ArticleDet?ID=132487).
-
-If you are experiencing harassment or discrimination, you can get help and file a report through the Report and Response Coordinators (<reportandresponse@unc.edu>, or see [safe.unc.edu](https://safe.unc.edu/)) or the [University Compliance Office](https://eoc.unc.edu/report-an-incident/). I am a Responsible Employee and must report to the UCO any information I receive about harassment or discrimination. Confidential resources include Counseling and Psychological Services and the University's Ombuds Office.
-
-### Undergraduate Testing Center
-
-The College of Arts and Sciences provides a secure, proctored place to take exams for undergraduates who are unable to take an exam at the scheduled time (arranged in advance with your instructor) and who do not need testing accommodations through the UCO. See the [testing center website](http://testingcenter.web.unc.edu/).
-
-### Learning Center
-
-Want to get the most out of this course or others? Visit [UNC's Learning Center](http://learningcenter.unc.edu/) to make an appointment or register for an event. Its free programs include academic coaching, peer tutoring, STEM support, ADHD/LD services, workshops, and study camps.
-
-### Writing Center
-
-For free feedback on any writing project, including multimedia projects and application essays, at any stage of the writing process, visit [UNC's Writing Center](http://writingcenter.unc.edu/). You don't even need a draft to come in.
+For student services like accomodations, the writing center, and other resources on campus for you to get help, see the [Student Services](student-services.qmd) page.

@@ -1,0 +1,209 @@
+# AI policy {.unnumbered}
+
+```{=html}
+<!--
+  Public on geog215.org (listed in PUBLIC_PAGES in assets/auth-gate.html) and
+  linked from the syllabus's "Artificial intelligence (AI)" section.
+  Adapted from Dr. Torrey Trust's open AI syllabus policy statement
+  (CC BY-NC 4.0); the attribution at the bottom must stay.
+-->
+```
+
+This page explains how you may, and may not, use generative AI (GenAI) tools such as ChatGPT, Claude, Gemini, or Copilot in GEOG 215. The second half explains how I use GenAI in this course.
+
+## GenAI use in this class
+
+**Unless otherwise noted during class activities**, you may only use GenAI technologies to aid or nuance your thinking, communication, and learning, but not to replace or subvert it.
+
+The examples below show some allowable and non-allowable uses of GenAI in this class. This is not an exhaustive list. If you read through the examples and are still unsure whether a use of GenAI is allowed, please ask me.
+
+### Allowable uses
+
+::: {.callout-tip appearance="simple" icon="false"}
+#### Prompting GenAI to generate ideas for a class project
+
+**Why it is allowed:** This might enhance your creative thinking by exposing you to ideas different from the ones you would come up with on your own. GenAI technologies like ChatGPT are trained on massive amounts of data, so they can introduce you to ideas and concepts from fields you might not be familiar with.
+
+**Keep in mind:** You are expected to brainstorm your own ideas first, to aid your creative thinking, rather than letting GenAI do that initial work for you. Critically evaluate the ideas GenAI gives you instead of accepting them uncritically. Are there obvious biases in them? For example, if you asked for ideas for a marketing campaign targeting young professionals, GenAI might disproportionately suggest urban, tech-forward, or high-income strategies, and overlook diverse audiences or underrepresented groups.
+:::
+
+::: {.callout-tip appearance="simple" icon="false"}
+#### Using GenAI for writing support
+
+For example, getting feedback to improve the quality, clarity, and expression of your writing.
+
+**Why it is allowed:** GenAI writing tools can suggest how to revise a sentence or word, suggest ways to begin a paragraph, offer feedback on how to express your thinking more clearly, check your grammar and spelling, and help you match your writing to a specific tone or audience. Used this way, while you closely examine the feedback and suggestions, GenAI might support the development of your writing skills.
+
+**Keep in mind:** [Get your thoughts written down first](https://www.criticalinkling.com/p/pedagogy-thinking-and-the-first-draft) rather than asking GenAI to write the first draft. Writing and thinking are interconnected: if you prompt GenAI to write the first draft, you are not actively thinking about the material.
+
+We also have a wonderful [Writing Center](https://writingcenter.unc.edu/) on campus. Use it!
+:::
+
+::: {.callout-tip appearance="simple" icon="false"}
+#### Using GenAI as a study or assignment aid
+
+**Why it is allowed:** GenAI can offer study tips, write example text or practice quiz questions, design a personalized study guide or flashcards, explain the directions for an assignment, create learning simulations and interactive scenarios that help you think more deeply about the class content, and provide a rubric so you can assess your own work.
+
+Please do not upload my presentation slides or class materials to a GenAI tool without my permission. That infringes my copyright. The same goes for your classmates' materials, such as their study guides.
+
+**Keep in mind:** GenAI tools are known for [making up information](https://docs.google.com/presentation/d/1x3G2zHUNz0_luCP8WghoPWbXBRWLaRv0Nern2DSAuIc/edit#slide=id.g2bc6dfcabf1_0_857) and producing [biased output](https://docs.google.com/presentation/d/1x3G2zHUNz0_luCP8WghoPWbXBRWLaRv0Nern2DSAuIc/edit#slide=id.g2bc6dfcabf1_0_621). OpenAI's own factuality benchmark found that its best model gave [correct answers to fact-seeking questions only 42.7% of the time](https://openai.com/index/introducing-simpleqa/). Also read the *New York Times* article "[A.I. Is Getting More Powerful, but Its Hallucinations Are Getting Worse](https://www.nytimes.com/2025/05/05/technology/ai-hallucinations-chatgpt-google.html)."
+
+Double-check the accuracy, credibility, and reliability of any AI-generated information against multiple sources or peer-reviewed research.
+:::
+
+::: {.callout-tip appearance="simple" icon="false"}
+#### Prompting GenAI to make information easier to understand
+
+For example, explaining technical or academic jargon, or giving concrete examples of an abstract idea.
+
+**Why it is allowed:** GenAI can be used in ways that reduce cognitive load (see [Cognitive Load Theory](https://www.psychologistworld.com/memory/cognitive-load-theory)): breaking material into smaller chunks, summarizing and simplifying it, outlining an article before you read it, translating text into your native language, making content more accessible, scaffolding learning, and giving concrete examples.
+
+**Keep in mind:** Overreliance on AI tools, including for cognitive offloading, can harm your critical thinking ([Gerlich, 2025](https://www.mdpi.com/2075-4698/15/1/6)). For example, asking ChatGPT to summarize an article instead of reading it reduces your ability to critically examine, and learn from, the reading. It is more helpful to read the article first, then look at an AI-generated summary for extra help.
+:::
+
+::: {.callout-tip appearance="simple" icon="false"}
+#### Using AI and GenAI tools recommended because of a disability
+
+**Why it is allowed:** GenAI can make learning more accessible, for example with transcripts of recorded audio, closed captions for videos, alt text that describes images for blind and visually impaired people, and interpretations of complex visual data.
+
+**Keep in mind:** If you have a self-identified or registered disability, consider how GenAI tools might aid your thinking, communication, and learning. You might discuss ways to use AI in your learning with the University Compliance Office's [Accommodations team](https://eoc.unc.edu/accommodations/).
+:::
+
+::: {.callout-tip appearance="simple" icon="false"}
+#### Using GenAI to help debug your code, sometimes, after you've tried on your own
+
+**Why it is sometimes allowed:** When you are truly stuck on an error, GenAI can help you understand what an error message means, point you toward the line that is causing the problem, or explain why a function isn't behaving the way you expected.
+
+**Keep in mind:** Spend at least **30 minutes** trying to figure out the problem yourself first. Read the error message carefully, check your spelling, parentheses, and object names, run your code one line at a time, look at the help pages, and search for the error. That struggle is how you learn to code: debugging is one of the most important programming skills, and you only build it by doing it.
+
+If you still need help after that, ask GenAI to *explain* the problem rather than to fix it for you, and make sure you understand the fix before you use it. Office hours and the course staff are always a good option too.
+:::
+
+### Non-allowable uses
+
+::: {.callout-important appearance="simple" icon="false"}
+#### Using GenAI to write code or text for you
+
+This includes R code for exercises and assignments, and any written answers, explanations, or reports, whether you use all of what GenAI writes or only part of it.
+
+**Why it is not allowed:** This is a course about learning to *do* spatial data science. You learn to code by writing code: thinking through a problem, choosing the functions, making mistakes, and fixing them. If GenAI writes your code, you skip exactly the practice the course is built around, and you won't be able to write code on your own on exams, in later courses, or at work.
+
+Writing works the same way. Writing an explanation of your results is how you work out what they mean. If GenAI writes it, your thinking doesn't happen.
+
+GenAI code also often looks right but isn't. It can use functions that don't exist, use outdated packages, or quietly do the wrong analysis. If you didn't write the code and don't understand it, you can't tell when it is wrong. And when you hand in code or text GenAI wrote, I can't see what *you* understand, so I can't give you useful feedback.
+:::
+
+::: {.callout-important appearance="simple" icon="false"}
+#### Using GenAI to complete an activity or assignment for you, in part or in whole
+
+GenAI agents and AI browsers are banned in this class, because they can complete assignments on their own and automate work, which removes meaningful participation in the learning process.
+
+**Why it is not allowed:** The activities and assignments in this class are designed to help you build the knowledge and skills you need to meet the course learning objectives. When GenAI completes them for you, you miss important learning opportunities that are essential for success in this course and beyond.
+
+Also, when GenAI completes your work, I cannot accurately assess your understanding, thinking, or learning, so I can't give you meaningful feedback to support your growth in the course.
+:::
+
+::: {.callout-important appearance="simple" icon="false"}
+#### Prompting GenAI to respond to a discussion prompt for you
+
+**Why it is not allowed:** Discussion prompts are meant to bring in your voice and your thoughts. Discussions are about building community and relationships, and about actively thinking and learning to communicate with others. Using GenAI for them subverts both the social and the learning goals of the activity.
+:::
+
+::: {.callout-important appearance="simple" icon="false"}
+#### Using GenAI (such as Slidesgo, Google NotebookLM, or Canva) to design a class presentation for you
+
+**Why it is not allowed:** Designing a presentation requires you to actively think about the material and how best to communicate it to an audience. Prompting GenAI to do this for you subverts your learning and your chance to develop creative communication skills.
+:::
+
+::: {.callout-important appearance="simple" icon="false"}
+#### Modifying AI-generated work slightly to make it look like you created it
+
+**Why it is not allowed:** Making minor adjustments to AI-generated text supports only surface-level learning, rather than [deep learning](https://www.psy.gla.ac.uk/~steve/courses/archive/CERE12-13-safari-archive/topic9/webarchive-index.html), because the focus is on small edits rather than truly understanding the material.
+:::
+
+::: {.callout-important appearance="simple" icon="false"}
+#### Prompting GenAI to summarize a complex academic article instead of reading and summarizing it yourself
+
+**Why it is not allowed:** Used this way, you are asking GenAI to "read for you." This offloads your thinking, your learning, and the productive struggle of understanding and critically examining the author's ideas (read "[No One is Talking About AI's Impact on Reading](https://marcwatkins.substack.com/p/no-one-is-talking-about-ais-impact)").
+
+You are also relying on GenAI to analyze and make sense of a text, even though these tools are [predictability machines](https://www.nytimes.com/interactive/2023/02/17/business/ai-text-detection.html) with no real understanding of the text (read "[The Fundamental Limitations of LLMs](https://leonfurze.com/2024/05/27/dont-use-genai-to-grade-student-work/)").
+
+Also consider that uploading a copyrighted text, such as a book chapter or article, to a GenAI tool might be copyright infringement, because you are giving copyrighted material to the tool without the author's permission.
+:::
+
+::: {.callout-important appearance="simple" icon="false"}
+#### Prompting GenAI to analyze data for you and submitting the analysis as your own
+
+**Why it is not allowed:** Using GenAI to produce solutions for you, in this case data analysis output, keeps you from actively engaging with and learning the material (read "[5 Times Not to Use AI](https://www.oneusefulthing.org/p/15-times-to-use-ai-and-5-not-to)").
+
+Also, GenAI tools are not calculators or math machines. They are [predictability machines](https://www.nytimes.com/interactive/2023/02/17/business/ai-text-detection.html): they guess which words go together to make the most plausible human-sounding response.
+:::
+
+::: {.callout-important appearance="simple" icon="false"}
+#### Copying AI-generated text word for word into your work, even if you cite it as written by AI
+
+**Why it is not allowed:** Please read "[The Case For Not Citing Chatbots As Information Sources](https://scholarlykitchen.sspnet.org/2024/06/20/the-case-for-not-citing-chatbots-as-information-sources-part-ii/)" and "[Good models borrow, great models steal: intellectual property rights and generative AI](https://academic.oup.com/policyandsociety/advance-article/doi/10.1093/polsoc/puae006/7606572)," and find an original source to cite instead. Finding an original source deepens your thinking and learning about the topic, and gives credit to human authors and artists.
+
+However, if you prompt GenAI to create something original that cannot be traced back to a source (for example, a Taylor Swift rendition of the Declaration of Independence), you can write "This text was generated by ChatGPT" (or the GenAI tool you used) in a footnote.
+:::
+
+::: {.callout-important appearance="simple" icon="false"}
+#### Using GenAI to create media for a class project without permission from the instructor
+
+For example, images, infographics, graphic novels, audio, or video.
+
+**Why it is not allowed:** GenAI tools that produce images, audio, video, and other media are [built on media taken from artists without their permission](https://academic.oup.com/policyandsociety/advance-article/doi/10.1093/polsoc/puae006/7606572), and [generating media with AI uses a lot of energy](https://www.technologyreview.com/2023/12/01/1084189/making-an-image-with-generative-ai-uses-as-much-energy-as-charging-your-phone/), which harms the environment. You are strongly encouraged to use existing Creative Commons or public domain media in your projects, such as [Pixabay](https://pixabay.com/) images and video, the [YouTube Audio Library](https://www.youtube.com/audiolibrary) for songs and sound effects, or [Openverse](https://openverse.org/) for many kinds of media.
+
+If you cannot find suitable images, visuals, audio, or video for your project, email me to ask permission to use AI-generated media.
+:::
+
+::: {.callout-important appearance="simple" icon="false"}
+#### Uploading or sharing sensitive or personal data with GenAI
+
+**Why it is not allowed:** Do not share personal, sensitive, or student information or data with GenAI tools when completing assignments. Doing so risks your privacy and may violate privacy laws such as FERPA.
+:::
+
+### If you're tempted to let GenAI do the work
+
+If you find yourself turning to GenAI to do your work for you, set up a meeting with me to talk about how the class activities and assignments can be adapted to support your learning. For example, if you don't have enough time to finish the class activities and are turning to AI to do the work, we can discuss flexible deadlines or alternative activities.
+
+When you use ChatGPT and other GenAI tools, which are notorious for producing misinformation and fabricating information, it is your responsibility to check the credibility, accuracy, and trustworthiness of any information you use from them.
+
+### If I suspect AI-generated work
+
+If I suspect that you have submitted AI-generated work, I will ask you to meet in person or on Zoom to discuss the work in question.
+
+I will not use an AI text detector to identify AI-generated work, because these tools are notoriously unreliable and especially problematic. Instead, I will use the [UMass Amherst Center for Teaching and Learning's list of indicators](https://www.umass.edu/ctl/how-do-i-address-suspected-student-misuse-genai-tools) to identify possible AI-generated content.
+
+If I ask you to meet with me about your work and the possible use of AI, you are welcome to bring evidence that the work is your own. You will also be expected to show your thinking and learning related to the work through a conversation. For example, if your answer to an assignment question is suspected to be AI-generated, I will ask you to respond to some related questions in real time during the meeting, either out loud or in writing.
+
+## How I use GenAI in this course
+
+In the interest of transparency, I want to clearly communicate how I use GenAI tools in this course.
+
+### How I will not use GenAI
+
+- I will never use AI tools to grade your work or assess your performance.
+- I will never use AI tools to generate personalized feedback on your assignments or participation.
+- I will not rely on AI-based plagiarism detection tools as my only way of evaluating academic integrity.
+- I will never use AI tools to design the text or media in my course slides, unless it is directly related to a class topic (for example, in a class about GenAI, I might include AI-generated images in my slides for you to critique).
+
+### How I will use GenAI
+
+I may use GenAI tools to support course design and content development in these ways:
+
+- **Brainstorming and ideation.** I sometimes use GenAI to generate several ideas for learning activities, rubrics, and assignments, so I can create more effective learning experiences. I always critically evaluate the ideas, then use my expertise and my knowledge of the class to decide whether any are worth using. For example, I might ask Claude for ideas on redesigning an activity to better align with Universal Design for Learning principles, then use what it produces to spark my own thinking about the redesign.
+- **Improving accessibility.** I often use GenAI to write alt text for the images in my slides, so screen readers can read them. I sometimes ask GenAI for feedback on making my course materials or assignments more accessible when I'm struggling to figure out how.
+- **Getting feedback on assignments and course materials.** I occasionally use GenAI to explore ways to strengthen my assignments and their instructions, to improve the learning experience and reduce barriers to understanding.
+- **Writing and editing.** I sometimes use GenAI to refine the text in my syllabi and assignment directions for clarity and precision. I always write the first draft myself, then I might ask Claude for 5 to 10 revised versions, which I use as inspiration for the final text. I never copy and paste text directly from a GenAI tool into course materials.
+- **Generating text and media for critique.** I may use GenAI to generate text or media for the sole purpose of being critically evaluated and critiqued in a class activity or assignment.
+
+When GenAI has played a substantial role in designing course materials or developing content, I will clearly disclose it (for example, "This rubric was made with the assistance of Claude Haiku 4.5").
+
+### My commitment to you
+
+My goal in using AI is to improve your learning experience. Any use of GenAI is in service of better course design, clearer communication, and more thoughtful assignments. I will never use it as a substitute for my direct engagement with your learning.
+
+---
+
+*Adapted from the AI syllabus policy statement by [Dr. Torrey Trust](http://www.torreytrust.com), shared under a [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) license. Changes: edited for this course, the web, and UNC-Chapel Hill campus resources.*

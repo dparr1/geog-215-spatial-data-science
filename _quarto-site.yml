@@ -1,8 +1,9 @@
 # Full site (default profile): course pages, top menu, and the textbook.
 # Used for geog215.org (`--profile geog215` turns this on too).
 book:
-  # Top menu on every page. Welcome, Syllabus, About, and Privacy policy
-  # (sidebar and footer only) are public on geog215.org; every other page asks students to sign in (see
+  # Top menu on every page. Welcome, Syllabus, About, AI policy (sidebar
+  # only), and Privacy policy (sidebar and footer only) are public on
+  # geog215.org; every other page asks students to sign in (see
   # PUBLIC_PAGES in assets/auth-gate.html).
   navbar:
     left:
@@ -10,24 +11,27 @@ book:
         text: Welcome
       - href: syllabus.qmd
         text: Syllabus
-      - href: preface.qmd
-        text: Textbook
       - href: materials.qmd
         text: Course materials
       - href: about.qmd
         text: About
+      - href: preface.qmd
+        text: Textbook     
+
   chapters:
     - part: "Course"
       chapters:
         - index.qmd
         - syllabus.qmd
+        - ai-policy.qmd
         - materials.qmd
         - about.qmd
         - privacy.qmd
-    - part: "Textbook"
+        - student-services.qmd
+    # Each chapter is followed by its (unnumbered) chapter quiz page.
+    - preface.qmd
+    - part: "Unit 1: R and Spatial Data Science"
       chapters:
-        - preface.qmd
-        # Each chapter is followed by its (unnumbered) chapter quiz page.
         - chapters/intro-spatial-data-science.qmd
         - chapters/intro-spatial-data-science-quiz.qmd
         - chapters/r-rstudio-rmarkdown.qmd
@@ -36,6 +40,8 @@ book:
         - chapters/r-basics-quiz.qmd
         - chapters/indexing-vectors-data-frames.qmd
         - chapters/indexing-vectors-data-frames-quiz.qmd
+    - part: "Unit 2: Into the Tidyverse"
+      chapters:
         - chapters/tidyverse-filter-pipe.qmd
         - chapters/tidyverse-filter-pipe-quiz.qmd
         - chapters/tidyverse-arrange-select-mutate.qmd
@@ -44,10 +50,14 @@ book:
         - chapters/tidyverse-summarize-group-by-quiz.qmd
         - chapters/tidyverse-ggplot.qmd
         - chapters/tidyverse-ggplot-quiz.qmd
+    - part: "Unit 3: Maps and Geographic Data"
+      chapters:
         - chapters/thematic-maps-tmap.qmd
         - chapters/thematic-maps-tmap-quiz.qmd
         - chapters/geographic-information.qmd
         - chapters/geographic-information-quiz.qmd
+    - part: "Unit 4: Data"
+      chapters:
         - chapters/census-data-apis.qmd
         - chapters/census-data-apis-quiz.qmd
   appendices:

@@ -23,6 +23,7 @@ Every page has a top menu: **Welcome**, **Syllabus**, **Textbook**, **Course mat
 |---|---|---|
 | Welcome (home page) | `index.qmd` | Public |
 | Syllabus | `syllabus.qmd` | Public |
+| AI policy (linked from the syllabus) | `ai-policy.qmd` | Public |
 | Course materials: staff and office hours, schedule, deadlines | `materials.qmd` | Students only |
 | About the author | `about.qmd` | Public |
 | Privacy policy (linked from the sign-in screen and page footer) | `privacy.qmd` | Public |
