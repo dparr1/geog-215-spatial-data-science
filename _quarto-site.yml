@@ -30,7 +30,7 @@ book:
         - student-services.qmd
     # Each chapter is followed by its (unnumbered) chapter quiz page.
     - preface.qmd
-    - part: "Unit 1: R and Spatial Data Science"
+    - part: units/unit-1.qmd
       chapters:
         - chapters/intro-spatial-data-science.qmd
         - chapters/intro-spatial-data-science-quiz.qmd
@@ -40,7 +40,7 @@ book:
         - chapters/r-basics-quiz.qmd
         - chapters/indexing-vectors-data-frames.qmd
         - chapters/indexing-vectors-data-frames-quiz.qmd
-    - part: "Unit 2: Into the Tidyverse"
+    - part: units/unit-2.qmd
       chapters:
         - chapters/tidyverse-filter-pipe.qmd
         - chapters/tidyverse-filter-pipe-quiz.qmd
@@ -50,13 +50,13 @@ book:
         - chapters/tidyverse-summarize-group-by-quiz.qmd
         - chapters/tidyverse-ggplot.qmd
         - chapters/tidyverse-ggplot-quiz.qmd
-    - part: "Unit 3: Maps and Geographic Data"
+    - part: units/unit-3.qmd
       chapters:
         - chapters/thematic-maps-tmap.qmd
         - chapters/thematic-maps-tmap-quiz.qmd
         - chapters/geographic-information.qmd
         - chapters/geographic-information-quiz.qmd
-    - part: "Unit 4: Data"
+    - part: units/unit-4.qmd
       chapters:
         - chapters/census-data-apis.qmd
         - chapters/census-data-apis-quiz.qmd

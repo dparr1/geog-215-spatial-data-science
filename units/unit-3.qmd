@@ -1,0 +1,17 @@
+---
+title: "Unit 3: Maps and Geographic Data"
+---
+
+This unit moves from tables and graphs to maps. It starts by making thematic maps in R with the tmap package, using campus data on UNC's trees, sidewalks, and buildings. It then steps back from the code to ask how the real world becomes geographic data in the first place: the vector and raster data models, and the file formats that store them.
+
+## Chapter 9: [Thematic Maps with tmap](../chapters/thematic-maps-tmap.qmd)
+
+A thematic map shows how one theme varies from place to place. This chapter reads spatial data into R as sf objects, which are tidy data frames with a geometry column, and maps points, lines, and polygons with tmap's `tm_shape()`, `tm_dots()`, `tm_lines()`, and `tm_polygons()`. It covers coloring features by an attribute, choosing classes, combining layers, adding a title, scale bar, and north arrow, and switching between static and interactive maps.
+
+[Chapter 9 quiz](../chapters/thematic-maps-tmap-quiz.qmd)
+
+## Chapter 10: [What Is Geographic Data?](../chapters/geographic-information.qmd)
+
+Every map is a model of the world. This chapter follows data abstraction from real-world entities to features a computer can store, and compares the two main data models: vector data (points, lines, and polygons with attributes) and raster data (grids of cells). It explains map scale, cell size and resolution, and the common file formats (shapefile, GeoJSON, KML, and GeoTIFF), and why metadata matter.
+
+[Chapter 10 quiz](../chapters/geographic-information-quiz.qmd)
