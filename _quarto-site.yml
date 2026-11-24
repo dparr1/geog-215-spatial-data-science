@@ -17,13 +17,11 @@ book:
         text: Course materials
       - href: about.qmd
         text: About
-      - href: index.qmd
-        text: Textbook
 
   chapters:
     - part: "Course"
       chapters:
-        - index.qmd
+        - preface.qmd
         - syllabus.qmd
         - ai-policy.qmd
         - materials.qmd
