@@ -17,15 +17,19 @@ book:
         text: Course materials
       - href: about.qmd
         text: About
-      - text: "Policies"
-        menu:
-          - student-services.qmd
-          - ai-policy.qmd
-          - privacy.qmd
+      - href: index.qmd
+        text: Textbook
 
   chapters:
-    - index.qmd
-    - preface.qmd
+    - part: "Course"
+      chapters:
+        - index.qmd
+        - syllabus.qmd
+        - ai-policy.qmd
+        - materials.qmd
+        - about.qmd
+        - privacy.qmd
+        - student-services.qmd
     # Each chapter is followed by its (unnumbered) chapter quiz page.
     - part: "Unit 1: R and Spatial Data Science"
       chapters:
