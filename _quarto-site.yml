@@ -21,7 +21,7 @@ book:
   chapters:
     - part: "Course"
       chapters:
-        - preface.qmd
+        - index.qmd
         - syllabus.qmd
         - ai-policy.qmd
         - materials.qmd
@@ -29,6 +29,7 @@ book:
         - privacy.qmd
         - student-services.qmd
     # Each chapter is followed by its (unnumbered) chapter quiz page.
+    - prefix.qmd
     - part: "Unit 1: R and Spatial Data Science"
       chapters:
         - chapters/intro-spatial-data-science.qmd
