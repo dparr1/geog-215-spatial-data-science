@@ -17,10 +17,6 @@ book:
         text: Course materials
       - href: about.qmd
         text: About
-      - index.qmd
-      - syllabus.qmd
-      - materials.qmd
-      - about.qmd
       - text: "Policies"
         menu:
           - student-services.qmd
@@ -29,7 +25,7 @@ book:
 
   chapters:
     - preface.qmd
-      # Each chapter is followed by its (unnumbered) chapter quiz page.
+    # Each chapter is followed by its (unnumbered) chapter quiz page.
     - part: "Unit 1: R and Spatial Data Science"
       chapters:
         - chapters/intro-spatial-data-science.qmd
