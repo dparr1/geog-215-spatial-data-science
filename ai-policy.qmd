@@ -69,7 +69,29 @@ For example, explaining technical or academic jargon, or giving concrete example
 **Keep in mind:** If you have a self-identified or registered disability, consider how GenAI tools might aid your thinking, communication, and learning. You might discuss ways to use AI in your learning with the University Compliance Office's [Accommodations team](https://eoc.unc.edu/accommodations/).
 :::
 
+::: {.callout-tip appearance="simple" icon="false"}
+#### Using GenAI to help debug your code, sometimes, after you've tried on your own
+
+**Why it is sometimes allowed:** When you are truly stuck on an error, GenAI can help you understand what an error message means, point you toward the line that is causing the problem, or explain why a function isn't behaving the way you expected.
+
+**Keep in mind:** Spend at least **30 minutes** trying to figure out the problem yourself first. Read the error message carefully, check your spelling, parentheses, and object names, run your code one line at a time, look at the help pages, and search for the error. That struggle is how you learn to code: debugging is one of the most important programming skills, and you only build it by doing it.
+
+If you still need help after that, ask GenAI to *explain* the problem rather than to fix it for you, and make sure you understand the fix before you use it. Office hours and the course staff are always a good option too.
+:::
+
 ### Non-allowable uses
+
+::: {.callout-important appearance="simple" icon="false"}
+#### Using GenAI to write code or text for you
+
+This includes R code for exercises and assignments, and any written answers, explanations, or reports, whether you use all of what GenAI writes or only part of it.
+
+**Why it is not allowed:** This is a course about learning to *do* spatial data science. You learn to code by writing code: thinking through a problem, choosing the functions, making mistakes, and fixing them. If GenAI writes your code, you skip exactly the practice the course is built around, and you won't be able to write code on your own on exams, in later courses, or at work.
+
+Writing works the same way. Writing an explanation of your results is how you work out what they mean. If GenAI writes it, your thinking doesn't happen.
+
+GenAI code also often looks right but isn't. It can use functions that don't exist, use outdated packages, or quietly do the wrong analysis. If you didn't write the code and don't understand it, you can't tell when it is wrong. And when you hand in code or text GenAI wrote, I can't see what *you* understand, so I can't give you useful feedback.
+:::
 
 ::: {.callout-important appearance="simple" icon="false"}
 #### Using GenAI to complete an activity or assignment for you, in part or in whole
