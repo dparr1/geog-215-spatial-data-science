@@ -34,6 +34,8 @@
 --      them with names, one course at a time.
 --   7. Instructors see the courses listed in instructors.courses, or every
 --      course when that is empty (null).
+--   8. Polls and surveys (section 8) are written and opened on the admin
+--      page; students answer them on the site and see only their own answers.
 --
 -- Upgrading from the one-class version: running this file adds course and
 -- term to the roster and every progress table, and fills them in for the
@@ -1064,6 +1066,16 @@ begin
   where x.user_id = v_user and x.course = v_course and x.term = v_term;
   delete from public.chapter_quiz_sessions x
   where x.user_id = v_user and x.course = v_course and x.term = v_term;
+  -- (questions exists once section 7 below has run.)
+  if to_regclass('public.questions') is not null then
+    delete from public.questions x
+    where x.user_id = v_user and x.course = v_course and x.term = v_term;
+  end if;
+  -- (poll_responses exists once section 8 below has run.)
+  if to_regclass('public.poll_responses') is not null then
+    delete from public.poll_responses x
+    where x.user_id = v_user and x.course = v_course and x.term = v_term;
+  end if;
   if not exists (select 1 from public.roster r where r.user_id = v_user)
      and not exists (select 1 from public.instructors i, auth.users u
                      where u.id = v_user and i.email = lower(btrim(u.email))) then
@@ -1316,6 +1328,408 @@ begin
 end;
 $$;
 
+-- 7. Questions on highlighted text -------------------------------------------
+-- A signed-in student highlights text in a chapter, clicks "Ask a question",
+-- and types a question (assets/questions.html). record_question() saves it
+-- here and emails it to the course's questions_email (one email per question,
+-- sent through Resend by pg_net; see "Questions" in supabase/README.md). You
+-- answer on the admin page's Questions tab, and the student sees your answer
+-- under "My questions" on the site.
+--
+-- Email needs two things, both done once:
+--   * your Resend API key in Supabase Vault, named resend_api_key:
+--       select vault.create_secret('re_...', 'resend_api_key');
+--   * courses.questions_email set (GEOG 215 starts as daveparr@unc.edu).
+-- Without them, questions are still saved; they just aren't emailed.
+--
+-- Resend's free plan sends 100 emails a day, shared with sign-in codes. So
+-- question emails stop for the rest of a 24-hour window after
+-- sds_question_email_daily_limit() of them (questions are still saved and
+-- shown on the admin page), and one student can ask at most
+-- sds_question_student_daily_limit() questions in 24 hours.
+create extension if not exists pg_net;
+
+alter table public.courses add column if not exists questions_email text;
+update public.courses set questions_email = 'daveparr@unc.edu'
+where course = 'geog215' and questions_email is null;
+
+create table if not exists public.questions (
+  id               uuid primary key default gen_random_uuid(),
+  user_id          uuid not null references auth.users (id) on delete cascade,
+  course           text not null references public.courses (course) on update cascade,
+  term             text not null,
+  from_instructor  boolean not null default false,  -- a test question from an instructor
+  page             text not null,                    -- e.g. /chapters/r-basics
+  page_title       text,
+  section          text,                             -- the heading the text is under
+  anchor           text,                             -- that heading's id, e.g. sec-vectors
+  highlighted      text not null,                    -- the text the student highlighted
+  question         text not null,
+  asked_at         timestamptz not null default now(),
+  status           text not null default 'open'
+                   check (status in ('open', 'answered', 'closed')),
+  answer           text,
+  answered_at      timestamptz,
+  answered_by      text,
+  email_status     text,          -- queued / not sent: daily limit / not sent: no key / ...
+  email_request_id bigint         -- pg_net request, to look up whether Resend took it
+);
+
+create index if not exists questions_enrollment_idx on public.questions (course, term, asked_at desc);
+create index if not exists questions_user_idx on public.questions (user_id, asked_at desc);
+
+alter table public.questions enable row level security;
+revoke all on table public.questions from anon, authenticated;
+grant select on table public.questions to authenticated;
+
+-- Students see their own questions and your answers; nobody else's.
+drop policy if exists "Students read their own questions" on public.questions;
+create policy "Students read their own questions"
+  on public.questions for select
+  to authenticated
+  using (user_id = (select auth.uid()));
+
+create or replace function public.sds_question_email_daily_limit()
+returns integer language sql immutable set search_path = '' as $$ select 60 $$;
+
+create or replace function public.sds_question_student_daily_limit()
+returns integer language sql immutable set search_path = '' as $$ select 20 $$;
+
+-- Helpers for the email: HTML-escape student text, and percent-encode the
+-- highlighted text for the link back to it.
+create or replace function public.sds_html(p text)
+returns text
+language sql
+immutable
+set search_path = ''
+as $$
+  select replace(replace(replace(replace(replace(coalesce(p, ''),
+    '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '"', '&quot;'), '''', '&#39;');
+$$;
+
+create or replace function public.sds_urlencode(p text)
+returns text
+language sql
+immutable
+set search_path = ''
+as $$
+  select coalesce(string_agg(
+    case when t.ch ~ '^[A-Za-z0-9._~-]$' then t.ch
+         else (select string_agg('%' || upper(lpad(to_hex(get_byte(b.v, i)), 2, '0')), '' order by i)
+               from (select convert_to(t.ch, 'UTF8') as v) b,
+                    generate_series(0, length(convert_to(t.ch, 'UTF8')) - 1) as i)
+    end, '' order by t.n), '')
+  from regexp_split_to_table(coalesce(p, ''), '') with ordinality as t(ch, n);
+$$;
+
+-- The link in the email and on the admin page: the page, plus ?sds-ask= (the
+-- start of the highlighted text) and &sds-sec= (the heading's id). The site
+-- scrolls to that text and marks it (assets/questions.html).
+create or replace function public.sds_question_link(p_id uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(nullif(rtrim(c.site_url, '/'), ''), 'https://geog215.org')
+         || q.page
+         || '?sds-ask=' || public.sds_urlencode(left(regexp_replace(q.highlighted, '\s+', ' ', 'g'), 120))
+         || case when nullif(q.anchor, '') is null then ''
+                 else '&sds-sec=' || public.sds_urlencode(q.anchor) end
+  from public.questions q
+  join public.courses c on c.course = q.course
+  where q.id = p_id;
+$$;
+
+revoke all on function public.sds_question_link(uuid) from public, anon, authenticated;
+
+-- Email one question to the course's questions_email through Resend. Never
+-- raises: a question is saved even if the email can't be sent. Returns the
+-- email status it recorded. The email never names the student or includes
+-- their email address (UNC's mail filtering held emails that did); who asked
+-- is on the admin page's Questions tab.
+create or replace function public.sds_email_question(p_id uuid)
+returns text
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  q        public.questions;
+  v_to     text;
+  v_title  text;
+  v_key    text;
+  v_who    text;
+  v_link   text;
+  v_status text;
+  v_req    bigint;
+  v_html   text;
+  v_text   text;
+begin
+  select * into q from public.questions where id = p_id;
+  if not found then
+    return null;
+  end if;
+  select c.questions_email, c.title into v_to, v_title
+  from public.courses c where c.course = q.course;
+
+  if nullif(btrim(coalesce(v_to, '')), '') is null then
+    v_status := 'not sent: no questions_email for the course';
+  elsif (select count(*) from public.questions x
+         where x.email_status = 'queued' and x.asked_at > now() - interval '24 hours')
+        >= public.sds_question_email_daily_limit() then
+    v_status := 'not sent: daily email limit';
+  else
+    begin
+      select s.decrypted_secret into v_key
+      from vault.decrypted_secrets s where s.name = 'resend_api_key' limit 1;
+    exception when others then
+      v_key := null;
+    end;
+    if v_key is null then
+      v_status := 'not sent: no resend_api_key in Vault';
+    end if;
+  end if;
+
+  if v_status is null then
+    v_who := case when q.from_instructor then 'An instructor (test question)' else 'A student' end;
+    v_link := public.sds_question_link(q.id);
+
+    v_html :=
+      '<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.45;color:#1f2933">'
+      || '<p>' || v_who || ' asked a question on <a href="' || public.sds_html(v_link) || '">'
+      || public.sds_html(coalesce(nullif(q.page_title, ''), q.page)) || '</a>'
+      || coalesce(', in <em>' || public.sds_html(nullif(q.section, '')) || '</em>', '') || '.</p>'
+      || '<p style="margin:0 0 4px;color:#52606d;font-size:13px">Highlighted text:</p>'
+      || '<blockquote style="margin:0 0 16px;padding:8px 12px;border-left:4px solid #f2c94c;background:#fffbea">'
+      || replace(public.sds_html(q.highlighted), E'\n', '<br>') || '</blockquote>'
+      || '<p style="margin:0 0 4px;color:#52606d;font-size:13px">Question:</p>'
+      || '<p style="margin:0 0 16px;white-space:pre-wrap">' || public.sds_html(q.question) || '</p>'
+      || '<p><a href="' || public.sds_html(v_link) || '">Open this spot in the textbook</a>'
+      || ' &middot; <a href="https://geog215.org/admin/">Answer on the admin page</a></p>'
+      || '<p style="color:#52606d;font-size:13px">The admin page shows who asked. '
+      || 'An answer there shows to the student on the site under "My questions".</p>'
+      || '</div>';
+    v_text :=
+      v_who || ' asked a question on '
+      || coalesce(nullif(q.page_title, ''), q.page)
+      || coalesce(', in "' || nullif(q.section, '') || '"', '') || E'.\n\n'
+      || E'Highlighted text:\n> ' || replace(q.highlighted, E'\n', E'\n> ') || E'\n\n'
+      || E'Question:\n' || q.question || E'\n\n'
+      || 'Open this spot: ' || v_link || E'\n'
+      || E'Answer on the admin page: https://geog215.org/admin/\n';
+
+    begin
+      select net.http_post(
+        url     := 'https://api.resend.com/emails',
+        headers := jsonb_build_object('Authorization', 'Bearer ' || v_key,
+                                      'Content-Type', 'application/json'),
+        body    := jsonb_strip_nulls(jsonb_build_object(
+          'from',     coalesce(nullif(btrim(split_part(v_title, ':', 1)), ''), upper(q.course))
+                      || ' Questions <questions@mail.geog215.org>',
+          'to',       jsonb_build_array(btrim(v_to)),
+          'subject',  'New question on ' || left(coalesce(nullif(q.page_title, ''), q.page), 80),
+          'html',     v_html,
+          'text',     v_text))
+      ) into v_req;
+      v_status := 'queued';
+    exception when others then
+      v_status := 'not sent: ' || left(sqlerrm, 200);
+    end;
+  end if;
+
+  update public.questions
+  set email_status = v_status, email_request_id = v_req
+  where id = p_id;
+  return v_status;
+end;
+$$;
+
+revoke all on function public.sds_email_question(uuid) from public, anon, authenticated;
+
+-- Ask a question. Active students of the course, plus instructors (whose
+-- questions are marked as tests, so you can try it yourself). Returns the
+-- new question's id.
+create or replace function public.record_question(
+  p_page text, p_highlighted text, p_question text,
+  p_page_title text default null, p_section text default null, p_anchor text default null,
+  p_course text default null)
+returns uuid
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_course text;
+  v_term   text;
+  v_test   boolean := false;
+  v_high   text := btrim(left(coalesce(p_highlighted, ''), 2000));
+  v_q      text := btrim(left(coalesce(p_question, ''), 4000));
+  v_anchor text := nullif(left(btrim(coalesce(p_anchor, '')), 120), '');
+  v_id     uuid;
+begin
+  if auth.uid() is null then
+    raise exception 'Sign in to ask a question.' using errcode = '42501';
+  end if;
+  select e.course, e.term into v_course, v_term from public.current_enrollment(p_course) e;
+  if v_course is null then
+    v_course := nullif(lower(btrim(coalesce(p_course, ''))), '');
+    if v_course is null or not public.is_instructor(v_course)
+       or not exists (select 1 from public.courses c where c.course = v_course) then
+      raise exception 'Only students in this course can ask questions here.' using errcode = '42501';
+    end if;
+    v_test := true;
+    select r.term into v_term from public.roster r
+    where r.course = v_course order by r.added_at desc limit 1;
+    v_term := coalesce(v_term, 'Test');
+  end if;
+  if length(v_high) < 1 then
+    raise exception 'Highlight some text to ask about.';
+  end if;
+  if length(v_q) < 2 then
+    raise exception 'Type your question.';
+  end if;
+  if v_anchor is not null and v_anchor !~ '^[A-Za-z0-9_:.-]+$' then
+    v_anchor := null;
+  end if;
+  if (select count(*) from public.questions x
+      where x.user_id = auth.uid() and x.asked_at > now() - interval '24 hours')
+     >= public.sds_question_student_daily_limit() then
+    raise exception 'You''ve asked % questions today, the most for one day. Email your instructor, or ask again tomorrow.',
+      public.sds_question_student_daily_limit();
+  end if;
+
+  insert into public.questions (user_id, course, term, from_instructor, page, page_title,
+                                section, anchor, highlighted, question)
+  values (auth.uid(), v_course, v_term, v_test, public.normalize_page(left(p_page, 300)),
+          nullif(btrim(left(coalesce(p_page_title, ''), 200)), ''),
+          nullif(btrim(left(coalesce(p_section, ''), 200)), ''),
+          v_anchor, v_high, v_q)
+  returning id into v_id;
+
+  perform public.sds_email_question(v_id);
+  return v_id;
+end;
+$$;
+
+revoke all on function public.record_question(text, text, text, text, text, text, text) from public, anon;
+grant execute on function public.record_question(text, text, text, text, text, text, text) to authenticated;
+
+-- Questions for the admin page's Questions tab, newest first. p_status is
+-- open / answered / closed, or null for all. email_status becomes 'sent' or
+-- 'failed (HTTP ...)' once Resend has replied (pg_net keeps replies for about
+-- 6 hours; after that a queued email just shows as queued).
+create or replace function public.admin_questions(
+  p_course text default null, p_term text default null, p_status text default null,
+  p_limit integer default 500)
+returns table (
+  id uuid, course text, term text, student_name text, email text, code text,
+  from_instructor boolean, page text, page_title text, section text, anchor text,
+  highlighted text, question text, asked_at timestamptz, status text,
+  answer text, answered_at timestamptz, answered_by text, email_status text, link text
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_courses text[] := public.require_instructor(p_course);
+begin
+  return query
+    select q.id, q.course, q.term,
+           coalesce(r.student_name, case when q.from_instructor then 'Instructor (test)' end, u.email),
+           coalesce(r.email, lower(u.email)), r.code, q.from_instructor,
+           q.page, q.page_title, q.section, q.anchor, q.highlighted, q.question, q.asked_at,
+           q.status, q.answer, q.answered_at, q.answered_by,
+           case
+             when q.email_status = 'queued' and resp.status_code between 200 and 299 then 'sent'
+             when q.email_status = 'queued' and resp.status_code is not null
+               then 'failed (HTTP ' || resp.status_code || ': ' || left(coalesce(resp.content, ''), 120) || ')'
+             when q.email_status = 'queued' and resp.error_msg is not null
+               then 'failed (' || left(resp.error_msg, 120) || ')'
+             else q.email_status
+           end,
+           public.sds_question_link(q.id)
+    from public.questions q
+    left join auth.users u on u.id = q.user_id
+    left join lateral (
+      select r.student_name, r.email, r.code from public.roster r
+      where r.user_id = q.user_id and r.course = q.course and r.term = q.term
+      order by r.added_at desc limit 1) r on true
+    left join net._http_response resp on resp.id = q.email_request_id
+    where q.course = any (v_courses) and (p_term is null or q.term = p_term)
+      and (p_status is null or q.status = p_status)
+    order by q.asked_at desc
+    limit least(greatest(coalesce(p_limit, 500), 1), 5000);
+end;
+$$;
+
+-- Answer a question (p_answer), or just change its status: 'answered' with an
+-- answer, 'closed' (dealt with, e.g. in class or by email, without an answer
+-- here), or 'open' to reopen it. The student sees the answer on the site.
+create or replace function public.admin_answer_question(
+  p_id uuid, p_answer text default null, p_status text default null)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_course text;
+  v_answer text := nullif(btrim(left(coalesce(p_answer, ''), 8000)), '');
+  v_status text := coalesce(nullif(btrim(coalesce(p_status, '')), ''),
+                            case when v_answer is not null then 'answered' end);
+begin
+  select q.course into v_course from public.questions q where q.id = p_id;
+  if v_course is null then
+    raise exception 'That question no longer exists.';
+  end if;
+  perform public.require_instructor(v_course);
+  if v_status is null or v_status not in ('open', 'answered', 'closed') then
+    raise exception 'Status must be open, answered or closed.';
+  end if;
+  if v_status = 'answered' and v_answer is null
+     and not exists (select 1 from public.questions q where q.id = p_id and q.answer is not null) then
+    raise exception 'Type an answer first.';
+  end if;
+  update public.questions q
+  set status      = v_status,
+      answer      = coalesce(v_answer, q.answer),
+      answered_at = case when v_answer is not null and v_answer is distinct from q.answer
+                         then now() else q.answered_at end,
+      answered_by = case when v_answer is not null and v_answer is distinct from q.answer
+                         then (select lower(u.email) from auth.users u where u.id = auth.uid())
+                         else q.answered_by end
+  where q.id = p_id;
+end;
+$$;
+
+-- Delete a question (for example a test one).
+create or replace function public.admin_delete_question(p_id uuid)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_course text;
+begin
+  select q.course into v_course from public.questions q where q.id = p_id;
+  if v_course is null then
+    return;
+  end if;
+  perform public.require_instructor(v_course);
+  delete from public.questions q where q.id = p_id;
+end;
+$$;
+
 do $$
 declare f text;
 begin
@@ -1327,10 +1741,760 @@ begin
     'admin_pages(text, text)',
     'admin_quiz(text, text)', 'admin_quiz_responses(text, integer, text, text)',
     'admin_code(text, text)', 'admin_code_runs(text, integer, text, text)',
-    'admin_chapter_quizzes(text, text)', 'admin_chapter_quiz_questions(text, text)'
+    'admin_chapter_quizzes(text, text)', 'admin_chapter_quiz_questions(text, text)',
+    'admin_questions(text, text, text, integer)', 'admin_answer_question(uuid, text, text)',
+    'admin_delete_question(uuid)'
   ] loop
     execute format('revoke all on function public.%s from public, anon', f);
     execute format('grant execute on function public.%s to authenticated', f);
+  end loop;
+end;
+$$;
+
+-- 8. Polls and surveys ----------------------------------------------------------
+-- Short polls and longer surveys that students take on the site
+-- (assets/polls.html). Each poll belongs to one course, and to one term or to
+-- every term (term null). You write and edit polls on the admin page's Polls
+-- tab, open and close them there, and download the answers as CSV or Excel.
+--
+-- While a poll is open, a signed-in student who hasn't taken it sees a banner
+-- at the top of every page. Students can change their answers until you close
+-- the poll. Answers are saved with the student's account (polls aren't
+-- anonymous), and students can read only their own.
+--
+-- Question kinds:
+--   single  pick one option (radio buttons); allow_other adds "Other: ____"
+--   multi   pick any number of options (checkboxes); allow_other too
+--   scale   a number from scale_min to scale_max (e.g. 1 to 5), with optional
+--           labels for the two ends
+--   short   one line of text
+--   long    a paragraph of text
+-- Answers are stored as JSON keyed by question id: a string (single, short,
+-- long; "Other: ..." for a typed-in other), an array of strings (multi) or a
+-- number (scale).
+--
+-- New polls start as drafts, which students never see. Status open shows it;
+-- closed hides it again and stops changes, but keeps every answer.
+
+create table if not exists public.polls (
+  id          uuid primary key default gen_random_uuid(),
+  course      text not null references public.courses (course) on update cascade,
+  term        text,                                  -- null: every term of the course
+  title       text not null,
+  intro       text,                                  -- shown above the questions
+  status      text not null default 'draft'
+              check (status in ('draft', 'open', 'closed')),
+  seed_key    text,                                  -- the built-in example poll(s)
+  created_at  timestamptz not null default now(),
+  created_by  text,
+  updated_at  timestamptz not null default now(),
+  opened_at   timestamptz,
+  closed_at   timestamptz
+);
+
+create unique index if not exists polls_seed_idx on public.polls (course, seed_key)
+  where seed_key is not null;
+create index if not exists polls_course_idx on public.polls (course, status);
+
+create table if not exists public.poll_questions (
+  id           uuid primary key default gen_random_uuid(),
+  poll_id      uuid not null references public.polls (id) on delete cascade,
+  position     integer not null default 0,
+  kind         text not null check (kind in ('single', 'multi', 'scale', 'short', 'long')),
+  prompt       text not null,
+  help         text,                                 -- smaller text under the question
+  options      text[] not null default '{}',         -- single / multi
+  allow_other  boolean not null default false,       -- single / multi
+  required     boolean not null default false,
+  scale_min    integer not null default 1,
+  scale_max    integer not null default 5,
+  min_label    text,                                 -- e.g. "Not at all"
+  max_label    text                                  -- e.g. "Very"
+);
+
+create index if not exists poll_questions_poll_idx on public.poll_questions (poll_id, position);
+
+-- One response per student per poll (changing answers updates it).
+create table if not exists public.poll_responses (
+  id               uuid primary key default gen_random_uuid(),
+  poll_id          uuid not null references public.polls (id) on delete cascade,
+  user_id          uuid not null references auth.users (id) on delete cascade,
+  course           text not null references public.courses (course) on update cascade,
+  term             text not null,
+  from_instructor  boolean not null default false,   -- an instructor trying it out
+  answers          jsonb not null default '{}'::jsonb,
+  submitted_at     timestamptz not null default now(),
+  updated_at       timestamptz not null default now(),
+  unique (poll_id, user_id)
+);
+
+create index if not exists poll_responses_enrollment_idx on public.poll_responses (course, term);
+create index if not exists poll_responses_user_idx on public.poll_responses (user_id);
+
+alter table public.polls enable row level security;
+alter table public.poll_questions enable row level security;
+alter table public.poll_responses enable row level security;
+-- Students reach polls only through the functions below. They may read their
+-- own responses; nobody can read anyone else's from the browser.
+revoke all on table public.polls from anon, authenticated;
+revoke all on table public.poll_questions from anon, authenticated;
+revoke all on table public.poll_responses from anon, authenticated;
+grant select on table public.poll_responses to authenticated;
+
+drop policy if exists "Students read their own poll responses" on public.poll_responses;
+create policy "Students read their own poll responses"
+  on public.poll_responses for select
+  to authenticated
+  using (user_id = (select auth.uid()));
+
+-- Who is taking a poll: the caller's enrollment that the poll is for (course
+-- and term), or an instructor of the course trying it out (test = true; the
+-- term is the poll's own, else the course's newest). Raises otherwise.
+create or replace function public.sds_poll_taker(p_poll uuid)
+returns table (course text, term text, test boolean)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_poll   public.polls;
+  v_course text;
+  v_term   text;
+begin
+  if auth.uid() is null then
+    raise exception 'Sign in to take this poll.' using errcode = '42501';
+  end if;
+  select * into v_poll from public.polls p where p.id = p_poll;
+  if v_poll.id is null then
+    raise exception 'That poll no longer exists.';
+  end if;
+  select e.course, e.term into v_course, v_term from public.current_enrollment(v_poll.course) e;
+  if v_course is not null and (v_poll.term is null or v_poll.term = v_term) then
+    return query select v_course, v_term, false;
+    return;
+  end if;
+  if public.is_instructor(v_poll.course) then
+    if v_poll.term is null then
+      select r.term into v_term from public.roster r
+      where r.course = v_poll.course order by r.added_at desc limit 1;
+    end if;
+    return query select v_poll.course, coalesce(v_poll.term, v_term, 'Test'), true;
+    return;
+  end if;
+  raise exception 'This poll is for another class or term.' using errcode = '42501';
+end;
+$$;
+
+revoke all on function public.sds_poll_taker(uuid) from public, anon, authenticated;
+
+-- A poll's questions as JSON, in order (for the site and the admin page).
+create or replace function public.sds_poll_questions_json(p_poll uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'id', q.id, 'position', q.position, 'kind', q.kind, 'prompt', q.prompt,
+           'help', q.help, 'options', to_jsonb(q.options), 'allow_other', q.allow_other,
+           'required', q.required, 'scale_min', q.scale_min, 'scale_max', q.scale_max,
+           'min_label', q.min_label, 'max_label', q.max_label)
+         order by q.position, q.prompt), '[]'::jsonb)
+  from public.poll_questions q
+  where q.poll_id = p_poll;
+$$;
+
+revoke all on function public.sds_poll_questions_json(uuid) from public, anon, authenticated;
+
+-- Check a student's answers against the poll's questions and return them
+-- cleaned up (trimmed, unknown questions and blank answers dropped). Raises
+-- with a message the student can act on.
+create or replace function public.sds_poll_clean_answers(p_poll uuid, p_answers jsonb)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  q      public.poll_questions;
+  v_in   jsonb := coalesce(p_answers, '{}'::jsonb);
+  v_out  jsonb := '{}'::jsonb;
+  v_val  jsonb;
+  v_txt  text;
+  v_list text[];
+  v_item text;
+  v_num  numeric;
+  v_n    integer := 0;
+begin
+  if jsonb_typeof(v_in) <> 'object' then
+    raise exception 'Answers must be a JSON object.';
+  end if;
+  for q in select * from public.poll_questions x where x.poll_id = p_poll order by x.position loop
+    v_n := v_n + 1;
+    v_val := v_in -> q.id::text;
+    if v_val is null or v_val = 'null'::jsonb then
+      v_val := null;
+    end if;
+
+    if q.kind in ('short', 'long', 'single') then
+      if v_val is not null and jsonb_typeof(v_val) not in ('string', 'number') then
+        raise exception 'Question %: answer with text.', v_n;
+      end if;
+      v_txt := nullif(btrim(left(coalesce(v_val #>> '{}', ''), case when q.kind = 'long' then 4000 else 500 end)), '');
+      if v_txt is not null and q.kind = 'single' and not (v_txt = any (q.options)) then
+        if q.allow_other and v_txt like 'Other:%' and length(btrim(substr(v_txt, 7))) > 0 then
+          v_txt := 'Other: ' || btrim(substr(v_txt, 7));
+        else
+          raise exception 'Question %: pick one of the choices.', v_n;
+        end if;
+      end if;
+      if v_txt is not null then
+        v_out := v_out || jsonb_build_object(q.id::text, v_txt);
+      end if;
+    elsif q.kind = 'multi' then
+      v_list := '{}';
+      if v_val is not null then
+        if jsonb_typeof(v_val) <> 'array' then
+          raise exception 'Question %: pick from the list.', v_n;
+        end if;
+        for v_item in select btrim(left(e, 500)) from jsonb_array_elements_text(v_val) e loop
+          continue when v_item = '' or v_item = any (v_list);
+          if v_item = any (q.options) then
+            v_list := v_list || v_item;
+          elsif q.allow_other and v_item like 'Other:%' and length(btrim(substr(v_item, 7))) > 0 then
+            v_list := v_list || ('Other: ' || btrim(substr(v_item, 7)));
+          else
+            raise exception 'Question %: "%" isn''t one of the choices.', v_n, left(v_item, 60);
+          end if;
+        end loop;
+      end if;
+      if cardinality(v_list) > 0 then
+        v_out := v_out || jsonb_build_object(q.id::text, to_jsonb(v_list));
+        v_txt := 'x';
+      else
+        v_txt := null;
+      end if;
+    elsif q.kind = 'scale' then
+      v_txt := null;
+      if v_val is not null then
+        begin
+          v_num := (v_val #>> '{}')::numeric;
+        exception when others then
+          raise exception 'Question %: pick a number.', v_n;
+        end;
+        if v_num <> trunc(v_num) or v_num < q.scale_min or v_num > q.scale_max then
+          raise exception 'Question %: pick a number from % to %.', v_n, q.scale_min, q.scale_max;
+        end if;
+        v_out := v_out || jsonb_build_object(q.id::text, v_num::integer);
+        v_txt := 'x';
+      end if;
+    end if;
+
+    if q.required and v_txt is null then
+      raise exception 'Question % needs an answer.', v_n;
+    end if;
+  end loop;
+  return v_out;
+end;
+$$;
+
+revoke all on function public.sds_poll_clean_answers(uuid, jsonb) from public, anon, authenticated;
+
+-- Open polls for the signed-in student in this course and term (instructors:
+-- every open poll of the course), newest first, and whether they've taken
+-- each one. The site's banner and Polls button come from this.
+create or replace function public.my_polls(p_course text default null)
+returns table (id uuid, title text, intro text, questions integer,
+               answered boolean, submitted_at timestamptz, updated_at timestamptz, test boolean)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_course text := nullif(lower(btrim(coalesce(p_course, ''))), '');
+  v_term   text;
+  v_test   boolean := false;
+begin
+  if auth.uid() is null then
+    return;
+  end if;
+  select e.course, e.term into v_course, v_term from public.current_enrollment(v_course) e;
+  if v_course is null then
+    v_course := nullif(lower(btrim(coalesce(p_course, ''))), '');
+    if v_course is null or not public.is_instructor(v_course) then
+      return;
+    end if;
+    v_test := true;
+  end if;
+  return query
+    select p.id, p.title, p.intro,
+           (select count(*)::integer from public.poll_questions q where q.poll_id = p.id),
+           r.id is not null, r.submitted_at, r.updated_at, v_test
+    from public.polls p
+    left join public.poll_responses r on r.poll_id = p.id and r.user_id = auth.uid()
+    where p.course = v_course and p.status = 'open'
+      and (v_test or p.term is null or p.term = v_term)
+    order by coalesce(p.opened_at, p.created_at) desc;
+end;
+$$;
+
+revoke all on function public.my_polls(text) from public, anon;
+grant execute on function public.my_polls(text) to authenticated;
+
+-- One open poll with its questions and the caller's answers so far (null if
+-- they haven't taken it).
+create or replace function public.get_poll(p_poll uuid, p_course text default null)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_poll public.polls;
+  v_resp public.poll_responses;
+  v_test boolean;
+begin
+  select t.test into v_test from public.sds_poll_taker(p_poll) t;
+  select * into v_poll from public.polls p where p.id = p_poll;
+  if v_poll.status <> 'open' and not public.is_instructor(v_poll.course) then
+    raise exception 'This poll is closed.';
+  end if;
+  select * into v_resp from public.poll_responses r
+  where r.poll_id = p_poll and r.user_id = auth.uid();
+  return jsonb_build_object(
+    'id', v_poll.id, 'title', v_poll.title, 'intro', v_poll.intro, 'status', v_poll.status,
+    'test', v_test,
+    'questions', public.sds_poll_questions_json(v_poll.id),
+    'answers', case when v_resp.id is null then null else v_resp.answers end,
+    'submitted_at', v_resp.submitted_at, 'updated_at', v_resp.updated_at);
+end;
+$$;
+
+revoke all on function public.get_poll(uuid, text) from public, anon;
+grant execute on function public.get_poll(uuid, text) to authenticated;
+
+-- Save (or change) the caller's answers to an open poll. p_answers is a JSON
+-- object keyed by question id. Returns when it was saved.
+create or replace function public.submit_poll(p_poll uuid, p_answers jsonb, p_course text default null)
+returns timestamptz
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_course text;
+  v_term   text;
+  v_test   boolean;
+  v_clean  jsonb;
+begin
+  select t.course, t.term, t.test into v_course, v_term, v_test from public.sds_poll_taker(p_poll) t;
+  if not exists (select 1 from public.polls p where p.id = p_poll and p.status = 'open') then
+    raise exception 'This poll is closed, so answers can''t be changed.';
+  end if;
+  if length(coalesce(p_answers, '{}'::jsonb)::text) > 100000 then
+    raise exception 'Those answers are too long.';
+  end if;
+  v_clean := public.sds_poll_clean_answers(p_poll, p_answers);
+  insert into public.poll_responses as r (poll_id, user_id, course, term, from_instructor, answers)
+  values (p_poll, auth.uid(), v_course, v_term, v_test, v_clean)
+  on conflict (poll_id, user_id) do update
+    set answers = excluded.answers, updated_at = now();
+  return now();
+end;
+$$;
+
+revoke all on function public.submit_poll(uuid, jsonb, text) from public, anon;
+grant execute on function public.submit_poll(uuid, jsonb, text) to authenticated;
+
+-- Admin: polls for the Polls tab. A term-specific poll shows only under its
+-- term (or All terms); an every-term poll shows under every term. responses
+-- counts students (not instructors' tests) in the picked term; eligible is
+-- the number of active students it's for.
+create or replace function public.admin_polls(p_course text default null, p_term text default null)
+returns table (
+  id uuid, course text, term text, title text, intro text, status text, questions integer,
+  responses bigint, test_responses bigint, eligible bigint, last_response timestamptz,
+  created_at timestamptz, updated_at timestamptz, opened_at timestamptz, closed_at timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_courses text[] := public.require_instructor(p_course);
+begin
+  return query
+    select p.id, p.course, p.term, p.title, p.intro, p.status,
+           (select count(*)::integer from public.poll_questions q where q.poll_id = p.id),
+           (select count(*) from public.poll_responses r
+            where r.poll_id = p.id and not r.from_instructor and (p_term is null or r.term = p_term)),
+           (select count(*) from public.poll_responses r where r.poll_id = p.id and r.from_instructor),
+           (select count(*) from public.roster s
+            where s.course = p.course and s.active
+              and (p.term is null or s.term = p.term) and (p_term is null or s.term = p_term)),
+           (select max(r.updated_at) from public.poll_responses r where r.poll_id = p.id),
+           p.created_at, p.updated_at, p.opened_at, p.closed_at
+    from public.polls p
+    where p.course = any (v_courses)
+      and (p_term is null or p.term is null or p.term = p_term)
+    order by (p.status = 'open') desc, coalesce(p.opened_at, p.created_at) desc;
+end;
+$$;
+
+-- Admin: one poll with its questions (the editor and the exports use this).
+create or replace function public.admin_poll(p_id uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_poll public.polls;
+begin
+  select * into v_poll from public.polls p where p.id = p_id;
+  if v_poll.id is null then
+    raise exception 'That poll no longer exists.';
+  end if;
+  perform public.require_instructor(v_poll.course);
+  return to_jsonb(v_poll) || jsonb_build_object('questions', public.sds_poll_questions_json(v_poll.id));
+end;
+$$;
+
+-- Admin: create or update a poll from JSON:
+--   {"id": null for a new poll, "course": "geog215", "term": "Spring 2027" or null,
+--    "title": "...", "intro": "...",
+--    "questions": [{"id": (keep for existing questions), "kind": "single",
+--                   "prompt": "...", "help": "...", "options": ["A", "B"],
+--                   "allow_other": false, "required": true,
+--                   "scale_min": 1, "scale_max": 5, "min_label": "", "max_label": ""}, ...]}
+-- Questions are saved in the order given. A question left out is deleted
+-- (answers already given to it stay in the responses but aren't exported).
+-- Status isn't changed here; see admin_set_poll_status. Returns the poll id.
+create or replace function public.admin_save_poll(p_poll jsonb)
+returns uuid
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_id     uuid := nullif(p_poll ->> 'id', '')::uuid;
+  v_course text := nullif(lower(btrim(coalesce(p_poll ->> 'course', ''))), '');
+  v_term   text := nullif(btrim(coalesce(p_poll ->> 'term', '')), '');
+  v_title  text := nullif(btrim(left(coalesce(p_poll ->> 'title', ''), 200)), '');
+  v_intro  text := nullif(btrim(left(coalesce(p_poll ->> 'intro', ''), 4000)), '');
+  v_qs     jsonb := coalesce(p_poll -> 'questions', '[]'::jsonb);
+  v_q      jsonb;
+  v_qid    uuid;
+  v_keep   uuid[] := '{}';
+  v_kind   text;
+  v_prompt text;
+  v_opts   text[];
+  v_min    integer;
+  v_max    integer;
+  v_pos    integer := 0;
+  v_me     text := (select lower(u.email) from auth.users u where u.id = auth.uid());
+begin
+  if v_id is not null then
+    select p.course into v_course from public.polls p where p.id = v_id;
+    if v_course is null then
+      raise exception 'That poll no longer exists.';
+    end if;
+  end if;
+  if v_course is null then
+    raise exception 'Pick a course for the poll.';
+  end if;
+  perform public.require_instructor(v_course);
+  if v_title is null then
+    raise exception 'Give the poll a title.';
+  end if;
+  if jsonb_typeof(v_qs) <> 'array' or jsonb_array_length(v_qs) = 0 then
+    raise exception 'Add at least one question.';
+  end if;
+  if jsonb_array_length(v_qs) > 100 then
+    raise exception 'A poll can have at most 100 questions.';
+  end if;
+
+  if v_id is null then
+    insert into public.polls (course, term, title, intro, created_by)
+    values (v_course, v_term, v_title, v_intro, v_me)
+    returning id into v_id;
+  else
+    update public.polls p
+    set term = v_term, title = v_title, intro = v_intro, updated_at = now()
+    where p.id = v_id;
+  end if;
+
+  for v_q in select * from jsonb_array_elements(v_qs) loop
+    v_pos := v_pos + 1;
+    v_kind := lower(btrim(coalesce(v_q ->> 'kind', '')));
+    v_prompt := nullif(btrim(left(coalesce(v_q ->> 'prompt', ''), 1000)), '');
+    if v_kind not in ('single', 'multi', 'scale', 'short', 'long') then
+      raise exception 'Question %: the type must be single, multi, scale, short or long.', v_pos;
+    end if;
+    if v_prompt is null then
+      raise exception 'Question % has no text.', v_pos;
+    end if;
+    select coalesce(array_agg(o order by n), '{}') into v_opts
+    from (select distinct on (btrim(o)) btrim(left(o, 300)) as o, n
+          from jsonb_array_elements_text(
+                 case when jsonb_typeof(v_q -> 'options') = 'array' then v_q -> 'options' else '[]'::jsonb end
+               ) with ordinality as t(o, n)
+          where btrim(o) <> '' order by btrim(o), n) d;
+    if v_kind in ('single', 'multi') and cardinality(v_opts) = 0 then
+      raise exception 'Question % needs at least one choice.', v_pos;
+    end if;
+    if v_kind <> 'scale' then
+      v_min := 1; v_max := 5;
+    else
+      v_min := coalesce(nullif(v_q ->> 'scale_min', '')::integer, 1);
+      v_max := coalesce(nullif(v_q ->> 'scale_max', '')::integer, 5);
+      if v_min < 0 or v_max > 10 or v_max <= v_min then
+        raise exception 'Question %: the scale must run from 0 or 1 up to at most 10.', v_pos;
+      end if;
+    end if;
+    v_qid := nullif(v_q ->> 'id', '')::uuid;
+    if v_qid is not null and not exists (
+         select 1 from public.poll_questions x where x.id = v_qid and x.poll_id = v_id) then
+      v_qid := null;
+    end if;
+    if v_qid is null then
+      insert into public.poll_questions (poll_id, position, kind, prompt) values (v_id, v_pos, v_kind, v_prompt)
+      returning id into v_qid;
+    end if;
+    update public.poll_questions x
+    set position = v_pos, kind = v_kind, prompt = v_prompt,
+        help = nullif(btrim(left(coalesce(v_q ->> 'help', ''), 1000)), ''),
+        options = case when v_kind in ('single', 'multi') then v_opts else '{}' end,
+        allow_other = v_kind in ('single', 'multi') and coalesce((v_q ->> 'allow_other')::boolean, false),
+        required = coalesce((v_q ->> 'required')::boolean, false),
+        scale_min = v_min, scale_max = v_max,
+        min_label = case when v_kind = 'scale' then nullif(btrim(left(coalesce(v_q ->> 'min_label', ''), 100)), '') end,
+        max_label = case when v_kind = 'scale' then nullif(btrim(left(coalesce(v_q ->> 'max_label', ''), 100)), '') end
+    where x.id = v_qid;
+    v_keep := v_keep || v_qid;
+  end loop;
+
+  delete from public.poll_questions x where x.poll_id = v_id and not (x.id = any (v_keep));
+  return v_id;
+end;
+$$;
+
+-- Admin: open a poll (students see it), close it (hidden, answers kept, no
+-- more changes), or put it back to draft.
+create or replace function public.admin_set_poll_status(p_id uuid, p_status text)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_course text;
+begin
+  select p.course into v_course from public.polls p where p.id = p_id;
+  if v_course is null then
+    raise exception 'That poll no longer exists.';
+  end if;
+  perform public.require_instructor(v_course);
+  if p_status is null or p_status not in ('draft', 'open', 'closed') then
+    raise exception 'Status must be draft, open or closed.';
+  end if;
+  update public.polls p
+  set status = p_status, updated_at = now(),
+      opened_at = case when p_status = 'open' and p.status <> 'open' then now() else p.opened_at end,
+      closed_at = case when p_status = 'closed' and p.status <> 'closed' then now()
+                       when p_status <> 'closed' then null else p.closed_at end
+  where p.id = p_id;
+end;
+$$;
+
+-- Admin: every response to a poll (one term, or all with p_term null), with
+-- the student's name and email from the roster.
+create or replace function public.admin_poll_responses(p_id uuid, p_term text default null)
+returns table (
+  id uuid, student_name text, email text, code text, term text, note text,
+  from_instructor boolean, submitted_at timestamptz, updated_at timestamptz, answers jsonb
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_course text;
+begin
+  select p.course into v_course from public.polls p where p.id = p_id;
+  if v_course is null then
+    raise exception 'That poll no longer exists.';
+  end if;
+  perform public.require_instructor(v_course);
+  return query
+    select x.id,
+           coalesce(r.student_name, case when x.from_instructor then 'Instructor (test)' end, u.email),
+           coalesce(r.email, lower(u.email)), r.code, x.term, r.note,
+           x.from_instructor, x.submitted_at, x.updated_at, x.answers
+    from public.poll_responses x
+    left join auth.users u on u.id = x.user_id
+    left join lateral (
+      select r.student_name, r.email, r.code, r.note from public.roster r
+      where r.user_id = x.user_id and r.course = x.course and r.term = x.term
+      order by r.added_at desc limit 1) r on true
+    where x.poll_id = p_id and (p_term is null or x.term = p_term)
+    order by x.submitted_at;
+end;
+$$;
+
+-- Admin: delete one response (for example your own test), or a whole poll
+-- with all of its responses.
+create or replace function public.admin_delete_poll_response(p_id uuid)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_course text;
+begin
+  select x.course into v_course from public.poll_responses x where x.id = p_id;
+  if v_course is null then
+    return;
+  end if;
+  perform public.require_instructor(v_course);
+  delete from public.poll_responses x where x.id = p_id;
+end;
+$$;
+
+create or replace function public.admin_delete_poll(p_id uuid)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_course text;
+begin
+  select p.course into v_course from public.polls p where p.id = p_id;
+  if v_course is null then
+    return;
+  end if;
+  perform public.require_instructor(v_course);
+  delete from public.polls p where p.id = p_id;
+end;
+$$;
+
+do $$
+declare f text;
+begin
+  foreach f in array array[
+    'admin_polls(text, text)', 'admin_poll(uuid)', 'admin_save_poll(jsonb)',
+    'admin_set_poll_status(uuid, text)', 'admin_poll_responses(uuid, text)',
+    'admin_delete_poll_response(uuid)', 'admin_delete_poll(uuid)'
+  ] loop
+    execute format('revoke all on function public.%s from public, anon', f);
+    execute format('grant execute on function public.%s to authenticated', f);
+  end loop;
+end;
+$$;
+
+-- 8a. Example: start-of-semester survey (GEOG 215) ------------------------------
+-- (sds_seeded remembers that it was added, so deleting it on the admin page
+-- doesn't bring it back the next time this file runs.)
+create table if not exists public.sds_seeded (
+  key      text primary key,
+  added_at timestamptz not null default now()
+);
+alter table public.sds_seeded enable row level security;
+revoke all on table public.sds_seeded from anon, authenticated;
+
+-- Based on the Google Form "Fall 2026 Student Start-of-Semester Survey
+-- (SSoSS)". Added once, as a draft for every term; edit it on the admin
+-- page's Polls tab and open it when you're ready. Re-running this file never
+-- changes or re-adds it (delete it on the admin page if you don't want it).
+do $$
+declare
+  v_poll uuid;
+  v_pos  integer := 0;
+  q      jsonb;
+begin
+  if exists (select 1 from public.sds_seeded s where s.key = 'poll:geog215:start-of-semester')
+     or exists (select 1 from public.polls p where p.course = 'geog215' and p.seed_key = 'start-of-semester')
+     or not exists (select 1 from public.courses c where c.course = 'geog215') then
+    return;
+  end if;
+  insert into public.sds_seeded (key) values ('poll:geog215:start-of-semester');
+  insert into public.polls (course, term, title, intro, seed_key, created_by)
+  values ('geog215', null, 'Start-of-semester survey',
+          'Help me get to know you! This takes about 10 minutes. Your answers go only to me '
+          || '(Dr. Parr), with your name, and aren''t graded. Questions marked * need an answer; '
+          || 'you can change your answers until the survey closes.',
+          'start-of-semester', 'setup.sql')
+  returning id into v_poll;
+
+  for q in select * from jsonb_array_elements($json$[
+    {"kind": "short", "prompt": "What name do you like to be called?",
+     "help": "Your first name, a nickname, or anything else you go by."},
+    {"kind": "short", "prompt": "How do you pronounce your name?",
+     "help": "I won't share the answer with the class, but it is helpful for me to refer to when learning names."},
+    {"kind": "single", "prompt": "What pronouns do you prefer?",
+     "options": ["she/her", "he/him", "they/them", "Prefer not to say"], "allow_other": true},
+    {"kind": "single", "prompt": "What year are you at in school?", "required": true,
+     "options": ["First-Year / Freshman / Freshwoman / Freshperson", "Sophomore", "Junior", "Senior",
+                 "Graduate student"], "allow_other": true},
+    {"kind": "short", "prompt": "What are you planning to major/majoring in?", "required": true},
+    {"kind": "scale", "prompt": "How would you rate your comfort level with computers?", "required": true,
+     "scale_min": 1, "scale_max": 5, "min_label": "Not comfortable", "max_label": "Very comfortable"},
+    {"kind": "multi", "prompt": "Which of the following programming languages have you used before?",
+     "help": "Pick all that apply, or none.",
+     "options": ["Python", "R", "JavaScript", "C/C++", "Java", "SQL", "SAS", "MATLAB"], "allow_other": true},
+    {"kind": "single", "prompt": "How many college-level math classes have you taken?", "required": true,
+     "options": ["None (0)", "1", "2", "3", "4", "5 or more"]},
+    {"kind": "multi", "prompt": "What kind(s) of computer do you use or have access to?", "required": true,
+     "options": ["Windows Laptop", "Windows PC", "Apple Mac Laptop (like a Macbook)", "Apple iMac",
+                 "Chromebook", "iPad Tablet", "Linux"], "allow_other": true},
+    {"kind": "single", "prompt": "Have you read the syllabus and course resources yet?", "required": true,
+     "options": ["Yes", "No", "Maybe"]},
+    {"kind": "single", "prompt": "Will you read the syllabus and course resources?", "required": true,
+     "options": ["Yes", "No", "Maybe"]},
+    {"kind": "single", "required": true,
+     "prompt": "Outside of the classroom, how much time do you normally spend on classwork each week for each class on average?",
+     "options": ["Less than 2 hours", "2-4 hours", "4-6 hours", "6-8 hours", "8-10 hours", "More than 10 hours"]},
+    {"kind": "scale", "prompt": "On a scale of 1 to 5, how well do you handle obstacles and difficulty when they come up?",
+     "required": true, "scale_min": 1, "scale_max": 5, "min_label": "Not well", "max_label": "Very well"},
+    {"kind": "long", "prompt": "What's a piece of culture (movie, book, piece of music, video, game, etc) that you love that I should watch, read, listen to, or play?"},
+    {"kind": "long", "prompt": "What was your favorite experience from this summer?",
+     "help": "(Mine was hiking the redwoods in California.)"},
+    {"kind": "single", "prompt": "Are you from North Carolina? (Just curious!)",
+     "options": ["Yes", "No", "Sort of"]},
+    {"kind": "long", "prompt": "What's something about you that you want me to know?",
+     "help": "I won't share this with the class."},
+    {"kind": "long", "prompt": "What's something about me (Dr. Parr) that you'd like to know?"},
+    {"kind": "long", "prompt": "I learn best from teachers that ..."},
+    {"kind": "long", "prompt": "I struggle to learn from teachers that ..."},
+    {"kind": "long", "prompt": "Do you have any questions or concerns? What would you like to know?",
+     "help": "I'll sum these up and answer them in class."}
+  ]$json$::jsonb) loop
+    v_pos := v_pos + 1;
+    insert into public.poll_questions (poll_id, position, kind, prompt, help, options, allow_other,
+                                       required, scale_min, scale_max, min_label, max_label)
+    values (v_poll, v_pos, q ->> 'kind', q ->> 'prompt', q ->> 'help',
+            coalesce(array(select jsonb_array_elements_text(q -> 'options')), '{}'),
+            coalesce((q ->> 'allow_other')::boolean, false), coalesce((q ->> 'required')::boolean, false),
+            coalesce((q ->> 'scale_min')::integer, 1), coalesce((q ->> 'scale_max')::integer, 5),
+            q ->> 'min_label', q ->> 'max_label');
   end loop;
 end;
 $$;

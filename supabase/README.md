@@ -44,6 +44,8 @@ a new question or cell on the admin page.
 | --- | --- |
 | `supabase/setup.sql` | Tables, the sign-up rules, progress tracking and the admin functions. Run in the SQL Editor. |
 | `assets/auth-gate.html` | The sign-in screen on every geog215.org page. |
+| `assets/questions.html` | "Ask a question" on highlighted text, and the students' **My questions** list (see [Questions](#questions-on-highlighted-text)). |
+| `assets/polls.html` | Poll and survey banner, the poll itself, and the students' **Polls** list (see [Polls and surveys](#polls-and-surveys)). |
 | `admin/index.html` | Your admin page at https://geog215.org/admin/ (geog215.org only, never daveparr.com). |
 
 ## One-time setup
@@ -164,7 +166,9 @@ course, and one with `courses = '{geog370}'` sees only GEOG 370.
 
 | Tab | |
 | --- | --- |
+| **Questions** | Questions students asked about text they highlighted, newest first, with the number still open on the tab. Each shows the student, the page and section (the link opens that spot with the text marked), the highlighted text and the question. **Save answer** shows your answer to the student under *My questions*; **Close without answering** is for ones you dealt with in class or by email; **Reopen**, **Email student** and **Delete** do what they say. The badge says whether the email to you went out. |
 | **Students** | Every student with their email, term, group, status (*Has signed in* / *Not signed in yet* / *Locked out*), pages opened, chapter quiz score and success, self-check questions right (of those answered), code runs and last activity. Search by name or email, and filter by group or status. **Lock out** / **Let back in** (this course only), **Delete** (removes them and their progress from this course and term, and their account too unless they're in another course or term). Click a name to see their activity, quiz answers and code runs. |
+| **Polls** | Polls and surveys: write, open and close them, see results, and download responses as CSV or Excel. See [Polls and surveys](#polls-and-surveys). |
 | **Add students** | Paste one student per line as `Name, email` (comma or tab, so two columns pasted from a spreadsheet or Canvas export work too), plus the term (required) and an optional group such as a section. They're added to the course picked in the header. Emails already on that course and term are skipped. Added students can sign in straight away, including students who already have an account from another term or class. |
 | **Activity** | The latest page opens, for everyone or one student. |
 | **Pages** | How many students have opened each page. |
@@ -226,8 +230,115 @@ delete from public.quiz_responses        where course = 'geog215' and term = 'Fa
 delete from public.code_runs             where course = 'geog215' and term = 'Fall 2026';
 delete from public.chapter_quiz_answers  where course = 'geog215' and term = 'Fall 2026';
 delete from public.chapter_quiz_sessions where course = 'geog215' and term = 'Fall 2026';
+delete from public.questions             where course = 'geog215' and term = 'Fall 2026';
+delete from public.poll_responses        where course = 'geog215' and term = 'Fall 2026';
 delete from public.roster                where course = 'geog215' and term = 'Fall 2026';
 ```
+
+## Questions on highlighted text
+
+A signed-in student highlights text in a chapter, and an **Ask a question**
+button appears under it. They type a question and send it. The site saves it
+in `public.questions` (with the highlighted text, page and section) and emails
+it to you, one email per question:
+
+- **From** `GEOG 215 Questions <questions@mail.geog215.org>`, **to** the
+  course's `questions_email` (GEOG 215: `daveparr@unc.edu`), with the subject
+  *New question on* and the page's title.
+- It says "A student asked a question" and has the page and section, the
+  highlighted text, the question, a link that opens the page with that text
+  marked, and a link to the admin page. It deliberately leaves out the
+  student's name and email address (UNC's mail filtering held emails that had
+  them); the admin page's Questions tab shows who asked.
+
+Answer on the admin page's **Questions** tab. Students see their questions and
+your answers under **My questions** in the bottom-right corner of every page
+(with a count of new answers). Students only ever see their own questions.
+
+### Setting up the email (once)
+
+1. **Resend > API Keys > Create API key**: name it `geog215 questions`, choose
+   *Sending access*, and limit it to `mail.geog215.org`. Copy it.
+2. **Supabase > SQL Editor**, with your key in place of `re_...`:
+   ```sql
+   select vault.create_secret('re_...', 'resend_api_key');
+   ```
+   This stores it encrypted in Supabase Vault. To replace it later:
+   `select vault.update_secret((select id from vault.secrets where name = 'resend_api_key'), 're_new...');`
+3. Run `supabase/setup.sql` (it turns on the `pg_net` extension that sends
+   the email, and creates the table and functions).
+4. Test it: on any chapter page, signed in through /admin/, highlight some
+   text and ask a question. It's filed as *Instructor (test)*; check that the
+   email arrives and that the Questions tab shows **Emailed**, then delete it.
+
+Without the key, questions are still saved and shown on the admin page; the
+Questions tab says *Email not sent: no resend_api_key in Vault*.
+
+To send a course's questions somewhere else (or stop the emails):
+
+```sql
+update public.courses set questions_email = 'you@unc.edu' where course = 'geog215';
+update public.courses set questions_email = null where course = 'geog215';  -- no emails
+```
+
+### Limits
+
+Resend's free plan sends **100 emails a day**, shared with sign-in codes. So:
+
+- Question emails stop after **60 in 24 hours** (all courses together), which
+  leaves at least 40 for sign-in codes. Questions past that are still saved
+  and appear on the Questions tab (*Email not sent: daily email limit*).
+- One student can ask at most **20 questions in 24 hours**.
+
+Both numbers are in `sds_question_email_daily_limit()` and
+`sds_question_student_daily_limit()` in `setup.sql`. If the email limit
+starts to bite, the emails could become one daily digest instead, or Resend
+Pro ($20/month) has no daily cap.
+
+## Polls and surveys
+
+Short polls and longer surveys that students answer on the site. You write
+them on the admin page's **Polls** tab; they're stored in `public.polls` and
+`public.poll_questions`, and each student's answers in one row of
+`public.poll_responses` (section 8 of `setup.sql`).
+
+- **Draft** (where every new poll starts): students never see it.
+- **Open**: every signed-in student it's for sees a banner at the top of
+  every page until they take it (**Later** hides it until they open a new
+  tab). A **Polls** button in the bottom-right corner lists every open poll,
+  so they can go back and change their answers.
+- **Closed**: hidden again, and answers can't be changed. Every answer is
+  kept; **Reopen** brings it back.
+
+A poll is for one term (pick it under **For**) or for every term. Question
+types: **Pick one** (radio buttons), **Pick any** (checkboxes), **Scale**
+(for example 1 to 5, with labels for the ends), **Short text** and
+**Paragraph**. Pick one and Pick any can add an **Other** choice with a text
+box. Mark a question **Required** and students can't submit without it.
+
+Poll answers aren't anonymous: they're saved with the student's account,
+and the admin page shows names. Students can read only their own.
+
+On the Polls tab:
+
+| Button | |
+| --- | --- |
+| **New poll** / **Edit** / **Copy** | Write or change a poll. Changing wording after students have answered is fine; removing a question leaves its answers out of the downloads. **Copy** is handy for reusing last term's survey. |
+| **Open** / **Close** / **Back to draft** | Show the poll to students, or hide it. |
+| **Results** | A summary of each question (counts and shares, the average for scales, every text answer with who wrote it) and a table of responses. Delete a single response there (for example your own test). |
+| **CSV** / **Excel** | Download the responses for the term picked in the header: one row per student, one column per question (Pick any answers joined with `;`). The Excel file has a second *Summary* sheet with the counts. Your own test answers are left out unless you tick *Include instructor tests* on the Results view. |
+| **Delete** | The poll and every response to it, in every term. Download first. |
+
+**Try a poll yourself:** sign in at /admin/, open the poll, then open any
+chapter. You see the banner too (marked *Instructor preview*); your answers
+are saved as an instructor test, which the counts and downloads leave out.
+
+`setup.sql` adds an example **Start-of-semester survey** (based on the
+Fall 2026 Google Form) as a draft for every term, once. Edit it, open it when
+you're ready, or delete it. Re-running `setup.sql` never re-adds or changes it.
+
+A direct link opens a poll on any page: `https://geog215.org/preface.html?sds-poll=<poll id>`
+(the id is in `public.polls`), for example from a Canvas announcement.
 
 ## Adding another class
 
@@ -247,17 +358,20 @@ project, or a different book).
 3. **Supabase > Authentication > URL Configuration:** add the new site to
    **Redirect URLs** (e.g. `https://geog370.org/**`), or the emailed link
    won't bring students back to it. The code in the email works either way.
-4. **Email template:** the sign-in email says "GEOG 215". Supabase has one
+4. **Questions email:** set where its questions go:
+   `update public.courses set questions_email = 'you@unc.edu' where course = 'geog370';`
+   Copy `assets/questions.html` along with the gate.
+5. **Email template:** the sign-in email says "GEOG 215". Supabase has one
    template for the whole project, so make its wording general (for example
    "Sign in to your course textbook") once a second class uses it.
-5. **Instructors:** you see every course already. To add an instructor for
+6. **Instructors:** you see every course already. To add an instructor for
    only the new class:
    ```sql
    insert into public.instructors (email, courses) values ('ta@unc.edu', '{geog370}');
    ```
    They use the same admin page (https://geog215.org/admin/) and see only
    their courses.
-6. **Add students** on the admin page: pick the course in the header, then
+7. **Add students** on the admin page: pick the course in the header, then
    **Add students** with the term.
 
 ## Troubleshooting

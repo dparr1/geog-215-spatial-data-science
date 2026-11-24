@@ -13,6 +13,8 @@ project:
   resources:
     - quizzes/*.json
     - assets/quiz/
+    # OpenDyslexic for the reading settings menu (assets/reader-settings.css).
+    - assets/fonts/
 
 book:
   title: "Introduction to Spatial Data Science"
@@ -27,7 +29,10 @@ bibliography: references.bib
 
 format:
   html:
-    theme: sandstone
+    # Sandstone plus Atkinson Hyperlegible fonts (assets/fonts.scss).
+    theme:
+      - sandstone
+      - assets/fonts.scss
     code-copy: true
     code-overflow: wrap
     toc-depth: 3
@@ -35,11 +40,23 @@ format:
     tbl-cap-location: top
     # webexercises (interactive self-check questions); from
     # webexercises::add_to_quarto(), copied to include/ by hand
-    css: include/webex.css
+    css:
+      - include/webex.css
+      # Indents chapter quiz pages in the left sidebar.
+      - assets/sidebar.css
+      # Grade table row colors on the syllabus page.
+      - assets/grade-table.css
+      # Reader-chosen font and text size ("Aa" menu by search).
+      - assets/reader-settings.css
+    # Applies the saved font and text size before the page draws.
+    include-in-header:
+      - assets/reader-settings-head.html
     include-after-body:
       - include/webex.js
       # Highlights the current page in the top menu.
       - assets/navbar-active.html
+      # The "Aa" reading settings menu (font and text size).
+      - assets/reader-settings.html
     # The Supabase sign-in gate is added only for geog215.org, by the
     # `geog215` profile (_quarto-geog215.yml). daveparr.com stays public.
 

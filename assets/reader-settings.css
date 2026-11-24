@@ -1,0 +1,109 @@
+/* Reading settings: font and text size chosen by the reader in the "Aa" menu
+   (assets/reader-settings.html). The choice is stored in the browser and set
+   as data-reader-font / data-reader-size on <html>. */
+
+/* OpenDyslexic, self-hosted (SIL Open Font License, assets/fonts/opendyslexic/OFL.txt).
+   Browsers only download it when a reader picks it. */
+@font-face { font-family: "OpenDyslexic"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url(fonts/opendyslexic/opendyslexic-latin-400-normal.woff2) format("woff2"); }
+@font-face { font-family: "OpenDyslexic"; font-style: italic; font-weight: 400; font-display: swap;
+  src: url(fonts/opendyslexic/opendyslexic-latin-400-italic.woff2) format("woff2"); }
+@font-face { font-family: "OpenDyslexic"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url(fonts/opendyslexic/opendyslexic-latin-700-normal.woff2) format("woff2"); }
+@font-face { font-family: "OpenDyslexic"; font-style: italic; font-weight: 700; font-display: swap;
+  src: url(fonts/opendyslexic/opendyslexic-latin-700-italic.woff2) format("woff2"); }
+
+/* Fonts. Atkinson Hyperlegible (the default) comes from assets/fonts.scss. */
+html[data-reader-font="lexend"] {
+  --bs-body-font-family: "Lexend", "Atkinson Hyperlegible Next", sans-serif;
+}
+html[data-reader-font="cardo"] {
+  --bs-body-font-family: "Cardo", Georgia, Cambria, "Times New Roman", serif;
+}
+html[data-reader-font="sans"] {
+  --bs-body-font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+html[data-reader-font="serif"] {
+  --bs-body-font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+}
+html[data-reader-font="dyslexic"] {
+  --bs-body-font-family: "OpenDyslexic", "Atkinson Hyperlegible Next", sans-serif;
+}
+/* Some Quarto and webexercises pieces set their own font; keep them in step. */
+html[data-reader-font] body,
+html[data-reader-font] .navbar,
+html[data-reader-font] .sidebar,
+html[data-reader-font] #TOC,
+html[data-reader-font] .callout,
+html[data-reader-font] button,
+html[data-reader-font] input,
+html[data-reader-font] select {
+  font-family: var(--bs-body-font-family);
+}
+
+/* Text size. Everything on the page is sized in rem, so scaling the root
+   scales text, headings, code, tables and spacing together. */
+html[data-reader-size="-1"] { font-size: 87.5%; }
+html[data-reader-size="1"]  { font-size: 112.5%; }
+html[data-reader-size="2"]  { font-size: 125%; }
+html[data-reader-size="3"]  { font-size: 150%; }
+
+/* The "Aa" button and its menu. */
+.sds-reader { position: relative; display: flex; align-items: center; }
+.sds-reader-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 2.5rem; height: 2.25rem; padding: 0 0.5rem;
+  border: 1px solid transparent; border-radius: 6px; background: transparent;
+  color: inherit; font-weight: 700; font-size: 1rem; line-height: 1; cursor: pointer;
+  text-transform: none;
+}
+/* Top menu: sit just left of the search icon, which Quarto orders last on
+   wide screens and 4th (after the menu button) on narrow ones. */
+.navbar-container > .sds-reader { order: 998; margin-left: auto; }
+.navbar-container > .sds-reader ~ #quarto-search { margin-left: 0.25rem; }
+@media (max-width: 991.98px) {
+  .navbar-container > .sds-reader { order: 3; }
+  /* Leave room for the extra button so search doesn't wrap to a new line. */
+  .navbar-container > .navbar-brand-container { max-width: calc(100% - 160px); }
+}
+.navbar .sds-reader-toggle { color: var(--bs-navbar-color, rgba(255, 255, 255, 0.75)); }
+.sds-reader-toggle:hover,
+.sds-reader-toggle[aria-expanded="true"] { border-color: currentColor; }
+.sds-reader-toggle:focus-visible { outline: 3px solid #93c47d; outline-offset: 2px; }
+
+.sds-reader-panel {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 1100;
+  width: 18rem; max-width: calc(100vw - 32px); padding: 1rem;
+  background: #fff; color: #212529; border: 1px solid #ced4da; border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+  text-transform: none; letter-spacing: normal; text-align: left;
+}
+.sds-reader-panel[hidden] { display: none; }
+.sds-reader-panel h2 { font-size: 1rem; margin: 0 0 0.75rem; border: 0; padding: 0; }
+.sds-reader-panel fieldset { border: 0; margin: 0 0 1rem; padding: 0; }
+.sds-reader-panel legend { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem; float: none; }
+.sds-reader-font label {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.35rem 0.5rem; border-radius: 6px; cursor: pointer; font-size: 1rem;
+}
+.sds-reader-font label:hover { background: #f1f3f5; }
+.sds-reader-font input { margin: 0; float: none; flex: none; }
+.sds-reader-size-row { display: flex; align-items: center; gap: 0.5rem; }
+.sds-reader-size-row button,
+.sds-reader-reset {
+  border: 1px solid #ced4da; border-radius: 6px; background: #f8f9fa; color: #212529;
+  padding: 0.3rem 0.7rem; font-weight: 700; cursor: pointer; line-height: 1.2;
+}
+.sds-reader-size-row button:disabled { opacity: 0.45; cursor: default; }
+.sds-reader-size-row output { flex: 1; text-align: center; font-size: 0.9rem; }
+.sds-reader-reset { width: 100%; font-weight: 400; }
+.sds-reader-panel button:focus-visible,
+.sds-reader-font input:focus-visible { outline: 3px solid #93c47d; outline-offset: 2px; }
+
+/* Textbook-only build (daveparr.com, no top menu): the button sits under the
+   sidebar search, and the menu opens in place because the sidebar clips
+   anything that floats outside it. */
+.sidebar .sds-reader { display: block; margin-top: 0.5rem; }
+.sidebar .sds-reader-panel {
+  position: static; width: auto; max-width: none; margin-top: 0.5rem; box-shadow: none;
+}
