@@ -24,6 +24,7 @@ book:
           - privacy.qmd
 
   chapters:
+    - index.qmd
     - preface.qmd
     # Each chapter is followed by its (unnumbered) chapter quiz page.
     - part: "Unit 1: R and Spatial Data Science"
