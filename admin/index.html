@@ -174,6 +174,42 @@
   .q-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; align-items: center; }
   .q-actions .spacer { flex: 1; }
   .q-answered-by { font-size: 0.8rem; color: var(--muted); }
+
+  /* Polls tab */
+  .tabs .count.info { background: var(--ok-bg); color: var(--ok); }
+  .poll-card { padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+  .poll-card.open { border-left: 4px solid var(--ok); }
+  .poll-card.draft { border-left: 4px solid var(--border); }
+  .poll-card.closed { border-left: 4px solid var(--muted); }
+  .poll-card h3 { margin: 0 0 6px; font-size: 1.02rem; }
+  .poll-card .poll-intro { margin: 0 0 8px; color: var(--muted); font-size: 0.88rem; white-space: pre-wrap;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .poll-progress { display: flex; align-items: center; gap: 10px; margin: 6px 0 4px; font-size: 0.88rem; }
+  .poll-progress .bar { flex: 0 1 220px; }
+  .poll-sum { display: grid; gap: 14px; margin-bottom: 16px; }
+  .poll-sum .item { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; }
+  .poll-sum h4 { margin: 0 0 6px; font-size: 0.95rem; }
+  .poll-sum .opt { display: grid; grid-template-columns: minmax(120px, 2fr) minmax(100px, 3fr) 5.5em; gap: 8px;
+    align-items: center; font-size: 0.86rem; padding: 2px 0; }
+  .poll-sum .opt .n { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+  .poll-sum details { margin-top: 4px; }
+  .poll-sum ul.texts { margin: 6px 0 0; padding-left: 18px; font-size: 0.88rem; max-height: 300px; overflow: auto; }
+  .poll-sum ul.texts li { margin: 3px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .poll-sum ul.texts .who { color: var(--muted); font-size: 0.8rem; }
+  .poll-edit .grid2 { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+  @media (max-width: 640px) { .poll-edit .grid2 { grid-template-columns: 1fr; } }
+  .poll-edit textarea { min-height: 70px; }
+  .poll-edit .field { margin-bottom: 10px; }
+  .pq { padding: 10px 12px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); }
+  .pq .pq-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .pq .pq-head strong { margin-right: auto; }
+  .pq .pq-head select { width: auto; }
+  .pq .checks { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 6px; }
+  .pq .checks label { display: flex; gap: 6px; align-items: center; font-weight: 400; margin: 0; }
+  .pq .checks input { width: auto; }
+  .pq .scale-row { display: grid; grid-template-columns: 5em 5em 1fr 1fr; gap: 8px; }
+  @media (max-width: 640px) { .pq .scale-row { grid-template-columns: 1fr 1fr; } }
+  .td-answer { min-width: 140px; max-width: 280px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.85rem; }
 </style>
 </head>
 <body>
@@ -246,6 +282,7 @@
     <div class="tabs" role="tablist">
       <button role="tab" data-tab="students" aria-selected="true">Students</button>
       <button role="tab" data-tab="questions" aria-selected="false">Questions<span class="count" id="questions-count" hidden></span></button>
+      <button role="tab" data-tab="polls" aria-selected="false">Polls<span class="count info" id="polls-count" hidden></span></button>
       <button role="tab" data-tab="add" aria-selected="false">Add students</button>
       <button role="tab" data-tab="activity" aria-selected="false">Activity</button>
       <button role="tab" data-tab="pages" aria-selected="false">Pages</button>
@@ -459,6 +496,72 @@
       <div class="q-list" id="questions-list"></div>
     </div>
 
+    <!-- Polls and surveys (assets/polls.html; setup.sql section 8) -->
+    <div class="panel" data-panel="polls" hidden>
+      <!-- List of polls -->
+      <div id="polls-list-view">
+        <div class="toolbar">
+          <div><p class="hint" style="margin:0">Students see an <strong>open</strong> poll as a banner at the top of every
+            page until they take it, and can change their answers until you close it. <strong>Drafts</strong> and
+            <strong>closed</strong> polls are hidden from students; closing keeps every answer.</p></div>
+          <div class="toolbar-action"><button class="btn" type="button" id="poll-new">New poll</button></div>
+        </div>
+        <div class="q-list" id="polls-list"></div>
+      </div>
+
+      <!-- One poll's results -->
+      <div id="poll-results-view" hidden>
+        <div class="toolbar">
+          <div>
+            <button class="btn secondary small" type="button" data-pback>&larr; All polls</button>
+            <h3 id="poll-results-title" style="margin:10px 0 2px"></h3>
+            <div class="hint" id="poll-results-sub" style="margin:0"></div>
+          </div>
+          <div class="toolbar-action row-gap" style="margin:0">
+            <label style="display:flex;gap:6px;align-items:center;font-weight:400;margin:0">
+              <input type="checkbox" id="poll-include-tests" style="width:auto"> Include instructor tests</label>
+            <button class="btn secondary" type="button" id="poll-csv">Download CSV</button>
+            <button class="btn" type="button" id="poll-xlsx">Download Excel</button>
+          </div>
+        </div>
+        <h3 class="section-title">Summary</h3>
+        <div class="poll-sum" id="poll-summary"></div>
+        <h3 class="section-title">Responses</h3>
+        <div class="table-wrap">
+          <table>
+            <thead id="poll-resp-head"></thead>
+            <tbody id="poll-resp-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- New / edit poll -->
+      <form id="poll-edit-view" class="poll-edit" hidden>
+        <button class="btn secondary small" type="button" data-pback>&larr; All polls</button>
+        <h3 id="poll-edit-title" style="margin:10px 0">New poll</h3>
+        <p class="hint" id="poll-edit-warning" hidden></p>
+        <div class="grid2">
+          <div class="field"><label for="pe-title">Title</label><input id="pe-title" maxlength="200" required></div>
+          <div class="field"><label for="pe-term">For</label><select id="pe-term"></select></div>
+        </div>
+        <div class="field"><label for="pe-intro">Introduction (shown above the questions)</label>
+          <textarea id="pe-intro" maxlength="4000"></textarea></div>
+        <h3 class="section-title">Questions</h3>
+        <div id="pe-questions"></div>
+        <div class="row-gap">
+          <button class="btn secondary small" type="button" data-padd="single">+ Pick one</button>
+          <button class="btn secondary small" type="button" data-padd="multi">+ Pick any</button>
+          <button class="btn secondary small" type="button" data-padd="scale">+ Scale</button>
+          <button class="btn secondary small" type="button" data-padd="short">+ Short text</button>
+          <button class="btn secondary small" type="button" data-padd="long">+ Paragraph</button>
+        </div>
+        <div class="row-gap">
+          <button class="btn" type="submit" id="pe-save">Save poll</button>
+          <button class="btn secondary" type="button" data-pback>Cancel</button>
+        </div>
+      </form>
+    </div>
+
     <!-- Self-checks (webexercises questions in the chapters) -->
     <div class="panel" data-panel="quiz" hidden>
       <div class="toolbar">
@@ -526,6 +629,10 @@
     // One student's quiz answers / code runs, loaded when picked: { code, rows }
     quizFor: null, codeFor: null,
     questions: [],   // every question for the course and term (all statuses)
+    polls: [], pollsError: "",
+    // Polls tab: which view is showing, and the poll (admin_poll) and its
+    // responses on the Results view.
+    pollView: "list", poll: null, pollResponses: [],
   };
   let pendingEmail = "";
 
@@ -653,6 +760,9 @@
     }
     // A student picked on one course isn't on another.
     ["activity-student", "quiz-student", "code-student", "cq-student"].forEach((id) => ($(id).value = ""));
+    // The Polls tab goes back to its list (a poll's results are per term).
+    editing = null;
+    showPollView("list");
     loadTitles();
     await refresh();
   }
@@ -661,7 +771,7 @@
   async function refresh() {
     $("refresh").disabled = true;
     try {
-      const [roster, activity, pages, quiz, code, cq, cqQuestions, questions] = await Promise.all([
+      const [roster, activity, pages, quiz, code, cq, cqQuestions, questions, polls] = await Promise.all([
         rpc("admin_roster", scopeArgs()),
         rpc("admin_activity", scopeArgs({ p_limit: 500 })),
         rpc("admin_pages", scopeArgs()),
@@ -672,6 +782,8 @@
         // Questions need the questions section of setup.sql; until it has
         // been run, the tab just says so.
         rpc("admin_questions", scopeArgs({ p_limit: 2000 })).catch((e) => ({ error: e.message })),
+        // Polls need section 8 of setup.sql (same idea).
+        rpc("admin_polls", scopeArgs()).catch((e) => ({ error: e.message })),
       ]);
       state.roster = roster || [];
       state.activity = activity || [];
@@ -682,6 +794,8 @@
       state.cqQuestions = cqQuestions || [];
       state.questionsError = questions && questions.error ? questions.error : "";
       state.questions = Array.isArray(questions) ? questions : [];
+      state.pollsError = polls && polls.error ? polls.error : "";
+      state.polls = Array.isArray(polls) ? polls : [];
       state.quizFor = null;
       state.codeFor = null;
       renderAll();
@@ -724,6 +838,8 @@
     renderQuiz();
     renderCode();
     renderQuestions();
+    renderPolls();
+    if (state.pollView === "results" && state.poll) openPollResults(state.poll.id);
   }
 
   // ---- Questions -------------------------------------------------------------
@@ -957,6 +1073,570 @@
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     banner("Exported " + rows.length + (rows.length === 1 ? " student." : " students."));
+  }
+
+  // ---- Polls -----------------------------------------------------------------
+  // Polls and surveys students take on the site (assets/polls.html). The list
+  // shows every poll for the course (and term); a poll's Results show a
+  // summary of each question and every response, and download as CSV or Excel.
+  const POLL_STATUS = {
+    open: '<span class="badge ok">Open</span>',
+    draft: '<span class="badge neutral">Draft</span>',
+    closed: '<span class="badge warn">Closed</span>',
+  };
+  const KIND_NAME = { single: "Pick one", multi: "Pick any", scale: "Scale", short: "Short text", long: "Paragraph" };
+
+  function showPollView(view) {
+    state.pollView = view;
+    $("polls-list-view").hidden = view !== "list";
+    $("poll-results-view").hidden = view !== "results";
+    $("poll-edit-view").hidden = view !== "edit";
+  }
+
+  function renderPolls() {
+    const open = state.polls.filter((p) => p.status === "open").length;
+    $("polls-count").textContent = open;
+    $("polls-count").hidden = !open;
+    $("polls-count").title = open + (open === 1 ? " poll open" : " polls open");
+    const list = $("polls-list");
+    $("poll-new").disabled = !!state.pollsError;
+    if (state.pollsError) {
+      list.innerHTML = `<p class="empty">Polls aren't set up yet: run supabase/setup.sql again in the SQL Editor (${esc(state.pollsError)}).</p>`;
+      return;
+    }
+    if (!state.polls.length) {
+      list.innerHTML = '<p class="empty">No polls yet. Click <strong>New poll</strong> to write one.</p>';
+      return;
+    }
+    list.innerHTML = state.polls.map((p) => {
+      const n = Number(p.responses) || 0, of = Number(p.eligible) || 0, t = Number(p.test_responses) || 0;
+      const pct = of ? Math.min(100, Math.round((n / of) * 100)) : 0;
+      const status = p.status === "open"
+        ? '<button class="btn small secondary" type="button" data-pact="closed">Close</button>'
+        : `<button class="btn small" type="button" data-pact="open">${p.status === "closed" ? "Reopen" : "Open"}</button>`;
+      return `
+      <div class="poll-card ${esc(p.status)}" data-id="${esc(p.id)}">
+        <div class="q-meta">
+          ${POLL_STATUS[p.status] || ""}
+          <span>${p.term ? "For " + esc(p.term) : "Every term"}</span>
+          <span>${esc(p.questions)} question${Number(p.questions) === 1 ? "" : "s"}</span>
+          ${p.status === "open" && p.opened_at ? `<span>Opened ${when(p.opened_at)}</span>` : ""}
+          ${p.status === "closed" && p.closed_at ? `<span>Closed ${when(p.closed_at)}</span>` : ""}
+          ${p.last_response ? `<span>Last answer ${when(p.last_response)}</span>` : ""}
+        </div>
+        <h3>${esc(p.title)}</h3>
+        ${p.intro ? `<p class="poll-intro">${esc(p.intro)}</p>` : ""}
+        <div class="poll-progress">
+          <div class="bar"><span style="width:${pct}%"></span></div>
+          <span><strong>${n}</strong> of ${of} student${of === 1 ? "" : "s"}${scope.term ? " in " + esc(scope.term) : ""}${
+            t ? ` · ${t} instructor test${t === 1 ? "" : "s"}` : ""}</span>
+        </div>
+        <div class="q-actions">
+          ${status}
+          <button class="btn small secondary" type="button" data-pact="results">Results</button>
+          <button class="btn small secondary" type="button" data-pact="csv">CSV</button>
+          <button class="btn small secondary" type="button" data-pact="xlsx">Excel</button>
+          <button class="btn small secondary" type="button" data-pact="edit">Edit</button>
+          <button class="btn small secondary" type="button" data-pact="copy">Copy</button>
+          ${p.status !== "draft" ? '<button class="btn small secondary" type="button" data-pact="draft" title="Hide it from students and mark it as not ready">Back to draft</button>' : ""}
+          <span class="spacer"></span>
+          <button class="btn danger small" type="button" data-pact="delete">Delete</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  async function reloadPolls() {
+    try {
+      state.polls = (await rpc("admin_polls", scopeArgs())) || [];
+      state.pollsError = "";
+    } catch (e) {
+      state.pollsError = e.message;
+    }
+    renderPolls();
+  }
+
+  async function onPollAction(event) {
+    const btn = event.target.closest("button[data-pact]");
+    if (!btn) return;
+    const id = btn.closest(".poll-card").dataset.id;
+    const poll = state.polls.find((p) => p.id === id) || {};
+    const act = btn.dataset.pact;
+    if (act === "results") { openPollResults(id); return; }
+    if (act === "edit" || act === "copy") {
+      btn.disabled = true;
+      try { openPollEditor(await rpc("admin_poll", { p_id: id }), act === "copy"); }
+      catch (e) { banner("Couldn't load the poll: " + e.message, true); }
+      btn.disabled = false;
+      return;
+    }
+    if (act === "csv" || act === "xlsx") {
+      btn.disabled = true;
+      try {
+        const [p, responses] = await Promise.all([
+          rpc("admin_poll", { p_id: id }), rpc("admin_poll_responses", { p_id: id, p_term: scope.term || null })]);
+        downloadPoll(p, responses || [], act, false);
+      } catch (e) { banner("Couldn't download the responses: " + e.message, true); }
+      btn.disabled = false;
+      return;
+    }
+    if (act === "delete") {
+      const total = (Number(poll.responses) || 0) + (Number(poll.test_responses) || 0);
+      if (!confirm(`Delete "${poll.title}"${total ? " and its " + total + " response" + (total === 1 ? "" : "s") +
+          " (all terms)" : ""}? This can't be undone. Download the responses first if you want to keep them.`)) return;
+    }
+    if (act === "open" && poll.term && scope.term && poll.term !== scope.term &&
+        !confirm(`This poll is for ${poll.term}. Open it anyway?`)) return;
+    btn.disabled = true;
+    try {
+      if (act === "delete") {
+        await rpc("admin_delete_poll", { p_id: id });
+        banner("Poll deleted.");
+      } else {
+        await rpc("admin_set_poll_status", { p_id: id, p_status: act });
+        banner(act === "open" ? "Poll opened. Students will see a banner until they take it."
+          : act === "closed" ? "Poll closed. Students can't see it any more; their answers are kept."
+          : "Poll moved back to draft.");
+      }
+      await reloadPolls();
+    } catch (e) {
+      banner("Couldn't update the poll: " + e.message, true);
+      btn.disabled = false;
+    }
+  }
+
+  // ---- Poll results ----------------------------------------------------------
+  const includeTests = () => $("poll-include-tests").checked;
+  const shownResponses = () => state.pollResponses.filter((r) => includeTests() || !r.from_instructor);
+
+  async function openPollResults(id) {
+    showPollView("results");
+    $("poll-results-title").textContent = "Loading…";
+    $("poll-results-sub").textContent = "";
+    $("poll-summary").innerHTML = "";
+    $("poll-resp-head").innerHTML = "";
+    $("poll-resp-body").innerHTML = "";
+    try {
+      const [p, responses] = await Promise.all([
+        rpc("admin_poll", { p_id: id }), rpc("admin_poll_responses", { p_id: id, p_term: scope.term || null })]);
+      state.poll = p;
+      state.pollResponses = responses || [];
+      renderPollResults();
+    } catch (e) {
+      banner("Couldn't load the results: " + e.message, true);
+      showPollView("list");
+    }
+  }
+
+  function answerText(q, v) {
+    if (v == null || v === "") return "";
+    return Array.isArray(v) ? v.join("; ") : String(v);
+  }
+
+  // Counts for one question across the responses shown.
+  function tally(q, rows) {
+    const counts = new Map();
+    let answered = 0, sum = 0;
+    if (q.kind === "single" || q.kind === "multi") q.options.forEach((o) => counts.set(o, 0));
+    if (q.kind === "scale") for (let n = q.scale_min; n <= q.scale_max; n++) counts.set(String(n), 0);
+    const others = [], texts = [];
+    rows.forEach((r) => {
+      const v = (r.answers || {})[q.id];
+      if (v == null || v === "" || (Array.isArray(v) && !v.length)) return;
+      answered++;
+      if (q.kind === "short" || q.kind === "long") { texts.push({ who: r.student_name, text: String(v) }); return; }
+      if (q.kind === "scale") sum += Number(v);
+      (Array.isArray(v) ? v : [String(v)]).forEach((x) => {
+        if (counts.has(x)) counts.set(x, counts.get(x) + 1);
+        else { others.push({ who: r.student_name, text: x.replace(/^Other: /, "") }); }
+      });
+    });
+    if (others.length) counts.set("Other", others.length);
+    return { counts, answered, mean: q.kind === "scale" && answered ? sum / answered : null, others, texts };
+  }
+
+  function renderPollResults() {
+    const p = state.poll;
+    const rows = shownResponses();
+    const tests = state.pollResponses.length - state.pollResponses.filter((r) => !r.from_instructor).length;
+    const listed = state.polls.find((x) => x.id === p.id);
+    $("poll-results-title").textContent = p.title;
+    $("poll-results-sub").innerHTML = `${POLL_STATUS[p.status] || ""} ${rows.length} response${rows.length === 1 ? "" : "s"}${
+      scope.term ? " in " + esc(scope.term) : ""}${listed && listed.eligible != null ? " of " + esc(listed.eligible) + " students" : ""}${
+      tests && !includeTests() ? ` (plus ${tests} instructor test${tests === 1 ? "" : "s"}, not shown)` : ""}`;
+
+    $("poll-summary").innerHTML = p.questions.map((q, i) => {
+      const t = tally(q, rows);
+      let body = "";
+      if (q.kind === "short" || q.kind === "long") {
+        body = `<div class="hint" style="margin:0">${t.answered} answer${t.answered === 1 ? "" : "s"}</div>` + (t.texts.length
+          ? `<details${t.texts.length <= 8 ? " open" : ""}><summary>Show answers</summary><ul class="texts">${
+              t.texts.map((x) => `<li>${esc(x.text)} <span class="who">— ${esc(x.who)}</span></li>`).join("")}</ul></details>` : "");
+      } else {
+        const base = Math.max(t.answered, 1);
+        body = [...t.counts].map(([label, n]) => {
+          const pct = Math.round((n / base) * 100);
+          return `<div class="opt"><span>${esc(label)}</span><div class="bar"><span style="width:${pct}%"></span></div>
+            <span class="n">${n} · ${pct}%</span></div>`;
+        }).join("") +
+          `<div class="hint" style="margin:6px 0 0">${t.answered} answered${q.kind === "multi" ? " (pick any, so the shares add up to more than 100%)" : ""}${
+            t.mean != null ? " · average " + t.mean.toFixed(2) : ""}</div>` +
+          (t.others.length ? `<details><summary>Other answers (${t.others.length})</summary><ul class="texts">${
+            t.others.map((x) => `<li>${esc(x.text)} <span class="who">— ${esc(x.who)}</span></li>`).join("")}</ul></details>` : "");
+      }
+      return `<div class="item"><h4>${i + 1}. ${esc(q.prompt)} <span class="badge neutral">${esc(KIND_NAME[q.kind] || q.kind)}</span></h4>${body}</div>`;
+    }).join("") || '<p class="empty">This poll has no questions.</p>';
+
+    $("poll-resp-head").innerHTML = "<tr><th>Name</th><th>Email</th>" + (scope.term ? "" : "<th>Term</th>") +
+      "<th>Submitted</th>" + p.questions.map((q, i) => `<th title="${esc(q.prompt)}">Q${i + 1}</th>`).join("") +
+      "<th data-nosort></th></tr>";
+    $("poll-resp-body").innerHTML = rows.length ? rows.map((r) => `
+      <tr>
+        <td>${esc(r.student_name)}${r.from_instructor ? ' <span class="badge warn">Test</span>' : ""}</td>
+        <td>${esc(r.email || "")}</td>
+        ${scope.term ? "" : `<td>${esc(r.term)}</td>`}
+        <td>${when(r.updated_at || r.submitted_at)}</td>
+        ${p.questions.map((q) => `<td class="td-answer">${esc(answerText(q, (r.answers || {})[q.id]))}</td>`).join("")}
+        <td class="actions"><button class="btn danger small" type="button" data-presp="${esc(r.id)}"
+          title="Delete this response (for example a test)">Delete</button></td>
+      </tr>`).join("")
+      : `<tr><td colspan="${p.questions.length + 5}" class="empty">No responses yet.</td></tr>`;
+  }
+
+  async function onPollResponseAction(event) {
+    const btn = event.target.closest("button[data-presp]");
+    if (!btn) return;
+    const r = state.pollResponses.find((x) => x.id === btn.dataset.presp);
+    if (!r || !confirm(`Delete ${r.student_name}'s response? They'll see the poll as not taken.`)) return;
+    btn.disabled = true;
+    try {
+      await rpc("admin_delete_poll_response", { p_id: r.id });
+      banner("Response deleted.");
+      await reloadPolls();
+      await openPollResults(state.poll.id);
+    } catch (e) {
+      banner("Couldn't delete the response: " + e.message, true);
+      btn.disabled = false;
+    }
+  }
+
+  // ---- Downloads (CSV and Excel) -----------------------------------------------
+  // One row per response: who, when, then one column per question (pick-any
+  // answers joined with "; "). The Excel file adds a Summary sheet.
+  function pollTable(p, responses, withTests) {
+    const rows = responses.filter((r) => withTests || !r.from_instructor);
+    const head = ["Submitted", "Last changed", "Name", "Email", "Term", "Group", "Instructor test"]
+      .concat(p.questions.map((q, i) => `Q${i + 1}. ${q.prompt}`));
+    const lines = rows.map((r) => [localStamp(r.submitted_at), localStamp(r.updated_at), r.student_name, r.email || "",
+      r.term || "", r.note || "", r.from_instructor ? "Yes" : ""]
+      .concat(p.questions.map((q) => {
+        const v = (r.answers || {})[q.id];
+        return q.kind === "scale" && v != null ? Number(v) : answerText(q, v);
+      })));
+    return { head, lines, rows };
+  }
+
+  function pollSummary(p, rows) {
+    const out = [["Question", "Type", "Answer", "Count", "Share of those who answered (%)"]];
+    p.questions.forEach((q, i) => {
+      const t = tally(q, rows);
+      const label = `Q${i + 1}. ${q.prompt}`;
+      if (q.kind === "short" || q.kind === "long") {
+        out.push([label, KIND_NAME[q.kind], "(answered)", t.answered, ""]);
+        return;
+      }
+      [...t.counts].forEach(([a, n]) => out.push([label, KIND_NAME[q.kind], a, n,
+        t.answered ? Math.round((n / t.answered) * 1000) / 10 : 0]));
+      if (t.mean != null) out.push([label, KIND_NAME[q.kind], "Average", Math.round(t.mean * 100) / 100, ""]);
+      t.others.forEach((x) => out.push([label, KIND_NAME[q.kind], "Other: " + x.text, 1, ""]));
+    });
+    return out;
+  }
+
+  function downloadPoll(p, responses, kind, withTests) {
+    const { head, lines, rows } = pollTable(p, responses, withTests);
+    const slug = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const base = [p.course, scope.term ? slug(scope.term) : "all-terms", slug(p.title).slice(0, 40) || "poll",
+      new Date().toISOString().slice(0, 10)].join("-");
+    let blob;
+    if (kind === "csv") {
+      const csv = "﻿" + [head, ...lines].map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
+      blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    } else {
+      blob = xlsxBlob([
+        { name: "Responses", rows: [head, ...lines], widths: head.map((h, i) => (i < 7 ? 16 : 32)) },
+        { name: "Summary", rows: pollSummary(p, rows), widths: [48, 12, 40, 8, 14] },
+      ]);
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = base + (kind === "csv" ? ".csv" : ".xlsx");
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    banner(`Downloaded ${rows.length} response${rows.length === 1 ? "" : "s"}.`);
+  }
+
+  // A small .xlsx writer (no library): each sheet's rows of strings and
+  // numbers, a bold, frozen header row, and column widths. An .xlsx file is a
+  // zip of XML files; this stores them uncompressed.
+  function xlsxBlob(sheets) {
+    const enc = new TextEncoder();
+    const x = (s) => String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F￾￿]/g, "")
+      .replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+    const col = (n) => { let s = ""; for (n++; n > 0; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + ((n - 1) % 26)) + s; return s; };
+    const sheetXml = (sh) => {
+      const rows = sh.rows.map((r, ri) => `<row r="${ri + 1}">` + r.map((v, ci) => {
+        const ref = col(ci) + (ri + 1), st = ri === 0 ? ' s="1"' : "";
+        if (typeof v === "number" && isFinite(v)) return `<c r="${ref}"${st}><v>${v}</v></c>`;
+        if (v == null || v === "") return "";
+        return `<c r="${ref}" t="inlineStr"${st}><is><t xml:space="preserve">${x(String(v).slice(0, 32000))}</t></is></c>`;
+      }).join("") + "</row>").join("");
+      const cols = (sh.widths || []).map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join("");
+      return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+        '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>' +
+        (cols ? `<cols>${cols}</cols>` : "") + `<sheetData>${rows}</sheetData></worksheet>`;
+    };
+    const files = [
+      ["[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+        '<Default Extension="xml" ContentType="application/xml"/>' +
+        '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+        '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+        sheets.map((s, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("") +
+        "</Types>"],
+      ["_rels/.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+        "</Relationships>"],
+      ["xl/workbook.xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>' +
+        sheets.map((s, i) => `<sheet name="${x(s.name.replace(/[\[\]:*?\/\\]/g, " ").slice(0, 31))}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("") +
+        "</sheets></workbook>"],
+      ["xl/_rels/workbook.xml.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+        sheets.map((s, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("") +
+        `<Relationship Id="rId${sheets.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>` +
+        "</Relationships>"],
+      ["xl/styles.xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+        '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>' +
+        '<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>' +
+        '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>' +
+        '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+        '<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+        '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs>' +
+        '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
+        "</styleSheet>"],
+    ].concat(sheets.map((s, i) => [`xl/worksheets/sheet${i + 1}.xml`, sheetXml(s)]));
+    return new Blob([zipStore(files.map(([name, text]) => [enc.encode(name), enc.encode(text)]))],
+      { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  }
+
+  // Zip archive with every file stored (no compression), as Uint8Array.
+  let crcTable = null;
+  function crc32(bytes) {
+    if (!crcTable) {
+      crcTable = new Uint32Array(256);
+      for (let n = 0; n < 256; n++) {
+        let c = n;
+        for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+        crcTable[n] = c >>> 0;
+      }
+    }
+    let c = 0xFFFFFFFF;
+    for (let i = 0; i < bytes.length; i++) c = crcTable[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  function zipStore(files) {
+    const parts = [], central = [];
+    let offset = 0;
+    const d = new Date();
+    const dosTime = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+    const dosDate = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+    files.forEach(([name, data]) => {
+      const crc = crc32(data);
+      const local = new DataView(new ArrayBuffer(30));
+      [[0, 0x04034b50, 4], [4, 20, 2], [6, 0x0800, 2], [8, 0, 2], [10, dosTime, 2], [12, dosDate, 2],
+       [14, crc, 4], [18, data.length, 4], [22, data.length, 4], [26, name.length, 2], [28, 0, 2]]
+        .forEach(([at, v, n]) => (n === 4 ? local.setUint32(at, v, true) : local.setUint16(at, v, true)));
+      parts.push(new Uint8Array(local.buffer), name, data);
+      const cen = new DataView(new ArrayBuffer(46));
+      [[0, 0x02014b50, 4], [4, 20, 2], [6, 20, 2], [8, 0x0800, 2], [10, 0, 2], [12, dosTime, 2], [14, dosDate, 2],
+       [16, crc, 4], [20, data.length, 4], [24, data.length, 4], [28, name.length, 2], [30, 0, 2], [32, 0, 2],
+       [34, 0, 2], [36, 0, 2], [38, 0, 4], [42, offset, 4]]
+        .forEach(([at, v, n]) => (n === 4 ? cen.setUint32(at, v, true) : cen.setUint16(at, v, true)));
+      central.push(new Uint8Array(cen.buffer), name);
+      offset += 30 + name.length + data.length;
+    });
+    const size = central.reduce((s, b) => s + b.length, 0);
+    const end = new DataView(new ArrayBuffer(22));
+    [[0, 0x06054b50, 4], [4, 0, 2], [6, 0, 2], [8, files.length, 2], [10, files.length, 2],
+     [12, size, 4], [16, offset, 4], [20, 0, 2]]
+      .forEach(([at, v, n]) => (n === 4 ? end.setUint32(at, v, true) : end.setUint16(at, v, true)));
+    const all = parts.concat(central, [new Uint8Array(end.buffer)]);
+    const out = new Uint8Array(all.reduce((s, b) => s + b.length, 0));
+    let at = 0;
+    all.forEach((b) => { out.set(b, at); at += b.length; });
+    return out;
+  }
+
+  // ---- Poll editor -------------------------------------------------------------
+  let editing = null;   // { id, course, questions: [...] } while the editor is open
+
+  function openPollEditor(poll, copy) {
+    const terms = (courseInfo() && courseInfo().terms) || [];
+    editing = poll
+      ? JSON.parse(JSON.stringify(poll))
+      : { id: null, course: scope.course, term: scope.term || null, title: "", intro: "",
+          questions: [{ kind: "single", prompt: "", options: [], required: true }] };
+    if (copy) {
+      editing.id = null;
+      editing.title = "Copy of " + editing.title;
+      editing.questions.forEach((q) => delete q.id);
+    }
+    const listed = poll && !copy ? state.polls.find((p) => p.id === poll.id) : null;
+    const answered = listed ? (Number(listed.responses) || 0) + (Number(listed.test_responses) || 0) : 0;
+    $("poll-edit-title").textContent = editing.id ? "Edit poll" : copy ? "Copy of a poll" : "New poll";
+    $("poll-edit-warning").hidden = !answered;
+    $("poll-edit-warning").innerHTML = answered ? `<span class="badge warn">${answered} response${answered === 1 ? "" : "s"}</span>
+      Students have already answered this poll. Fixing wording is fine; a question you remove takes its answers out of the
+      downloads, and changing a question's choices can leave old answers that no longer match.` : "";
+    $("pe-title").value = editing.title || "";
+    $("pe-intro").value = editing.intro || "";
+    const termOpts = terms.slice();
+    if (editing.term && !termOpts.includes(editing.term)) termOpts.unshift(editing.term);
+    $("pe-term").innerHTML = '<option value="">Every term</option>' +
+      termOpts.map((t) => `<option value="${esc(t)}">${esc(t)} only</option>`).join("");
+    $("pe-term").value = editing.term || "";
+    renderPollQuestions();
+    showPollView("edit");
+    $("pe-title").focus();
+  }
+
+  function renderPollQuestions() {
+    $("pe-questions").innerHTML = editing.questions.map((q, i) => `
+      <div class="pq" data-i="${i}">
+        <div class="pq-head">
+          <strong>Question ${i + 1}</strong>
+          <select data-f="kind" aria-label="Question type">${Object.entries(KIND_NAME).map(([k, n]) =>
+            `<option value="${k}"${q.kind === k ? " selected" : ""}>${n}</option>`).join("")}</select>
+          <button class="btn secondary small" type="button" data-pq="up"${i === 0 ? " disabled" : ""} title="Move up">&uarr;</button>
+          <button class="btn secondary small" type="button" data-pq="down"${i === editing.questions.length - 1 ? " disabled" : ""} title="Move down">&darr;</button>
+          <button class="btn danger small" type="button" data-pq="remove" title="Remove this question">Remove</button>
+        </div>
+        <div class="field"><label>Question</label><input data-f="prompt" maxlength="1000" value="${esc(q.prompt || "")}"></div>
+        <div class="field"><label>Help text (optional, shown under the question)</label>
+          <input data-f="help" maxlength="1000" value="${esc(q.help || "")}"></div>
+        ${q.kind === "single" || q.kind === "multi" ? `
+        <div class="field"><label>Choices, one per line</label>
+          <textarea data-f="options">${esc((q.options || []).join("\n"))}</textarea></div>` : ""}
+        ${q.kind === "scale" ? `
+        <div class="scale-row field">
+          <div><label>From</label><input data-f="scale_min" type="number" min="0" max="9" value="${esc(q.scale_min ?? 1)}"></div>
+          <div><label>To</label><input data-f="scale_max" type="number" min="1" max="10" value="${esc(q.scale_max ?? 5)}"></div>
+          <div><label>Low end label</label><input data-f="min_label" maxlength="100" value="${esc(q.min_label || "")}" placeholder="e.g. Not at all"></div>
+          <div><label>High end label</label><input data-f="max_label" maxlength="100" value="${esc(q.max_label || "")}" placeholder="e.g. Very"></div>
+        </div>` : ""}
+        <div class="checks">
+          <label><input type="checkbox" data-f="required"${q.required ? " checked" : ""}> Required</label>
+          ${q.kind === "single" || q.kind === "multi"
+            ? `<label><input type="checkbox" data-f="allow_other"${q.allow_other ? " checked" : ""}> Add "Other" with a text box</label>` : ""}
+        </div>
+      </div>`).join("") || '<p class="empty">No questions yet. Add one below.</p>';
+  }
+
+  // Copy what's typed in the editor back into `editing`.
+  function readPollQuestions() {
+    document.querySelectorAll("#pe-questions .pq").forEach((div) => {
+      const q = editing.questions[Number(div.dataset.i)];
+      div.querySelectorAll("[data-f]").forEach((el) => {
+        const f = el.dataset.f;
+        if (el.type === "checkbox") q[f] = el.checked;
+        else if (f === "options") q.options = el.value.split("\n").map((s) => s.trim()).filter(Boolean);
+        else if (f === "scale_min" || f === "scale_max") q[f] = el.value === "" ? null : Number(el.value);
+        else q[f] = el.value;
+      });
+    });
+  }
+
+  function onPollEditorClick(event) {
+    const add = event.target.closest("button[data-padd]");
+    const btn = event.target.closest("button[data-pq]");
+    if (!add && !btn) return;
+    readPollQuestions();
+    if (add) {
+      const kind = add.dataset.padd;
+      editing.questions.push(kind === "scale"
+        ? { kind, prompt: "", scale_min: 1, scale_max: 5, required: false }
+        : { kind, prompt: "", options: [], required: false });
+      renderPollQuestions();
+      const last = $("pe-questions").lastElementChild;
+      if (last && last.querySelector('[data-f="prompt"]')) last.querySelector('[data-f="prompt"]').focus();
+      return;
+    }
+    const i = Number(btn.closest(".pq").dataset.i);
+    const qs = editing.questions;
+    if (btn.dataset.pq === "remove") {
+      if (qs[i].id && !confirm("Remove this question? Answers already given to it won't be in the downloads.")) return;
+      qs.splice(i, 1);
+    } else {
+      const j = btn.dataset.pq === "up" ? i - 1 : i + 1;
+      if (j < 0 || j >= qs.length) return;
+      [qs[i], qs[j]] = [qs[j], qs[i]];
+    }
+    renderPollQuestions();
+  }
+
+  function onPollKindChange(event) {
+    if (event.target.dataset.f !== "kind") return;
+    readPollQuestions();
+    renderPollQuestions();
+  }
+
+  async function onPollSave(event) {
+    event.preventDefault();
+    readPollQuestions();
+    editing.title = $("pe-title").value.trim();
+    editing.intro = $("pe-intro").value.trim();
+    editing.term = $("pe-term").value || null;
+    $("pe-save").disabled = true;
+    try {
+      const id = await rpc("admin_save_poll", { p_poll: {
+        id: editing.id, course: editing.course || scope.course, term: editing.term, title: editing.title,
+        intro: editing.intro, questions: editing.questions } });
+      const wasNew = !editing.id;
+      editing = null;
+      banner(wasNew ? "Poll saved as a draft. Click Open when you're ready for students to see it." : "Poll saved.");
+      await reloadPolls();
+      showPollView("list");
+      const card = document.querySelector(`.poll-card[data-id="${id}"]`);
+      if (card) card.scrollIntoView({ block: "nearest" });
+    } catch (e) {
+      banner("Couldn't save the poll: " + e.message, true);
+    }
+    $("pe-save").disabled = false;
+  }
+
+  function wirePolls() {
+    $("polls-list").addEventListener("click", onPollAction);
+    $("poll-new").addEventListener("click", () => openPollEditor(null, false));
+    document.querySelectorAll("[data-pback]").forEach((b) => b.addEventListener("click", () => {
+      if (state.pollView === "edit" && !confirm("Leave without saving?")) return;
+      editing = null;
+      showPollView("list");
+    }));
+    $("poll-include-tests").addEventListener("change", renderPollResults);
+    $("poll-resp-body").addEventListener("click", onPollResponseAction);
+    $("poll-csv").addEventListener("click", () => downloadPoll(state.poll, state.pollResponses, "csv", includeTests()));
+    $("poll-xlsx").addEventListener("click", () => downloadPoll(state.poll, state.pollResponses, "xlsx", includeTests()));
+    $("poll-edit-view").addEventListener("click", onPollEditorClick);
+    $("poll-edit-view").addEventListener("change", onPollKindChange);
+    $("poll-edit-view").addEventListener("submit", onPollSave);
   }
 
   // ---- Chapter quizzes -----------------------------------------------------
@@ -1530,6 +2210,7 @@
     $("code-student").addEventListener("input", () => { renderCode(); loadCodeFor(); });
     $("add-form").addEventListener("submit", onAdd);
     $("questions-list").addEventListener("click", onQuestionAction);
+    wirePolls();
     ["questions-status", "questions-search"].forEach((id) => $(id).addEventListener("input", renderQuestions));
     initSorting();
   }

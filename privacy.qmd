@@ -25,7 +25,7 @@ This textbook site, geog215.org, asks students in GEOG 215 to sign in so it can 
 | Practice code | The R code you run in the textbook's code boxes (the latest version only, up to 4,000 characters), how many times you ran it, and whether it produced an error. |
 | Chapter practice quizzes | How many questions you answered right and wrong, practice points and streaks, and whether you finished the quiz. |
 | Questions you ask | If you highlight text in the textbook and click **Ask a question**: the highlighted text, your question, the page and section it is on, and when you asked. Your instructor's answer, if any, is stored with it. Each question is also emailed to your instructor (see "Who can see it"). |
-| Feedback and Discussion Questions | Some survey feedback and/or discussion questions may be stored on this site. These are not used in grading, but to provide feedback. |
+| Polls and surveys | If you answer a poll or survey on the site (for example, a start-of-semester survey): your answers, which poll they belong to, and when you submitted and last changed them. Answers are saved with your name, so they are not anonymous. Poll answers are not used in grading. |
 
 ## What the site does not store
 
@@ -40,13 +40,14 @@ This textbook site, geog215.org, asks students in GEOG 215 to sign in so it can 
 - To let you pick up where you left off and see your own progress.
 - To help your instructor see which pages, questions, and code exercises students find difficult, so the course and textbook can be improved.
 - To let you ask your instructor about parts of the textbook you find confusing, and to show you the answers.
+- To let your instructor ask the class short polls and surveys, and to use the answers to get to know students and plan and improve the course.
 
 Your information is never sold, never used for advertising, and never used to calculate your grade. It will not be used for research or publication unless you agree in a separate, approved research consent form.
 
 ## Who can see it
 
 - **You.** When signed in, you can only see your own records. Other students cannot see your name, email, or activity.
-- **Your instructor.** The instructor can view the class roster and activity on a protected admin page and can download it as a spreadsheet for course purposes. Instructors can only see the courses they are assigned to.
+- **Your instructor.** The instructor can view the class roster, activity, and poll and survey answers on a protected admin page and can download them as a spreadsheet for course purposes. Instructors can only see the courses they are assigned to. Other students never see your poll answers.
 - **Questions you ask** are also sent to your instructor's university email address as a notice, with the page, the highlighted text, and your question, but not your name or email address. That copy is kept in the instructor's UNC email under the university's email policies.
 - **Service providers.** The companies below run the site on the course's behalf. They handle your information only to provide their service.
 
@@ -71,7 +72,7 @@ The R code you run in the textbook runs inside your own web browser, not on a se
 
 ## How long it is kept
 
-Your information is kept for the semester you are enrolled and is deleted no later than **12 months** after the semester ends, unless you ask for it to be deleted sooner. Deleting your record removes your roster entry, all of your activity and questions for that course and term, and your sign-in account if you are not enrolled in another course that uses the site. Copies of questions emailed to your instructor follow the university's email retention policies.
+Your information is kept for the semester you are enrolled and is deleted no later than **12 months** after the semester ends, unless you ask for it to be deleted sooner. Deleting your record removes your roster entry, all of your activity, questions, and poll answers for that course and term, and your sign-in account if you are not enrolled in another course that uses the site. Copies of questions emailed to your instructor follow the university's email retention policies.
 
 ## Your choices and rights
 

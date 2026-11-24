@@ -1,0 +1,384 @@
+<!--
+  Polls and surveys (geog215.org only; added after the body by the `geog215`
+  profile, _quarto-geog215.yml, after the sign-in gate has loaded).
+
+  The instructor writes polls and opens or closes them on the admin page's
+  Polls tab (supabase/setup.sql section 8). While a poll is open, a signed-in
+  student who hasn't taken it sees a banner at the top of every page.
+  "Take it now" opens the poll in a dialog; "Later" hides the banner until the
+  next visit (this browser tab). A "Polls" button in the bottom-right corner
+  lists every open poll, so students can go back and change their answers
+  until the poll closes.
+
+  Everything waits for the gate's "sds:unlocked" event, so nothing here runs
+  for signed-out readers or on daveparr.com (no gate).
+-->
+<style>
+  #sds-poll-banner {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+    margin: 0 0 18px; padding: 12px 14px; border-radius: 8px;
+    border: 1px solid #b7cfe3; border-left: 5px solid #2c5f8a; background: #eef5fb; color: #1f2933;
+    font-size: 0.95rem;
+  }
+  #sds-poll-banner .sds-pb-text { flex: 1 1 260px; }
+  #sds-poll-banner .sds-pb-text strong { display: block; font-size: 1rem; }
+  #sds-poll-banner .sds-pb-text span { color: #52606d; font-size: 0.88rem; }
+  #sds-poll-banner .sds-pb-buttons { display: flex; gap: 8px; align-items: center; }
+  #sds-poll-banner button {
+    padding: 7px 14px; font: inherit; font-size: 0.9rem; font-weight: 600; border-radius: 6px; cursor: pointer;
+    border: 1px solid #2c5f8a;
+  }
+  #sds-poll-banner .sds-pb-take { color: #fff; background: #2c5f8a; }
+  #sds-poll-banner .sds-pb-later { color: #2c5f8a; background: transparent; }
+  #sds-poll-banner button:focus-visible { outline: 3px solid #f2c94c; outline-offset: 2px; }
+
+  #sds-poll-dialog { width: min(720px, calc(100vw - 24px)); }
+  #sds-poll-dialog .sds-body { padding: 20px 20px 16px; }
+  #sds-poll-dialog .sds-poll-intro { margin: 0 0 16px; color: #3e4c59; white-space: pre-wrap; }
+  #sds-poll-dialog .sds-test {
+    margin: 0 0 14px; padding: 6px 10px; border-radius: 6px; background: #fdf3dc; color: #8a5a00; font-size: 0.85rem;
+  }
+  #sds-poll-dialog fieldset {
+    margin: 0 0 14px; padding: 12px 14px; border: 1px solid #e4e7eb; border-radius: 8px; min-width: 0;
+  }
+  #sds-poll-dialog fieldset.sds-missing { border-color: #b42318; background: #fff8f7; }
+  #sds-poll-dialog legend {
+    float: left; width: 100%; padding: 0; margin: 0 0 4px; font-size: 0.98rem; font-weight: 600; line-height: 1.35;
+  }
+  #sds-poll-dialog legend + * { clear: both; }
+  #sds-poll-dialog .sds-req { color: #b42318; margin-left: 2px; }
+  #sds-poll-dialog .sds-help { margin: 0 0 8px; font-size: 0.85rem; color: #52606d; }
+  #sds-poll-dialog .sds-choice {
+    display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 4px 0;
+    font-weight: 400; font-size: 0.95rem; cursor: pointer;
+  }
+  #sds-poll-dialog .sds-choice input { margin-top: 0.25em; flex: none; width: 1.05em; height: 1.05em; }
+  #sds-poll-dialog .sds-other-text { flex: 1; min-width: 8em; }
+  #sds-poll-dialog input[type="text"], #sds-poll-dialog textarea {
+    width: 100%; box-sizing: border-box; padding: 7px 10px; font: inherit; font-size: 0.95rem;
+    border: 1px solid #bcc5ce; border-radius: 6px;
+  }
+  #sds-poll-dialog textarea { min-height: 5em; resize: vertical; }
+  #sds-poll-dialog .sds-choice .sds-other-text {
+    width: auto; flex: 1 1 8em; min-width: 0; height: auto; padding: 4px 8px; line-height: 1.4; margin-top: -2px;
+  }
+  #sds-poll-dialog .sds-scale { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+  #sds-poll-dialog .sds-scale-end { font-size: 0.82rem; color: #52606d; }
+  #sds-poll-dialog .sds-scale label {
+    display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 0;
+    font-weight: 400; font-size: 0.88rem; cursor: pointer;
+  }
+  #sds-poll-dialog .sds-saved { font-size: 0.82rem; color: #52606d; margin: 0 0 12px; }
+  #sds-poll-dialog .sds-buttons {
+    position: sticky; bottom: -16px; margin-top: 8px; padding: 10px 0 16px;
+    background: #fff; border-top: 1px solid #e4e7eb;
+  }
+
+  #sds-polls-dialog .sds-item { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+  #sds-polls-dialog .sds-item > div { flex: 1 1 240px; }
+  #sds-polls-dialog .sds-item strong { display: block; }
+  #sds-polls-dialog .sds-item span { font-size: 0.85rem; color: #52606d; }
+  #sds-polls-dialog .sds-item button {
+    padding: 6px 12px; font: inherit; font-size: 0.88rem; font-weight: 600; border-radius: 6px; cursor: pointer;
+    border: 1px solid #2c5f8a; color: #fff; background: #2c5f8a;
+  }
+  #sds-polls-dialog .sds-item button.sds-secondary { color: #2c5f8a; background: transparent; }
+  #sds-polls-btn .sds-dot {
+    display: inline-block; min-width: 1.4em; margin-left: 4px; padding: 0 5px; border-radius: 999px;
+    background: #2c5f8a; color: #fff; font-weight: 700; text-align: center;
+  }
+</style>
+
+<script>
+(function () {
+  "use strict";
+
+  let auth = null;              // { client, course, user } from the gate
+  let polls = [];               // open polls for this student (my_polls)
+  let current = null;           // the poll in the dialog (get_poll)
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const later = {
+    key: (id) => "sds-poll-later:" + id,
+    has(id) { try { return sessionStorage.getItem(this.key(id)) === "1"; } catch (_) { return false; } },
+    set(id) { try { sessionStorage.setItem(this.key(id), "1"); } catch (_) { /* fine */ } },
+  };
+  const minutes = (n) => Math.max(1, Math.round(n * 0.5));   // about 30 seconds a question
+
+  // ---- Load the open polls --------------------------------------------------
+  async function loadPolls() {
+    const { data, error } = await auth.client.rpc("my_polls", { p_course: auth.course });
+    if (error) {
+      // Before section 8 of setup.sql has been run there are no polls: stay quiet.
+      if (!/my_polls|function|schema cache/i.test(error.message || "")) console.warn("Polls:", error.message);
+      polls = [];
+    } else {
+      polls = data || [];
+    }
+    renderBanner();
+    renderCornerButton();
+  }
+
+  // ---- Banner at the top of the page ----------------------------------------
+  function renderBanner() {
+    const old = $("sds-poll-banner");
+    const next = polls.find((p) => !p.answered && !later.has(p.id));
+    if (!next) { if (old) old.remove(); return; }
+    const banner = old || document.createElement("div");
+    banner.id = "sds-poll-banner";
+    banner.setAttribute("role", "region");
+    banner.setAttribute("aria-label", "Open poll");
+    const waiting = polls.filter((p) => !p.answered).length;
+    banner.innerHTML = `
+      <div class="sds-pb-text">
+        <strong>${esc(next.title)}</strong>
+        <span>${next.test ? "Instructor preview: your answers are saved as a test. " : ""}${
+          next.questions} question${next.questions === 1 ? "" : "s"}, about ${minutes(next.questions)} min.${
+          waiting > 1 ? " " + (waiting - 1) + " more open after this one." : ""}</span>
+      </div>
+      <div class="sds-pb-buttons">
+        <button type="button" class="sds-pb-take">Take it now</button>
+        <button type="button" class="sds-pb-later">Later</button>
+      </div>`;
+    banner.querySelector(".sds-pb-take").addEventListener("click", () => openPoll(next.id));
+    banner.querySelector(".sds-pb-later").addEventListener("click", () => { later.set(next.id); renderBanner(); });
+    if (!old) {
+      const root = document.getElementById("quarto-document-content") || document.querySelector("main") || document.body;
+      root.insertBefore(banner, root.firstChild);
+    }
+  }
+
+  // ---- "Polls" in the bottom-right corner -----------------------------------
+  function renderCornerButton() {
+    const corner = $("sds-corner");
+    let btn = $("sds-polls-btn");
+    if (!polls.length) { if (btn) btn.remove(); return; }
+    if (!corner) return;
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.id = "sds-polls-btn";
+      btn.type = "button";
+      btn.addEventListener("click", openList);
+      corner.insertBefore(btn, corner.firstChild);
+    }
+    const n = polls.filter((p) => !p.answered).length;
+    btn.innerHTML = "Polls" + (n ? `<span class="sds-dot" aria-label="${n} not taken">${n}</span>` : "");
+    btn.title = n ? n + (n === 1 ? " poll to take" : " polls to take") : "Open polls (you can change your answers)";
+  }
+
+  function openList() {
+    const dlg = $("sds-polls-dialog");
+    $("sds-polls-list").innerHTML = polls.length
+      ? '<ul class="sds-list">' + polls.map((p) => `
+          <li class="sds-item">
+            <div><strong>${esc(p.title)}</strong>
+              <span>${p.answered
+                ? "Taken " + esc(new Date(p.updated_at || p.submitted_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })) +
+                  ". You can change your answers until it closes."
+                : p.questions + " question" + (p.questions === 1 ? "" : "s") + ", not taken yet."}</span></div>
+            <button type="button" data-poll="${esc(p.id)}" class="${p.answered ? "sds-secondary" : ""}">${
+              p.answered ? "Change answers" : "Take it"}</button>
+          </li>`).join("") + "</ul>"
+      : '<p class="sds-empty">No polls are open right now.</p>';
+    dlg.showModal();
+  }
+
+  // ---- The poll itself --------------------------------------------------------
+  function buildUi() {
+    const poll = document.createElement("dialog");
+    poll.id = "sds-poll-dialog";
+    poll.className = "sds-dialog";
+    poll.setAttribute("aria-labelledby", "sds-poll-title");
+    poll.innerHTML = `
+      <form class="sds-body" id="sds-poll-form" novalidate>
+        <h2 id="sds-poll-title">Poll</h2>
+        <div id="sds-poll-content"><p class="sds-empty">Loading…</p></div>
+        <p class="sds-note">Your answers are saved with your name and seen only by your instructor. See the
+          <a href="/privacy.html" target="_blank" rel="noopener">privacy policy</a>.</p>
+        <p class="sds-msg" id="sds-poll-msg" role="status"></p>
+        <div class="sds-buttons">
+          <button type="button" class="sds-secondary" id="sds-poll-cancel">Cancel</button>
+          <button type="submit" class="sds-primary" id="sds-poll-send">Submit</button>
+        </div>
+      </form>`;
+    document.body.appendChild(poll);
+    $("sds-poll-cancel").addEventListener("click", () => poll.close());
+    $("sds-poll-form").addEventListener("submit", onSubmit);
+    $("sds-poll-form").addEventListener("input", (e) => {
+      const fs = e.target.closest("fieldset");
+      if (fs) fs.classList.remove("sds-missing");
+      // Typing in "Other" ticks its box.
+      if (e.target.classList.contains("sds-other-text")) {
+        const box = e.target.closest(".sds-choice").querySelector("input[type=radio], input[type=checkbox]");
+        if (box) box.checked = e.target.value.trim() !== "";
+      }
+    });
+
+    const list = document.createElement("dialog");
+    list.id = "sds-polls-dialog";
+    list.className = "sds-dialog";
+    list.setAttribute("aria-labelledby", "sds-polls-title");
+    list.innerHTML = `
+      <div class="sds-body">
+        <h2 id="sds-polls-title">Polls</h2>
+        <div id="sds-polls-list"></div>
+        <div class="sds-buttons"><button type="button" class="sds-primary" id="sds-polls-close">Close</button></div>
+      </div>`;
+    document.body.appendChild(list);
+    $("sds-polls-close").addEventListener("click", () => list.close());
+    $("sds-polls-list").addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-poll]");
+      if (b) { list.close(); openPoll(b.dataset.poll); }
+    });
+    [poll, list].forEach((d) => d.addEventListener("click", (e) => { if (e.target === d) d.close(); }));
+  }
+
+  function say(text, kind) {
+    const msg = $("sds-poll-msg");
+    msg.textContent = text || "";
+    msg.className = "sds-msg" + (kind ? " sds-" + kind : "");
+  }
+
+  async function openPoll(id) {
+    const dlg = $("sds-poll-dialog");
+    $("sds-poll-title").textContent = "Poll";
+    $("sds-poll-content").innerHTML = '<p class="sds-empty">Loading…</p>';
+    $("sds-poll-send").hidden = true;
+    $("sds-poll-cancel").textContent = "Cancel";
+    say("");
+    dlg.showModal();
+    const { data, error } = await auth.client.rpc("get_poll", { p_poll: id, p_course: auth.course });
+    if (error) {
+      $("sds-poll-content").innerHTML = "";
+      say("Couldn't open the poll: " + error.message, "error");
+      return;
+    }
+    current = data;
+    $("sds-poll-title").textContent = data.title;
+    $("sds-poll-content").innerHTML =
+      (data.test ? '<p class="sds-test">Instructor preview: your answers are saved as a test response.</p>' : "") +
+      (data.intro ? `<p class="sds-poll-intro">${esc(data.intro)}</p>` : "") +
+      (data.answers ? `<p class="sds-saved">You took this on ${esc(new Date(data.updated_at || data.submitted_at).toLocaleString(
+        undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}. Change anything and submit again.</p>` : "") +
+      data.questions.map((q, i) => questionHtml(q, i, (data.answers || {})[q.id])).join("");
+    $("sds-poll-send").hidden = false;
+    $("sds-poll-send").disabled = false;
+    $("sds-poll-send").textContent = data.answers ? "Save changes" : "Submit";
+  }
+
+  const OTHER = "Other: ";
+
+  function questionHtml(q, i, value) {
+    const name = "sds-q-" + q.id;
+    const req = q.required ? '<span class="sds-req" aria-hidden="true">*</span>' : "";
+    const help = q.help ? `<p class="sds-help">${esc(q.help)}</p>` : "";
+    let body = "";
+    if (q.kind === "single" || q.kind === "multi") {
+      const type = q.kind === "single" ? "radio" : "checkbox";
+      const picked = q.kind === "multi" ? (Array.isArray(value) ? value : []) : (value != null ? [String(value)] : []);
+      const other = picked.find((v) => !q.options.includes(v) && v.startsWith(OTHER));
+      body = q.options.map((o) => `
+        <label class="sds-choice"><input type="${type}" name="${name}" value="${esc(o)}"${
+          picked.includes(o) ? " checked" : ""}> <span>${esc(o)}</span></label>`).join("");
+      if (q.allow_other) {
+        body += `
+        <label class="sds-choice"><input type="${type}" name="${name}" value="__other"${other ? " checked" : ""}>
+          <span>Other:</span>
+          <input type="text" class="sds-other-text" data-for="${name}" maxlength="400" aria-label="Other"
+            value="${esc(other ? other.slice(OTHER.length) : "")}"></label>`;
+      }
+    } else if (q.kind === "scale") {
+      const nums = [];
+      for (let n = q.scale_min; n <= q.scale_max; n++) nums.push(n);
+      body = `<div class="sds-scale">
+        ${q.min_label ? `<span class="sds-scale-end">${esc(q.min_label)}</span>` : ""}
+        ${nums.map((n) => `<label><input type="radio" name="${name}" value="${n}"${Number(value) === n && value != null ? " checked" : ""}>${n}</label>`).join("")}
+        ${q.max_label ? `<span class="sds-scale-end">${esc(q.max_label)}</span>` : ""}
+      </div>`;
+    } else if (q.kind === "short") {
+      body = `<input type="text" name="${name}" maxlength="500" value="${esc(value || "")}" aria-labelledby="${name}-legend">`;
+    } else {
+      body = `<textarea name="${name}" maxlength="4000" aria-labelledby="${name}-legend">${esc(value || "")}</textarea>`;
+    }
+    return `<fieldset data-q="${esc(q.id)}">
+      <legend id="${name}-legend">${i + 1}. ${esc(q.prompt)}${req}</legend>${help}${body}</fieldset>`;
+  }
+
+  // Read the form into { question id: answer } and list missing required ones.
+  function collect() {
+    const form = $("sds-poll-form");
+    const answers = {};
+    const missing = [];
+    current.questions.forEach((q) => {
+      const name = "sds-q-" + q.id;
+      let v = null;
+      if (q.kind === "single" || q.kind === "multi") {
+        const vals = [...form.querySelectorAll(`input[name="${name}"]:checked`)].map((el) => {
+          if (el.value !== "__other") return el.value;
+          const t = form.querySelector(`.sds-other-text[data-for="${name}"]`).value.trim();
+          return t ? OTHER + t : null;
+        }).filter(Boolean);
+        v = q.kind === "single" ? (vals[0] || null) : (vals.length ? vals : null);
+      } else if (q.kind === "scale") {
+        const el = form.querySelector(`input[name="${name}"]:checked`);
+        v = el ? Number(el.value) : null;
+      } else {
+        const el = form.querySelector(`[name="${name}"]`);
+        v = el.value.trim() || null;
+      }
+      if (v !== null) answers[q.id] = v;
+      else if (q.required) missing.push(q.id);
+    });
+    return { answers, missing };
+  }
+
+  async function onSubmit(event) {
+    event.preventDefault();
+    if (!current) return;
+    const { answers, missing } = collect();
+    const form = $("sds-poll-form");
+    form.querySelectorAll("fieldset.sds-missing").forEach((f) => f.classList.remove("sds-missing"));
+    if (missing.length) {
+      missing.forEach((id) => form.querySelector(`fieldset[data-q="${id}"]`).classList.add("sds-missing"));
+      const first = form.querySelector(`fieldset[data-q="${missing[0]}"]`);
+      first.scrollIntoView({ behavior: "smooth", block: "center" });
+      say(missing.length === 1 ? "One question still needs an answer (marked in red)."
+        : missing.length + " questions still need answers (marked in red).", "error");
+      return;
+    }
+    $("sds-poll-send").disabled = true;
+    say("Saving…");
+    const { error } = await auth.client.rpc("submit_poll", { p_poll: current.id, p_answers: answers, p_course: auth.course });
+    if (error) {
+      $("sds-poll-send").disabled = false;
+      say("Couldn't save your answers: " + error.message, "error");
+      return;
+    }
+    $("sds-poll-send").hidden = true;
+    $("sds-poll-cancel").textContent = "Close";
+    say("Thanks! Your answers are saved. You can change them from Polls (bottom right) until the poll closes.", "ok");
+    await loadPolls();
+  }
+
+  // ---- Start (once the gate lets a student or instructor in) ----------------
+  function start(detail) {
+    if (auth || !detail || !detail.client) return;
+    auth = detail;
+    buildUi();
+    loadPolls();
+    // Allow links like ...?sds-poll=<id> (e.g. from Canvas) to open a poll.
+    const params = new URLSearchParams(location.search);
+    const id = params.get("sds-poll");
+    if (id && /^[0-9a-f-]{36}$/i.test(id)) {
+      params.delete("sds-poll");
+      const rest = params.toString();
+      history.replaceState(null, "", location.pathname + (rest ? "?" + rest : "") + location.hash);
+      openPoll(id);
+    }
+  }
+
+  document.addEventListener("sds:unlocked", (e) => start(e.detail));
+  if (window.sdsAuth) start(window.sdsAuth);
+})();
+</script>
