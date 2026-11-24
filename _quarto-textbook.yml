@@ -5,13 +5,13 @@
 # preface.qmd over index.qmd before rendering with this profile.
 project:
   render:
-    - index.qmd
+    - prefix.qmd
     - chapters/*.qmd
     - glossary.qmd
 
 book:
   chapters:
-    - index.qmd
+    - prefix.qmd
     # Each chapter is followed by its (unnumbered) chapter quiz page.
     - part: "R and Spatial Data Science"
       chapters:
