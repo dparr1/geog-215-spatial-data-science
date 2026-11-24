@@ -11,12 +11,12 @@ book:
         text: Welcome
       - href: syllabus.qmd
         text: Syllabus
-      - href: preface.qmd
-        text: Textbook
       - href: materials.qmd
         text: Course materials
       - href: about.qmd
         text: About
+      - href: preface.qmd
+        text: Textbook     
 
   chapters:
     - part: "Course"
@@ -29,7 +29,7 @@ book:
         - privacy.qmd
         - student-services.qmd
     # Each chapter is followed by its (unnumbered) chapter quiz page.
-    - prefix.qmd
+    - preface.qmd
     - part: "Unit 1: R and Spatial Data Science"
       chapters:
         - chapters/intro-spatial-data-science.qmd
