@@ -29,9 +29,9 @@ Free peer tutoring is also available from the [UNC Learning Center](https://lear
 |:--|:--|:--|
 | 1. Getting started with data science | Module 1: Getting started with R | [What is Spatial Data Science?](chapters/intro-spatial-data-science.qmd), [R, RStudio, and R Markdown](chapters/r-rstudio-rmarkdown.qmd), [R Basics](chapters/r-basics.qmd), [Indexing Vectors and Data Frames](chapters/indexing-vectors-data-frames.qmd) |
 | | Module 2: Processing data with the tidyverse | [Into the Tidyverse: glimpse, filter, and the Pipe](chapters/tidyverse-filter-pipe.qmd), [Into the Tidyverse: arrange, distinct, select, and mutate](chapters/tidyverse-arrange-select-mutate.qmd), [Into the Tidyverse: summarize, group_by, and drop_na](chapters/tidyverse-summarize-group-by.qmd) |
-| | Module 3: Exploring data for information | |
-| | Project 1: Map contest with tmap | |
-| 2. Working with spatial data | Module 4: Overlaying two spatial layers | |
+| | Module 3: Exploring data for information | [Into the Tidyverse: Graphs with ggplot2](chapters/tidyverse-ggplot.qmd) |
+| | Project 1: Map contest with tmap | [Thematic Maps with tmap](chapters/thematic-maps-tmap.qmd) |
+| 2. Working with spatial data | Module 4: Overlaying two spatial layers | [What Is Geographic Data?](chapters/geographic-information.qmd) |
 | | Module 5: Joining tables | |
 | | Module 6: Spatial statistics | |
 | | Project 2: Map contest with online data | [Census Data and APIs](chapters/census-data-apis.qmd) |

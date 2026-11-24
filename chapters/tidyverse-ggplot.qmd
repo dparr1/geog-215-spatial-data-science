@@ -1,0 +1,499 @@
+---
+title: "Into the Tidyverse: Graphs with ggplot2"
+engine: knitr
+webr:
+  # Installed in the browser for this chapter's live code boxes.
+  # drop_na() comes from tidyr.
+  packages: ["ggplot2", "dplyr", "tidyr", "nycflights13"]
+---
+
+```{r}
+#| label: setup-webex
+#| include: false
+library(webexercises)
+```
+
+::: {.callout-note appearance="simple"}
+## Learning objectives
+
+By the end of this chapter you should be able to:
+
+1.  Explain the grammar of graphics: data, aesthetic mappings, and geoms.
+2.  Build scatterplots, bar charts, and boxplots with `ggplot()`.
+3.  Tell *setting* an aesthetic from *mapping* one.
+4.  Split a plot into small multiples with `facet_wrap()` and `facet_grid()`.
+5.  Add labels and your own colors, and save a plot with `ggsave()`.
+:::
+
+In the last three chapters you used dplyr to filter, sort, and summarize the **nycflights13** data. Tables of numbers answer precise questions, but they are a poor way to *see* a pattern. Do flights that leave late also arrive late? Which airline flies the longest routes? Is there a weekly rhythm to the number of flights? A graph answers each of these at a glance.
+
+This chapter introduces **ggplot2**, the tidyverse package for graphs. Everything in it builds on one short template, and the same ideas carry straight over to the maps in the next chapter.
+
+::: {.callout-tip appearance="simple"}
+## Warm-up: does this code run?
+
+Predict what happens, then run it.
+
+```{webr-r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(nycflights13)
+
+flights -> flights.new
+glimpse(flights.new)
+```
+
+`r hide("Show the answer")`
+Yes, it runs. `->` is the assignment arrow pointing the other way: it stores `flights` in a new object called `flights.new`. It is legal R, but uncommon. The tidyverse style guide recommends `<-`, so that the name of the object you are making is always on the left, where readers look for it.
+
+`glimpse()` prints one line per column, with its type (`<int>`, `<dbl>`, `<chr>`) and the first few values. It is a quick check, before you plot anything, that the data loaded and that the columns have the types you expect.
+`r unhide()`
+:::
+
+## The grammar of graphics {#sec-grammar}
+
+### ggplot2 expects tidy data
+
+ggplot2 is built for **tidy data**, the same shape dplyr produces: each variable is a column, each observation is a row, and each value is a cell. Every variable you want on an axis, or as a color, or to split a plot by, must be its own column. `flights` is already tidy: one row per flight and one column per thing recorded about it. If a variable is spread over several columns (say, one column per year), you would reshape it first with `pivot_longer()` from tidyr.
+
+### What is ggplot2?
+
+**ggplot2** is part of the tidyverse, so `library(tidyverse)` loads it. The package is called ggplot2, but its main function is `ggplot()`. It was written by Hadley Wickham, based on Leland Wilkinson's book *The Grammar of Graphics*, and it has three things going for it:
+
+- A readable graph takes very little code, because the defaults are good.
+- You can still change every part of the graph when you need to.
+- Graphs are built in **layers**, joined with `+`, so you can start simple and add one piece at a time.
+
+### Every graph has the same parts
+
+The **grammar of graphics** is the idea that any chart, from a scatterplot to a map, can be described with the same small set of parts (@tbl-grammar-parts).
+
+| Part | What it is | In ggplot2 |
+|:-------------|:-----------------------------------------|:--------------------|
+| Data | The tidy table you plot | `ggplot(data = flights)` |
+| Aesthetics | Visual properties, such as x position, y position, color, or size, that a column is shown with | `aes(x = dep_delay, y = arr_delay)` |
+| Geoms | The marks that show the data: points, bars, lines, boxes | `geom_point()`, `geom_bar()` |
+| Scales | How data values turn into visual values: which colors, which axis breaks | `scale_fill_manual()`, `scale_x_log10()` |
+| Facets | Splitting the data into small plots, one per group | `facet_wrap()` |
+| Coordinates | Where the marks land on the page | `coord_flip()`, or a map projection |
+
+: The parts of the grammar of graphics. {#tbl-grammar-parts}
+
+The key word is **aesthetic**: a visual property of a mark. `aes()` is where you connect the columns in your data to those properties. A bar chart and a scatterplot can share the same data and the same coordinates; only the **geom** changes.
+
+### Choosing a geom
+
+ggplot2 has more than 40 geoms. To pick one, first ask what kinds of variables you are plotting (@tbl-choose-geom). The answer narrows it down to two or three choices.
+
+| You are plotting | Try |
+|:------------------------------------|:-------------------------------------|
+| One continuous variable | `geom_histogram()`, `geom_density()` |
+| One categorical variable | `geom_bar()` |
+| Two continuous variables | `geom_point()`, `geom_smooth()` |
+| A categorical x and a continuous y | `geom_boxplot()`, `geom_col()` |
+| Change over time | `geom_line()` |
+
+: Choosing a geom from the kinds of variables. {#tbl-choose-geom}
+
+Posit's ggplot2 cheatsheet groups all the geoms this way. In RStudio, find it under **Help \> Cheat Sheets**.
+
+### The template
+
+Every ggplot follows the same template:
+
+``` r
+ggplot(data = <DATA>) +
+  <GEOM_FUNCTION>(mapping = aes(<MAPPINGS>))
+```
+
+Swap in a data frame, a geom function, and the mappings, and you have a plot. Building one takes five steps, but only the first three are required:
+
+1.  Start with tidy data: `ggplot(data = flights)`.
+2.  Map variables to aesthetics: `aes(x = dep_delay, y = arr_delay)`.
+3.  Add a geom to draw them: `+ geom_point()`.
+4.  Adjust the scales and coordinates, for example `+ scale_x_log10()`.
+5.  Add labels: `+ labs(title = "...")`.
+
+Two rules trip people up. First, the `+` must go at the *end* of a line, not the start of the next one; otherwise R thinks the command has ended. Second, ggplot2 uses `+` to add layers, while dplyr uses `|>` to pass data along. You can pipe data *into* `ggplot()`, but after that, every layer is joined with `+`.
+
+The argument names `data =` and `mapping =` are optional, so `ggplot(flights) + geom_point(aes(x = dep_delay, y = arr_delay))` works too. Most code you find online leaves them out.
+
+## Scatterplots and aesthetics {#sec-scatterplots}
+
+### A first scatterplot
+
+Do flights that leave late arrive late? To keep the plot readable, start with the October flights, and drop the cancelled ones, which have no delay values:
+
+```{webr-r}
+# Filter for October flights and remove missing values
+october_flights <- flights |>
+  filter(month == 10) |>
+  drop_na(dep_delay, arr_delay)
+
+# Plot departure vs. arrival delays
+ggplot(data = october_flights) +
+  geom_point(mapping = aes(x = dep_delay, y = arr_delay))
+```
+
+Each point is one October flight. The points form a rising band: flights that leave late arrive late, by about the same amount. Without `drop_na()`, the plot would look the same, but ggplot2 would warn that it had removed rows with missing values.
+
+What does a point far *above* the band mean? A flight that arrived much later than its departure delay predicts, perhaps because it was held in the air or waited a long time on the runway.
+
+### Adding a trend line
+
+`geom_smooth()` draws a trend line. Layer it on top of the points with another `+`:
+
+```{webr-r}
+ggplot(data = october_flights,
+       mapping = aes(x = dep_delay, y = arr_delay)) +
+  geom_point() +
+  geom_smooth()
+```
+
+Two things changed. The mapping moved into `ggplot()`. Mappings set there apply to *every* layer, so `geom_point()` and `geom_smooth()` both use the same x and y, and you don't have to repeat them. And the layers draw in order, so the line sits on top of the points.
+
+By default, `geom_smooth()` fits a smooth curve, with a gray band showing its 95% **confidence interval**. R prints a message saying which method it used. For a straight regression line, use `geom_smooth(method = "lm")`, and to hide the band, add `se = FALSE`.
+
+### Setting an aesthetic
+
+To make the points blue and the line red, give each geom a color *outside* `aes()`:
+
+```{webr-r}
+ggplot(data = october_flights,
+       mapping = aes(x = dep_delay, y = arr_delay)) +
+  geom_point(color = "blue") +
+  geom_smooth(color = "red", linewidth = 2)
+```
+
+This is **setting** an aesthetic: every mark gets the same fixed value, whatever the data say. It is a design choice, not a data choice. Each geom takes its own settings, so here the points are blue, and the line is red and thicker (`linewidth = 2`).
+
+Note the quotes around `"blue"` and `"red"`. R knows 657 color names (run `colors()` to see them all), and it also takes **hex codes** such as `"#2C5080"`.
+
+### Mapping an aesthetic
+
+Now give each origin airport its own color. Move `color` *inside* `aes()`, and give it a column instead of a color:
+
+```{webr-r}
+ggplot(data = october_flights,
+       mapping = aes(x = dep_delay, y = arr_delay, color = origin)) +
+  geom_point() +
+  geom_smooth(linewidth = 0.5)
+```
+
+This is **mapping** an aesthetic: the color now comes from the data. ggplot2 picks one color for each value of `origin`, and builds the **legend** for you. Because `color` is mapped in `ggplot()`, `geom_smooth()` also splits by airport, and draws three trend lines.
+
+@tbl-set-vs-map sums up the difference. It is the most important idea in this chapter.
+
+| | Setting | Mapping |
+|:------------|:--------------------------------|:--------------------------------|
+| Where | In the geom, outside `aes()` | Inside `aes()` |
+| Value | A fixed value: `color = "blue"` | A column: `color = origin` |
+| Result | Every mark looks the same | Marks differ by the data, with a legend |
+
+: Setting an aesthetic against mapping one. {#tbl-set-vs-map}
+
+::: {.callout-warning appearance="simple"}
+## A common mistake
+
+What happens if you write `aes(color = "blue")`? Inside `aes()`, ggplot2 treats `"blue"` as a data value, as if every row had a column whose value was the word "blue". It makes a one-item legend called *blue*, and colors the points with its first default color, which is a salmon pink. Try it in the box above. If your points come out the wrong color with a strange legend, check whether a setting has slipped inside `aes()`.
+:::
+
+::: {.callout-tip appearance="simple"}
+## Think about it
+
+Move `color = origin` out of `ggplot(aes())` and into `geom_point(aes())` instead. Before you run it, predict: how many trend lines will you get now? Why?
+:::
+
+### Too many colors
+
+Try mapping color to the airline, `carrier`. With all 16 airlines, the colors become hard to tell apart, so this code keeps six large ones first:
+
+```{webr-r}
+# Compare delays across major carriers
+october_flights |>
+  filter(carrier %in% c("AA", "US", "UA", "DL", "B6", "WN")) |>
+  ggplot() +
+  geom_point(mapping = aes(x = dep_delay, y = arr_delay, color = carrier))
+```
+
+The data flow into `ggplot()` through the pipe, and from there on the layers are joined with `+`. Even with six carriers, the points pile on top of each other. Color works best for about five groups or fewer. Facets, later in this chapter, are a better fix.
+
+## Bar charts and boxplots {#sec-bars-boxplots}
+
+### Counting with geom_bar()
+
+How many October flights did each airline fly? A **bar chart** compares counts across categories:
+
+```{webr-r}
+flights |>
+  filter(month == 10) |>
+  ggplot() +
+  geom_bar(mapping = aes(x = carrier))
+```
+
+You only map `x`. `geom_bar()` counts the rows for each carrier itself, the same as `count(carrier)` would, and plots the counts as the bar heights. If you already have a table of counts, for example from `group_by()` and `summarize()`, use `geom_col(aes(x = carrier, y = n))` instead, which draws the heights you give it.
+
+United (UA), ExpressJet (EV), and JetBlue (B6) flew the most, with about 5,000 flights each. Hawaiian (HA) flew just 21. The carrier codes are hard to read; the `airlines` table in nycflights13 has the full names, which you could join in.
+
+### fill and color
+
+For bars, boxes, and polygons, **`fill`** colors the inside, and `color` only the outline. (For points and lines, `color` is the one to use.) Map `fill` to the carrier:
+
+```{webr-r}
+# Count of flights per carrier in October
+october_flights |>
+  ggplot() +
+  geom_bar(mapping = aes(x = carrier, fill = carrier))
+```
+
+Each bar now has its own color and a legend entry. But the legend only repeats the x axis, so it adds nothing. Hide it with `show.legend = FALSE` inside `geom_bar()`. Color earns its place when it shows a *different* variable from x.
+
+### Stacked bars
+
+Map `fill` to a different variable from `x`. Here x is the day of the month, and the colors show which of five carriers flew that day:
+
+```{webr-r}
+october_flights |>
+  filter(carrier %in% c("AA", "B6", "DL", "UA", "WN")) |>
+  ggplot() +
+  geom_bar(mapping = aes(x = day, fill = carrier))
+```
+
+Each bar splits into colored segments, one per carrier, and the bar's height is still the total number of flights that day. This is a **stacked bar chart**. The regular dips are Saturdays, when airlines schedule fewer flights.
+
+Stacking makes the totals easy to read, but the middle segments are hard to compare, because they don't sit on a shared baseline. The `position` argument gives two alternatives:
+
+```{webr-r}
+five_carriers <- october_flights |>
+  filter(carrier %in% c("AA", "B6", "DL", "UA", "WN"))
+
+# Every bar is 100%: compare shares
+ggplot(five_carriers) +
+  geom_bar(aes(x = day, fill = carrier), position = "fill") +
+  labs(y = "Share of flights")
+
+# Bars side by side: compare counts
+ggplot(five_carriers) +
+  geom_bar(aes(x = day, fill = carrier), position = "dodge")
+```
+
+`position = "fill"` stretches every bar to the same height, so you compare *proportions*. The y axis would still say "count", although it now shows a share, which is why the code relabels it with `labs()`. `position = "dodge"` puts each day's bars next to each other on a shared baseline, so you can compare counts directly. With 31 days and five carriers it gets crowded; dodging works best with only a few categories on x.
+
+### Boxplots
+
+Which airlines fly the longest routes? A **boxplot** compares a continuous variable across categories. Map a categorical x and a continuous y:
+
+```{webr-r}
+# Distribute flight distances across major carriers
+october_flights |>
+  filter(carrier %in% c("AA", "B6", "DL", "UA", "WN")) |>
+  ggplot(mapping = aes(x = carrier, y = distance)) +
+  geom_boxplot()
+```
+
+A boxplot summarizes each group in five numbers. The box runs from the 25th to the 75th **percentile**, so it holds the middle half of the flights. The thick line is the **median**. The whiskers reach the furthest points within 1.5 times the height of the box, and anything beyond them is drawn as a dot: an **outlier**.
+
+United (UA) flies the longest routes, with a median of about 1,400 miles, and its outliers near 5,000 miles are its flights from Newark to Honolulu. Southwest (WN) flies the shortest, with a median of about 750 miles. A boxplot hides the shape of the data inside the box; `geom_violin()` is an alternative that shows it.
+
+## Small multiples with facets {#sec-facets}
+
+### facet_wrap()
+
+Sixteen colors on one chart are impossible to tell apart. A better idea is **small multiples**: one small chart per group, all with the same axes. In ggplot2 this is called **faceting**:
+
+```{webr-r}
+flights |>
+  ggplot(aes(x = dep_delay, y = arr_delay)) +
+  geom_point(alpha = 0.3) +
+  facet_wrap(~ carrier)
+```
+
+`facet_wrap(~ carrier)` draws one panel per carrier. The tilde, `~`, makes a *formula*: read `~ carrier` as "split by carrier". The panels share their axes, so you can compare them directly. `nrow` or `ncol` sets the shape of the grid, as in `facet_wrap(~ carrier, ncol = 4)`.
+
+`alpha = 0.3` makes each point 70% transparent, so places where many points overlap look darker, and you can see where most flights fall. Look at the panel for HA (Hawaiian Airlines): it is nearly empty, because Hawaiian flew only one flight a day from New York. You would never have spotted that in a single chart with 16 colors.
+
+### facet_grid()
+
+To split by *two* categorical variables, use `facet_grid(rows ~ columns)`:
+
+``` r
+flights |>
+  ggplot(aes(x = distance, y = air_time)) +
+  geom_point(alpha = 0.3) +
+  facet_grid(origin ~ month)
+```
+
+This makes 3 rows (one per airport) by 12 columns (one per month): 36 panels. Read across a row to follow one airport through the year, or down a column to compare the airports in one month. At this size the axis labels overlap; fixes include filtering to a few months, or setting fewer breaks with `scale_x_continuous(breaks = c(0, 1000))`. `facet_grid(~ month)` makes columns only.
+
+Use `facet_wrap()` for one variable with many levels, and `facet_grid()` when you want to cross two variables.
+
+## Finishing a plot {#sec-finishing}
+
+### Choosing your own colors
+
+Every mapped aesthetic has a **scale**, which controls how data values turn into visual values. To pick the colors yourself, replace the default fill scale with `scale_fill_manual()`:
+
+```{webr-r}
+# Custom discrete colors manually
+ggplot(data = october_flights) +
+  geom_bar(mapping = aes(x = origin, fill = origin)) +
+  scale_fill_manual(values = c("EWR" = "#3182bd",
+                               "JFK" = "#e6550d",
+                               "LGA" = "#31a354"))
+```
+
+Naming each value (`"EWR" = ...`) guarantees each airport keeps its color, even if the order of the data changes. Match the scale to the aesthetic: `scale_fill_manual()` for fills, `scale_color_manual()` for points and lines.
+
+The six-character codes are **hex codes**: two characters each for the red, green, and blue in the color. Choosing colors that work for everyone is harder than it looks. About one man in twelve has some form of color blindness. Websites such as <https://colorbrewer2.org> suggest sets of colors that work for color-blind readers and in grayscale, and `scale_fill_viridis_d()` uses the viridis palette, which is designed for both.
+
+### Adding labels with labs()
+
+A column name such as `dep_delay` means something to you, but not to your reader. `labs()` sets every label in one call:
+
+```{webr-r}
+ggplot(data = october_flights) +
+  geom_point(mapping = aes(x = dep_delay, y = arr_delay, color = origin),
+             alpha = 0.5) +
+  labs(
+    title = "NYC Flight Delay Comparison",
+    subtitle = "October flights departing from JFK, LGA, and EWR",
+    x = "Departure delay (minutes)",
+    y = "Arrival delay (minutes)",
+    color = "Origin airport",
+    caption = "Source: nycflights13 package"
+  )
+```
+
+The argument names match the aesthetics: `x`, `y`, `color`, `fill`. Here `color = "Origin airport"` renames the legend, because color is the mapped aesthetic. A good habit for every plot you hand in: a title, axis labels with units, and the data source in the caption.
+
+### Themes
+
+A **theme** controls everything that isn't data: the background, the grid lines, the fonts. Add one as another layer. `theme_minimal()` removes the gray background, and `theme_bw()` and `theme_classic()` are worth trying too:
+
+```{webr-r}
+ggplot(data = october_flights) +
+  geom_point(mapping = aes(x = dep_delay, y = arr_delay, color = origin)) +
+  theme_minimal()
+```
+
+### Saving a plot with ggsave()
+
+You could export a plot from RStudio's Plots pane, but then it comes out at whatever size the pane happens to be. `ggsave()` makes the size and resolution part of your code, so the figure is the same every time you knit:
+
+``` r
+# Create your plot
+ggplot(data = october_flights) +
+  geom_point(mapping = aes(x = dep_delay, y = arr_delay, color = origin)) +
+  theme_minimal()
+
+# Save it as a high-resolution PNG file
+ggsave(filename = "nyc_flights_delays_october.png",
+       width = 8,
+       height = 6,
+       dpi = 300)   # good for print or presentations
+```
+
+`ggsave()` saves the last plot you made. `width` and `height` are in inches, and `dpi` is the resolution in dots per inch: 300 is print quality. The file extension sets the type: `.png`, `.pdf`, `.svg`, or `.jpg`. The file goes into your working directory, which for an R Markdown file is the folder the `.Rmd` file is in. To save a plot that isn't the last one, store it first, `p <- ggplot(...)`, and then `ggsave("file.png", plot = p)`.
+
+## Practice: June flights {#sec-june-practice}
+
+These steps follow the in-class exercise.
+
+**Step 1: set up.** Start a new R Markdown file, load the packages, and look at the data:
+
+``` r
+library(nycflights13)
+library(tidyverse)
+
+glimpse(flights)
+
+flights |>
+  distinct(carrier)
+```
+
+**Step 2: plot.** Graph `air_time` against `distance` for the June flights. Add a trend line, color the points by origin airport, and label the axes with units. Try it first:
+
+```{webr-r}
+flights |>
+  filter(month == 6)
+  # plot air_time against distance
+```
+
+`r hide("Show the answer to step 2")`
+
+``` r
+flights |>
+  filter(month == 6) |>
+  ggplot(aes(x = distance, y = air_time)) +
+  geom_point(aes(color = origin), alpha = 0.3) +
+  geom_smooth() +
+  labs(x = "Distance (miles)", y = "Air time (minutes)",
+       color = "Origin airport",
+       title = "Air time against distance, June 2013")
+```
+
+The points fall close to a straight line, because air time grows with distance at roughly cruising speed. Points far off the line are worth asking about. Here `color` is mapped in `geom_point()` only, so there is a single trend line for all three airports.
+
+`r unhide()`
+
+**Step 3: challenge.** Which plane (`tailnum`) has the worst on-time record? This is a dplyr question, not a plotting one: you answered a version of it at the end of [the last chapter](tidyverse-summarize-group-by.qmd#sec-late-plane-practice). Once you have a table of planes with their share of late flights, try plotting it: a histogram of `share_late` shows whether a few planes are unusually bad, or whether lateness is spread across the whole fleet.
+
+## Check your understanding
+
+1.  In ggplot2, which function connects columns in your data to visual properties such as x, y, and color? `r fitb(c("aes", "aes()"))`
+
+2.  `geom_point(color = "blue")` is an example of: `r mcq(c("Mapping an aesthetic", answer = "Setting an aesthetic", "Faceting", "A scale"))`
+
+3.  Writing `aes(color = "blue")` makes all the points blue. `r torf(FALSE)`
+
+4.  Which geom counts the rows in each category for you? `r mcq(c("geom_col()", answer = "geom_bar()", "geom_point()", "geom_boxplot()"))`
+
+5.  For a bar chart, which aesthetic colors the inside of each bar? `r fitb("fill")`
+
+6.  Which bar position stretches every bar to the same height, so you can compare shares? `r mcq(c("\"stack\"", "\"dodge\"", answer = "\"fill\"", "\"identity\""))`
+
+7.  In a boxplot, the thick line across the box shows the: `r mcq(c("Mean", answer = "Median", "Maximum", "25th percentile"))`
+
+8.  `facet_wrap(~ carrier)` draws one panel for each carrier, with shared axes. `r torf(TRUE)`
+
+9.  In a chain of ggplot2 layers, the `+` goes at the start of each new line. `r torf(FALSE)`
+
+`r hide("Show hint for question 3")`
+Inside `aes()`, `"blue"` is treated as a data value, not a color. ggplot2 makes a legend entry called *blue* and uses its default color, a salmon pink. To make the points blue, set the color outside `aes()`: `geom_point(color = "blue")`.
+`r unhide()`
+
+## Summary
+
+- **ggplot2** builds graphs from the **grammar of graphics**: data, **aesthetics** that map columns to visual properties, and **geoms** that draw the marks, joined in **layers** with `+`.
+- The template is `ggplot(data) + geom_function(aes(mappings))`. Mappings in `ggplot()` apply to every layer.
+- Choose the geom from the kinds of variables: `geom_point()` and `geom_smooth()` for two continuous variables, `geom_bar()` for counts of a category, `geom_boxplot()` for a continuous variable across categories.
+- **Setting** an aesthetic (outside `aes()`) gives every mark the same value. **Mapping** one (inside `aes()`) ties it to a column and makes a legend.
+- For bars, `fill` is the inside and `color` the outline. `position = "fill"` compares shares; `position = "dodge"` compares counts.
+- **Facets** (`facet_wrap()`, `facet_grid()`) make small multiples, a better choice than many colors.
+- Finish every plot with readable colors (`scale_fill_manual()`), labels (`labs()`), and a theme, and save it with `ggsave()`.
+
+## Exercises
+
+Use the `flights` data from nycflights13 for these exercises.
+
+1.  **Histogram.** Make a histogram of `distance` with `geom_histogram()`. Change `binwidth` to 100, then 500. What do you notice about the distances flown from New York?
+2.  **Sorted bars.** Make a bar chart of the number of flights from each origin airport. Then make one for the 10 most common destinations (`dest`). (Hint: `count()`, `slice_max()`, and `geom_col()`.)
+3.  **Delays by month.** Use `group_by()` and `summarize()` to find the mean departure delay for each month, then plot it with `geom_line()` and `geom_point()`. Which months were worst?
+4.  **Set or map?** Make a scatterplot of `distance` against `air_time` for the January flights. First set every point to dark green. Then map color to `origin`. Then map `size` to `dep_delay`. Which of these makes a useful plot?
+5.  **Facets.** Make boxplots of `dep_delay` for each `origin`, then facet them by `month`. Use `coord_cartesian(ylim = c(-20, 100))` to zoom in. What does zooming in show you that the full plot doesn't?
+6.  **Finish and save.** Take your favorite plot from these exercises, give it a title, axis labels with units, and a caption, apply `theme_minimal()`, and save it as a PNG file 7 inches wide and 5 inches tall.
+7.  **Fix the code.** Each chunk below has one mistake. Find and fix it.
+    ``` r
+    ggplot(flights) + geom_point(aes(x = dep_delay, y = arr_delay), color = "origin")
+    ggplot(flights, aes(x = carrier))
+      + geom_bar()
+    flights |> ggplot(aes(x = carrier)) |> geom_bar()
+    ```
+
+## Further reading
+
+- *R for Data Science* (2nd ed.) [@wickham2023r4ds], free at <https://r4ds.hadley.nz>. The "Data visualization" chapter introduces ggplot2 with a different data set, and the "Layers" chapter goes further into geoms, facets, and positions.
+- The ggplot2 website, <https://ggplot2.tidyverse.org>, has the reference page for every function in this chapter.
+- Posit's *Data visualization with ggplot2* cheatsheet, <https://posit.co/resources/cheatsheets/>, lists the geoms by the kinds of variables they plot.
+- *ggplot2: Elegant Graphics for Data Analysis* (3rd ed.), by Hadley Wickham, Danielle Navarro, and Thomas Lin Pedersen, free at <https://ggplot2-book.org>, explains the grammar of graphics in depth.

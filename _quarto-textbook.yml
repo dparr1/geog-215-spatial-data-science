@@ -27,6 +27,12 @@ book:
     - chapters/tidyverse-arrange-select-mutate-quiz.qmd
     - chapters/tidyverse-summarize-group-by.qmd
     - chapters/tidyverse-summarize-group-by-quiz.qmd
+    - chapters/tidyverse-ggplot.qmd
+    - chapters/tidyverse-ggplot-quiz.qmd
+    - chapters/thematic-maps-tmap.qmd
+    - chapters/thematic-maps-tmap-quiz.qmd
+    - chapters/geographic-information.qmd
+    - chapters/geographic-information-quiz.qmd
     - chapters/census-data-apis.qmd
     - chapters/census-data-apis-quiz.qmd
   appendices:

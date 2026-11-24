@@ -1,0 +1,333 @@
+{
+  "id": "geographic-information",
+  "title": "What Is Geographic Data?",
+  "perSession": 10,
+  "minR": 3,
+  "questions": [
+    {
+      "id": "entity",
+      "type": "choice",
+      "prompt": "A real-world object, such as a light pole on campus, is called an:",
+      "choices": [
+        "Entity",
+        "Attribute",
+        "Vertex",
+        "Origin"
+      ],
+      "answer": 0,
+      "explain": "Entities are the real things; features are how we represent them in data."
+    },
+    {
+      "id": "feature",
+      "type": "choice",
+      "prompt": "When an entity is put on a map or in a database, it becomes a:",
+      "choices": [
+        "Feature",
+        "Cell",
+        "Node",
+        "Datum"
+      ],
+      "answer": 0,
+      "explain": "A feature is a simplified representation of an entity."
+    },
+    {
+      "id": "abstraction",
+      "type": "choice",
+      "prompt": "Data abstraction is:",
+      "choices": [
+        "The process of making the real world readable by a computer",
+        "Deleting data you don't need",
+        "Drawing a map by hand",
+        "Converting a raster to a vector"
+      ],
+      "answer": 0,
+      "explain": "It runs from the real world, through a data model and a data structure, down to 0s and 1s."
+    },
+    {
+      "id": "model-vs-structure",
+      "type": "choice",
+      "prompt": "What is the difference between a data model and a data structure?",
+      "choices": [
+        "The model is the idea of what to keep; the structure is how it is laid out in memory or on disk",
+        "They are the same thing",
+        "Models are for rasters and structures for vectors",
+        "The structure is chosen before the model"
+      ],
+      "answer": 0,
+      "explain": "The data model decides what to keep (wetlands with an ID, area, type); the data structure organizes it as coordinates and tables."
+    },
+    {
+      "id": "continuous",
+      "type": "choice",
+      "prompt": "Which is an example of continuous data?",
+      "choices": [
+        "Temperature",
+        "Houses",
+        "State boundaries",
+        "Bus stops"
+      ],
+      "answer": 0,
+      "explain": "Continuous data have a value everywhere, changing from place to place."
+    },
+    {
+      "id": "discrete",
+      "type": "choice",
+      "prompt": "Which is an example of a discrete object?",
+      "choices": [
+        "A road",
+        "Elevation",
+        "Precipitation",
+        "Air pressure"
+      ],
+      "answer": 0,
+      "explain": "Discrete objects are present in one place and absent in another, with clear edges."
+    },
+    {
+      "id": "vector-best",
+      "type": "choice",
+      "prompt": "Which data model is best for discrete objects such as parcels and wells?",
+      "choices": [
+        "Vector",
+        "Raster",
+        "Neither",
+        "Both equally"
+      ],
+      "answer": 0,
+      "explain": "Vector data store discrete features precisely as coordinates."
+    },
+    {
+      "id": "raster-best",
+      "type": "choice",
+      "prompt": "Which data model is best for continuous surfaces such as elevation?",
+      "choices": [
+        "Raster",
+        "Vector",
+        "Tabular",
+        "KML"
+      ],
+      "answer": 0,
+      "explain": "A raster's grid gives every location a value."
+    },
+    {
+      "id": "lines-vs-areas",
+      "type": "choice",
+      "prompt": "A building can be stored as a line (its outline) or as an area (a polygon). What does the polygon add?",
+      "choices": [
+        "Enclosure: it knows it has an inside",
+        "Color",
+        "A time stamp",
+        "More vertices"
+      ],
+      "answer": 0,
+      "explain": "A polygon encloses space, so you can measure its area or test whether a point is inside it."
+    },
+    {
+      "id": "large-scale",
+      "type": "truefalse",
+      "prompt": "A large-scale map, such as 1:10,000, shows a large area with little detail.",
+      "answer": false,
+      "explain": "Large scale means a large fraction, so a small area in a lot of detail. A small-scale map shows a large area."
+    },
+    {
+      "id": "generalization",
+      "type": "choice",
+      "prompt": "On a map of the whole country, a city is drawn as a point instead of an area. This is called:",
+      "choices": [
+        "Generalization",
+        "Abstraction",
+        "Classification",
+        "Rasterization"
+      ],
+      "answer": 0,
+      "explain": "At smaller scales, detail has to go, and features may change geometry."
+    },
+    {
+      "id": "attribute",
+      "type": "choice",
+      "prompt": "A building's name and the year it was built are its:",
+      "choices": [
+        "Attributes",
+        "Vertices",
+        "Nodes",
+        "Cells"
+      ],
+      "answer": 0,
+      "explain": "Attributes are non-spatial information about a spatial feature."
+    },
+    {
+      "id": "nonspatial",
+      "type": "truefalse",
+      "prompt": "Class grades are an example of spatial data.",
+      "answer": false,
+      "explain": "Grades have no location of their own, so they are non-spatial data."
+    },
+    {
+      "id": "node",
+      "type": "choice",
+      "prompt": "The start or end point of a line is called a:",
+      "choices": [
+        "Node",
+        "Vertex",
+        "Polygon",
+        "Cell"
+      ],
+      "answer": 0,
+      "explain": "Nodes are where lines start and end, and where networks connect."
+    },
+    {
+      "id": "vertex",
+      "type": "choice",
+      "prompt": "A point in the middle of a line, where it changes direction, is called a:",
+      "choices": [
+        "Vertex",
+        "Node",
+        "Origin",
+        "Segment"
+      ],
+      "answer": 0,
+      "explain": "Vertices give a line its shape. More vertices mean a smoother line and a bigger file."
+    },
+    {
+      "id": "thematic-layers",
+      "type": "choice",
+      "prompt": "Why do thematic layers stack exactly on top of each other?",
+      "choices": [
+        "They share a coordinate system",
+        "They have the same attributes",
+        "They are all rasters",
+        "They were made by the same person"
+      ],
+      "answer": 0,
+      "explain": "A shared coordinate system makes the layers line up, so a map is just layers drawn together."
+    },
+    {
+      "id": "raster-location",
+      "type": "choice",
+      "prompt": "A raster stores the location of each cell by:",
+      "choices": [
+        "The coordinates of its origin, plus the cell size and each cell's row and column",
+        "A pair of coordinates for every cell",
+        "An address for every cell",
+        "A GeoJSON file"
+      ],
+      "answer": 0,
+      "explain": "Any cell's location can be worked out from the origin and the cell size."
+    },
+    {
+      "id": "cells-quadruple",
+      "type": "choice",
+      "prompt": "You change a raster from 50 m cells to 25 m cells over the same area. How does the number of cells change?",
+      "choices": [
+        "It is four times as many",
+        "It doubles",
+        "It halves",
+        "It stays the same"
+      ],
+      "answer": 0,
+      "explain": "Halving the cell size halves both the width and the height of each cell, so each old cell becomes 2 × 2 = 4 cells."
+    },
+    {
+      "id": "code-cell-northing",
+      "type": "code",
+      "prompt": "A raster has 30 m cells, and its lower-left corner is at northing `3950000`. Store the northing of the cell in row 4 (counting up from 0) in a variable called `n_cell`.",
+      "starter": "northing_ll <- 3950000\ncell_size <- 30\nrow <- 4\n",
+      "check": "isTRUE(all.equal(n_cell, 3950120))",
+      "solution": "northing_ll <- 3950000\ncell_size <- 30\nrow <- 4\nn_cell <- northing_ll + row * cell_size",
+      "explain": "N = N lower-left + row × cell size = 3,950,000 + 4 × 30 = 3,950,120."
+    },
+    {
+      "id": "code-count-cells",
+      "type": "code",
+      "prompt": "A raster covers an area 3,000 m wide and 2,000 m tall with 10 m cells. Store the total number of cells in a variable called `n_cells`.",
+      "starter": "width <- 3000\nheight <- 2000\ncell_size <- 10\n",
+      "check": "isTRUE(all.equal(n_cells, 60000))",
+      "solution": "width <- 3000\nheight <- 2000\ncell_size <- 10\nn_cells <- (width / cell_size) * (height / cell_size)",
+      "explain": "300 columns × 200 rows = 60,000 cells."
+    },
+    {
+      "id": "shp-dbf",
+      "type": "choice",
+      "prompt": "Which file in a shapefile holds the attribute table?",
+      "choices": [
+        ".dbf",
+        ".shp",
+        ".shx",
+        ".prj"
+      ],
+      "answer": 0,
+      "explain": "`.shp` holds geometry, `.shx` an index, `.dbf` the attributes, and `.prj` the projection."
+    },
+    {
+      "id": "shp-prj",
+      "type": "choice",
+      "prompt": "Which shapefile file tells the software the coordinate system?",
+      "choices": [
+        ".prj",
+        ".dbf",
+        ".sbn",
+        ".shx"
+      ],
+      "answer": 0,
+      "explain": "Without the `.prj`, the software can't place the data correctly on the Earth."
+    },
+    {
+      "id": "shp-one-file",
+      "type": "truefalse",
+      "prompt": "A `.shp` file on its own, without its other files, is a complete, usable shapefile.",
+      "answer": false,
+      "explain": "At least `.shp`, `.shx`, and `.dbf` are needed. Keep (and zip) all the files together."
+    },
+    {
+      "id": "geojson-order",
+      "type": "choice",
+      "prompt": "In GeoJSON, which coordinate comes first?",
+      "choices": [
+        "Longitude",
+        "Latitude",
+        "Altitude",
+        "It depends on the file"
+      ],
+      "answer": 0,
+      "explain": "GeoJSON writes longitude, then latitude, in WGS84."
+    },
+    {
+      "id": "kml",
+      "type": "choice",
+      "prompt": "Which format is behind Google Earth?",
+      "choices": [
+        "KML",
+        "GeoTIFF",
+        "Shapefile",
+        "CSV"
+      ],
+      "answer": 0,
+      "explain": "KML, Keyhole Markup Language, is XML-based. A `.kmz` is a zipped KML."
+    },
+    {
+      "id": "geotiff",
+      "type": "choice",
+      "prompt": "Which format is the standard for raster data such as satellite images?",
+      "choices": [
+        "GeoTIFF",
+        "GeoJSON",
+        "KML",
+        "Shapefile"
+      ],
+      "answer": 0,
+      "explain": "A GeoTIFF is a TIFF image with its location stored inside the file."
+    },
+    {
+      "id": "metadata",
+      "type": "choice",
+      "prompt": "Metadata are:",
+      "choices": [
+        "Data about the data: who made it, when, how, and how accurate it is",
+        "The largest values in a dataset",
+        "Data stored in the cloud",
+        "The geometry column"
+      ],
+      "answer": 0,
+      "explain": "Without metadata you can't judge whether data fit your purpose. US federal data follow the FGDC standard."
+    }
+  ]
+}
