@@ -17,42 +17,41 @@ book:
         text: Course materials
       - href: about.qmd
         text: About
+      - index.qmd
+      - syllabus.qmd
+      - materials.qmd
+      - about.qmd
+      - text: "Policies"
+        menu:
+          - student-services.qmd
+          - ai-policy.qmd
+          - privacy.qmd
+
   chapters:
-    - part: "Course"
+    - preface.qmd
+      # Each chapter is followed by its (unnumbered) chapter quiz page.
+    - part: "Unit 1: R and Spatial Data Science"
       chapters:
-        - index.qmd
-        - syllabus.qmd
-        - ai-policy.qmd
-        - materials.qmd
-        - student-services.qmd
-        - about.qmd
-        - privacy.qmd
-    - part: "Textbook"
+        - chapters/intro-spatial-data-science.qmd
+        - chapters/intro-spatial-data-science-quiz.qmd
+        - chapters/r-rstudio-rmarkdown.qmd
+        - chapters/r-rstudio-rmarkdown-quiz.qmd
+        - chapters/r-basics.qmd
+        - chapters/r-basics-quiz.qmd
+        - chapters/indexing-vectors-data-frames.qmd
+        - chapters/indexing-vectors-data-frames-quiz.qmd
+    - part: "Unit 2: Into the Tidyverse"
       chapters:
-        - preface.qmd
-        # Each chapter is followed by its (unnumbered) chapter quiz page.
-        - part: "R and Spatial Data Science"
-          chapters:
-            - chapters/intro-spatial-data-science.qmd
-            - chapters/intro-spatial-data-science-quiz.qmd
-            - chapters/r-rstudio-rmarkdown.qmd
-            - chapters/r-rstudio-rmarkdown-quiz.qmd
-            - chapters/r-basics.qmd
-            - chapters/r-basics-quiz.qmd
-            - chapters/indexing-vectors-data-frames.qmd
-            - chapters/indexing-vectors-data-frames-quiz.qmd
-        - part: "Into the Tidyverse"
-          chapters:
-            - chapters/tidyverse-filter-pipe.qmd
-            - chapters/tidyverse-filter-pipe-quiz.qmd
-            - chapters/tidyverse-arrange-select-mutate.qmd
-            - chapters/tidyverse-arrange-select-mutate-quiz.qmd
-            - chapters/tidyverse-summarize-group-by.qmd
-            - chapters/tidyverse-summarize-group-by-quiz.qmd
-        - part: "Data"
-          chapters:
-            - chapters/census-data-apis.qmd
-            - chapters/census-data-apis-quiz.qmd
+        - chapters/tidyverse-filter-pipe.qmd
+        - chapters/tidyverse-filter-pipe-quiz.qmd
+        - chapters/tidyverse-arrange-select-mutate.qmd
+        - chapters/tidyverse-arrange-select-mutate-quiz.qmd
+        - chapters/tidyverse-summarize-group-by.qmd
+        - chapters/tidyverse-summarize-group-by-quiz.qmd
+    - part: "Unit 4: Data"
+      chapters:
+        - chapters/census-data-apis.qmd
+        - chapters/census-data-apis-quiz.qmd
   appendices:
     - glossary.qmd
 

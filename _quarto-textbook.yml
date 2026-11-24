@@ -13,27 +13,27 @@ book:
   chapters:
     - index.qmd
     # Each chapter is followed by its (unnumbered) chapter quiz page.
-        - part: "R and Spatial Data Science"
-          chapters:
-            - chapters/intro-spatial-data-science.qmd
-            - chapters/intro-spatial-data-science-quiz.qmd
-            - chapters/r-rstudio-rmarkdown.qmd
-            - chapters/r-rstudio-rmarkdown-quiz.qmd
-            - chapters/r-basics.qmd
-            - chapters/r-basics-quiz.qmd
-            - chapters/indexing-vectors-data-frames.qmd
-            - chapters/indexing-vectors-data-frames-quiz.qmd
-        - part: "Into the Tidyverse"
-          chapters:
-            - chapters/tidyverse-filter-pipe.qmd
-            - chapters/tidyverse-filter-pipe-quiz.qmd
-            - chapters/tidyverse-arrange-select-mutate.qmd
-            - chapters/tidyverse-arrange-select-mutate-quiz.qmd
-            - chapters/tidyverse-summarize-group-by.qmd
-            - chapters/tidyverse-summarize-group-by-quiz.qmd
-        - part: "Data"
-          chapters:
-            - chapters/census-data-apis.qmd
-            - chapters/census-data-apis-quiz.qmd
+    - part: "R and Spatial Data Science"
+      chapters:
+        - chapters/intro-spatial-data-science.qmd
+        - chapters/intro-spatial-data-science-quiz.qmd
+        - chapters/r-rstudio-rmarkdown.qmd
+        - chapters/r-rstudio-rmarkdown-quiz.qmd
+        - chapters/r-basics.qmd
+        - chapters/r-basics-quiz.qmd
+        - chapters/indexing-vectors-data-frames.qmd
+        - chapters/indexing-vectors-data-frames-quiz.qmd
+    - part: "Into the Tidyverse"
+      chapters:
+        - chapters/tidyverse-filter-pipe.qmd
+        - chapters/tidyverse-filter-pipe-quiz.qmd
+        - chapters/tidyverse-arrange-select-mutate.qmd
+        - chapters/tidyverse-arrange-select-mutate-quiz.qmd
+        - chapters/tidyverse-summarize-group-by.qmd
+        - chapters/tidyverse-summarize-group-by-quiz.qmd
+    - part: "Data"
+      chapters:
+        - chapters/census-data-apis.qmd
+        - chapters/census-data-apis-quiz.qmd
   appendices:
     - glossary.qmd
