@@ -27,7 +27,7 @@ book:
         - student-services.qmd
         - about.qmd
         - privacy.qmd
-    - part: "Textbook"
+      part: "Textbook"
       chapters:
         - preface.qmd
         # Each chapter is followed by its (unnumbered) chapter quiz page.
