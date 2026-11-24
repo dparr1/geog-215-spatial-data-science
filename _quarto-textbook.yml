@@ -37,3 +37,4 @@ book:
         - chapters/census-data-apis-quiz.qmd
   appendices:
     - glossary.qmd
+    - about.qmd
