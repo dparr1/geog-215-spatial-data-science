@@ -257,6 +257,8 @@ Carolina students are expected to follow these AI guidelines:
 3. **Use of AI must be open and documented.** When an assignment allows it, declare, explain, and cite any use of AI in your work using applicable standards (such as APA, MLA, or course guidelines). You are 100% responsible for your final product.
 4. **Follow this syllabus's AI guidelines.** If you're unsure, ask me. This guidance would be referenced if an issue were referred to Student Conduct for alleged academic misconduct.
 
+See the course [AI policy](ai-policy.qmd) for examples of allowed and not allowed uses of AI, and for how I use AI in this course.
+
 ### Code of conduct
 
 All students are expected to follow University policy and the UNC Student Code of Conduct, including its policies on academic integrity. Read more at [studentconduct.unc.edu](https://studentconduct.unc.edu/). What counts as cheating can change from one activity to another: collaboration may be encouraged on an assignment but be cheating on an exam. Follow the guidelines for each activity, and ask if you're unsure. Don't be a cheater!
