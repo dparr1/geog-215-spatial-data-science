@@ -23,7 +23,7 @@ book:
   date: last-modified
   # The top menu and chapter list are in _quarto-site.yml (the full
   # geog215.org site, the default) and _quarto-textbook.yml (textbook only,
-  # for daveparr.com/geog215/).
+  # for daveparr.com/intro-spatial-data-science/).
 
 bibliography: references.bib
 

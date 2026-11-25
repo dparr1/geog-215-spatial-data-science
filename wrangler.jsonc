@@ -8,7 +8,7 @@
 // geog215.org is attached to this Worker in the dashboard
 // (Workers & Pages > geog-215-spatial-data-science > Settings > Domains & Routes).
 //
-// Not used for daveparr.com/geog215/: that public copy is rendered by the
+// Not used for daveparr.com/intro-spatial-data-science/: that public copy is rendered by the
 // GitHub Action and committed to the daveparr.com repo.
 {
   "name": "geog-215-spatial-data-science",

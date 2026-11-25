@@ -2,8 +2,8 @@ name: Render and Publish Quarto Book
 
 # Every push to main renders the textbook (chapters, quizzes, glossary; not
 # the course pages) and commits it to
-# dparr1/daveparr.com under geog215/, which triggers Cloudflare's build of
-# daveparr.com (https://daveparr.com/geog215/).
+# dparr1/daveparr.com under intro-spatial-data-science/, which triggers Cloudflare's build of
+# daveparr.com (https://daveparr.com/intro-spatial-data-science/).
 #
 # The gated copy for https://geog215.org is NOT built here: Cloudflare Workers
 # Builds, connected to this repo, renders and deploys it on the same push
@@ -34,7 +34,7 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      # daveparr.com/geog215/ gets the textbook only (no Welcome, Syllabus,
+      # daveparr.com/intro-spatial-data-science/ gets the textbook only (no Welcome, Syllabus,
       # Course materials, or About pages; those are on geog215.org). A book
       # must start at index.qmd, so the Preface becomes the home page here.
       - name: Render textbook only
@@ -52,11 +52,11 @@ jobs:
           # Deploy keys); its private half is this repo's secret.
           ssh-key: ${{ secrets.DAVEPARR_DEPLOY_KEY }}
 
-      - name: Copy book into daveparr.com/geog215
+      - name: Copy book into daveparr.com/intro-spatial-data-science
         run: |
-          rsync -a --delete _book/ daveparr.com/geog215/
+          rsync -a --delete _book/ daveparr.com/intro-spatial-data-science/
           cd daveparr.com
-          git add -A geog215
+          git add -A intro-spatial-data-science
           if git diff --cached --quiet; then
             echo "Book unchanged on daveparr.com; nothing to push."
             exit 0

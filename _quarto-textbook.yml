@@ -1,4 +1,4 @@
-# Textbook-only profile, used for the public copy on daveparr.com/geog215/:
+# Textbook-only profile, used for the public copy on daveparr.com/intro-spatial-data-science/:
 # `quarto render --profile textbook`. It leaves out the course pages
 # (Welcome, Syllabus, Course materials, About) and the top menu, which live
 # only on geog215.org. A book needs index.qmd, so the publish workflow copies

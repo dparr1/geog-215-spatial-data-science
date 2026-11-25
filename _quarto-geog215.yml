@@ -1,6 +1,6 @@
 # geog215.org profile: `quarto render --profile geog215` adds the Supabase
 # sign-in gate (instructor-issued access codes; setup in supabase/README.md).
-# The default render, used for daveparr.com/geog215/, has no gate.
+# The default render, used for daveparr.com/intro-spatial-data-science/, has no gate.
 format:
   html:
     include-in-header: assets/auth-gate.html
@@ -10,7 +10,7 @@ format:
       - assets/questions.html
       - assets/polls.html
 
-# GA4 for geog215.org only. daveparr.com/geog215/ gets daveparr.com's own tag
+# GA4 for geog215.org only. daveparr.com/intro-spatial-data-science/ gets daveparr.com's own tag
 # from that site's build, so this stays out of the default _quarto.yml.
 book:
   google-analytics: "G-E3QTGKCHDQ"
