@@ -40,7 +40,7 @@ Data analysis turns raw observations into evidence. We summarize what the data s
 
 : The cycle of data analysis. {#tbl-analysis-cycle}
 
-Chapter 13 covered step 3, describing data. This chapter is about step 4, testing, and about the measure of spread, variance, that connects the two.
+Chapter 16 covered step 3, describing data. This chapter is about step 4, testing, and about the measure of spread, variance, that connects the two.
 
 ## Statistics and p-values {#sec-p-values}
 
@@ -92,7 +92,7 @@ The failure of so many published findings to hold up when other researchers repe
 
 ## Variance: measuring spread {#sec-variance}
 
-ANOVA is built on **variance**, which you met in Chapter 13. Variance is the average squared distance of each value from the mean:
+ANOVA is built on **variance**, which you met in Chapter 16. Variance is the average squared distance of each value from the mean:
 
 $$
 s^2 = \frac{\sum (x_i - \bar{x})^2}{n - 1}
@@ -174,7 +174,7 @@ pf(7, df1 = 2, df2 = 15, lower.tail = FALSE)
 
 Back to the question we started with: **is the median age of males different between western, central, and eastern North Carolina?**
 
-- **Data:** American Community Survey 5-year estimates of median age for males (table B01002) for all 100 North Carolina counties, downloaded with tidycensus (Chapter 16).
+- **Data:** American Community Survey 5-year estimates of median age for males (table B01002) for all 100 North Carolina counties, downloaded with tidycensus (Chapter 13).
 - **Groups:** the west (the mountains), the center (the Piedmont), and the east (the coastal plain). Each county belongs to one region (@fig-nc-regions).
 - **Unit of analysis:** the county, not the person or the census tract.
 
@@ -339,7 +339,7 @@ The bottom line: before you trust a p-value from map data, map the residuals and
 2.  **Which regions?** Run `TukeyHSD()` on the North Carolina regional model. Which pairs of regions differ significantly? Does that match what you see in @fig-age-boxplot?
 3.  **Female age.** Download the median age for females (variable `B01002_003`) for North Carolina's counties with tidycensus, assign each county to the same regions, and run an ANOVA. Do the regions differ for women too?
 4.  **Draw the lines differently.** Move the boundary between the central and eastern regions one tier of counties east or west, and rerun the ANOVA. How much does *F* change? What does that tell you about the modifiable areal unit problem?
-5.  **Births.** Using the `nc` data from the sf package (Chapter 13), make a variable for births per square kilometer, group the counties into three regions by the longitude of their centroids, and test whether births per square kilometer differ by region. Check the assumptions, and use `kruskal.test()` if they fail.
+5.  **Births.** Using the `nc` data from the sf package (Chapter 16), make a variable for births per square kilometer, group the counties into three regions by the longitude of their centroids, and test whether births per square kilometer differ by region. Check the assumptions, and use `kruskal.test()` if they fail.
 
 ## Further reading
 

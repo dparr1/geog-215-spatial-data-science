@@ -2,22 +2,34 @@
 title: "Unit 3: Maps and Geographic Data"
 ---
 
-This unit moves from tables and graphs to maps. It starts by making thematic maps in R with the tmap package, using campus data on UNC's trees, sidewalks, and buildings. It then steps back from the code to ask how the real world becomes geographic data in the first place: the vector and raster data models, and the file formats that store them. It ends with location itself: how a datum, a coordinate system, and a map projection turn places on a round Earth into coordinates on a flat map.
+This unit moves from tables and graphs to maps. It starts by making thematic maps in R with the tmap package, using campus data on UNC's trees, sidewalks, and buildings. It then steps back from the code to ask how the real world becomes geographic data in the first place: the vector and raster data models, and the file formats that store them. Next comes location itself: how a datum, a coordinate system, and a map projection turn places on a round Earth into coordinates on a flat map. The unit ends by getting geographic data from the places that publish it: the US Census Bureau, through the APIs that let your code download its data directly, and the ArcGIS servers that publish many government GIS layers.
 
-## Chapter 9: [Thematic Maps with tmap](../chapters/thematic-maps-tmap.qmd)
+## Chapter 10: [Thematic Maps with tmap](../chapters/thematic-maps-tmap.qmd)
 
 A thematic map shows how one theme varies from place to place. This chapter reads spatial data into R as sf objects, which are tidy data frames with a geometry column, and maps points, lines, and polygons with tmap's `tm_shape()`, `tm_dots()`, `tm_lines()`, and `tm_polygons()`. It covers coloring features by an attribute, choosing classes, combining layers, adding a title, scale bar, and north arrow, and switching between static and interactive maps.
 
-[Chapter 9 quiz](../chapters/thematic-maps-tmap-quiz.qmd)
+[Chapter 10 quiz](../chapters/thematic-maps-tmap-quiz.qmd)
 
-## Chapter 10: [What Is Geographic Data?](../chapters/geographic-information.qmd)
+## Chapter 11: [What Is Geographic Data?](../chapters/geographic-information.qmd)
 
 Every map is a model of the world. This chapter follows data abstraction from real-world entities to features a computer can store, and compares the two main data models: vector data (points, lines, and polygons with attributes) and raster data (grids of cells). It explains map scale, cell size and resolution, and the common file formats (shapefile, GeoJSON, KML, and GeoTIFF), and why metadata matter.
 
-[Chapter 10 quiz](../chapters/geographic-information-quiz.qmd)
+[Chapter 11 quiz](../chapters/geographic-information-quiz.qmd)
 
-## Chapter 11: [Location and Coordinate Systems](../chapters/location-coordinate-systems.qmd)
+## Chapter 12: [Location and Coordinate Systems](../chapters/location-coordinate-systems.qmd)
 
 To store a location, a computer needs a model of the Earth, a grid on it, and a way to flatten it. This chapter covers geodesy and the ellipsoid, the datums used in North America (NAD27, NAD83, and WGS84), latitude and longitude, and converting between decimal degrees and degrees, minutes, and seconds. It explains why every map projection distorts shape, area, distance, or direction, how to choose one for a task, and how to check and change a layer's coordinate reference system in R with `st_crs()` and `st_transform()`.
 
-[Chapter 11 quiz](../chapters/location-coordinate-systems-quiz.qmd)
+[Chapter 12 quiz](../chapters/location-coordinate-systems-quiz.qmd)
+
+## Chapter 13: [Census Data and APIs](../chapters/census-data-apis.qmd)
+
+US Census data come from the decennial census, a full count every ten years, and the American Community Survey, a continuous sample with a margin of error on every estimate. This chapter explains how Census geography nests from states down to tracts and blocks, how APIs work, and how the tidycensus package downloads tidy, map-ready Census data. It also shows how to carry margins of error through calculations and compare data across years.
+
+[Chapter 13 quiz](../chapters/census-data-apis-quiz.qmd)
+
+## Chapter 14: [ArcGIS Data with arcpullr](../chapters/arcpullr.qmd)
+
+Governments publish many of their GIS layers on ArcGIS REST services. This chapter shows how to find a layer's URL and read its REST page, then download it into R as an sf object with arcpullr's `get_spatial_layer()`. It covers SQL `where` clauses that download only the features you need, the server's record limit, and the other ways arcpullr can query a layer.
+
+[Chapter 14 quiz](../chapters/arcpullr-quiz.qmd)

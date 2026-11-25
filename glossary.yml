@@ -1390,7 +1390,7 @@ terms:
       federal agencies follow. Internationally, the standard is ISO
       19115.
 
-  # --- Chapter 11: Location and Coordinate Systems -------------------------------
+  # --- Chapter 12: Location and Coordinate Systems -------------------------------
 
   - term: geodesy
     definition: >-
@@ -1582,7 +1582,7 @@ terms:
       A number that identifies a coordinate reference system in a public
       registry, such as 4326 for WGS84 latitude and longitude.
 
-  # --- Chapter 12: Joins ---------------------------------------------------------
+  # --- Chapter 15: Joins ---------------------------------------------------------
 
   - term: key
     aliases: [keys]
@@ -1693,7 +1693,7 @@ terms:
       A spatial join that attaches the attributes of one matching
       feature, such as the county each school is in.
 
-  # --- Chapter 13: Exploratory Spatial Data Analysis -----------------------------
+  # --- Chapter 16: Exploratory Spatial Data Analysis -----------------------------
 
   - term: exploratory data analysis (EDA)
     aliases: [exploratory data analysis, EDA]
@@ -1776,7 +1776,7 @@ terms:
     definition: >-
       Having several peaks.
 
-  # --- Chapter 14: Spatial Descriptive Statistics --------------------------------
+  # --- Chapter 17: Spatial Descriptive Statistics --------------------------------
 
   - term: spatial descriptive statistics
     aliases: [spatial descriptive statistic]
@@ -1822,7 +1822,7 @@ terms:
       A symmetric, bell-shaped distribution. About 68% of values fall
       within one standard deviation of the mean, and 95% within two.
 
-  # --- Chapter 15: Blocks, Loops, and Functions -------------------------------
+  # --- Chapter 5: Blocks, Loops, and Functions -------------------------------
 
   - term: if statement
     aliases: [if statements]
@@ -1876,7 +1876,7 @@ terms:
       Which variables a piece of code can see. A function's arguments are
       in its own scope, separate from variables outside it.
 
-  # --- Chapter 17: ArcGIS Data with arcpullr -----------------------------------
+  # --- Chapter 14: ArcGIS Data with arcpullr -----------------------------------
 
   - term: arcpullr
     definition: >-

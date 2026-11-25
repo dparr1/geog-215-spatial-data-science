@@ -328,7 +328,7 @@ Repeat steps 2 to 4 until the residuals no longer cluster.
 
 1.  **Ice cream by hand.** Using the ice cream model, predict sales at 70 °F and at 85 °F from the equation, then check with `predict()`. Which of the 12 days has the largest positive residual?
 2.  **Fahrenheit to Celsius.** Convert `temp` to degrees Celsius and refit the model. What happens to the slope, the intercept, and R²? Why?
-3.  **Your own variables.** Download median house value (`B25077_001`), median household income (`B19013_001`), and one variable of your choice for North Carolina's counties with tidycensus (Chapter 16). Fit a model with income, then with both variables. Did adjusted R² go up?
+3.  **Your own variables.** Download median house value (`B25077_001`), median household income (`B19013_001`), and one variable of your choice for North Carolina's counties with tidycensus (Chapter 13). Fit a model with income, then with both variables. Did adjusted R² go up?
 4.  **Map the residuals.** Map the residuals from your model in Exercise 3. Where does the model over-predict and under-predict? Do the residuals look clustered?
 5.  **Births.** With the sf package's `nc` data, regress `BIR79` on `BIR74`. Interpret the slope and R². Why is this a less interesting model than it looks?
 

@@ -30,7 +30,7 @@ Someone hands you a data table: a hundred rows, a dozen columns. Now what?
 
 The answer is *not* to jump straight to a model. First, get to know the data: how big it is, what each column holds, what is missing, and how each variable is spread out. That process of getting to know your data is **exploratory data analysis**, or **EDA**. When the data are spatial, we add one more question, about where values occur, and it becomes **exploratory spatial data analysis**, or **ESDA**.
 
-Most examples in this chapter use the `nc` data that come with the sf package: North Carolina's 100 counties, with the number of births in each from 1974 to 1978 (`BIR74`) and from 1979 to 1984 (`BIR79`). The live code boxes use the `flights` data from Chapter 8.
+Most examples in this chapter use the `nc` data that come with the sf package: North Carolina's 100 counties, with the number of births in each from 1974 to 1978 (`BIR74`) and from 1979 to 1984 (`BIR79`). The live code boxes use the `flights` data from Chapter 9.
 
 ## From EDA to ESDA {#sec-eda}
 
@@ -63,7 +63,7 @@ Spatial data let us ask one more: **what type of *geographic* variation occurs w
 - **Spatial autocorrelation**: are similar values located near each other? This is Tobler's first law in action.
 - **Clustering**: are there hot spots or cold spots?
 
-This chapter covers maps and descriptive statistics. Chapter 14 covers spatial descriptive statistics, and Chapter 22 covers spatial autocorrelation.
+This chapter covers maps and descriptive statistics. Chapter 17 covers spatial descriptive statistics, and Chapter 22 covers spatial autocorrelation.
 
 ## Step one: get to know the data table {#sec-step-one}
 
@@ -365,7 +365,7 @@ The statistics in this chapter describe *values*. **Spatial descriptive statisti
 - The **weighted mean center** does the same, but weights each feature by an attribute, such as births or population.
 - The **standard distance** is how far features typically sit from the mean center: the spatial version of the standard deviation.
 
-And the question of whether nearby values are similar is measured with **spatial autocorrelation** statistics, such as Moran's I (Chapter 22). Chapter 14 covers the spatial descriptive statistics.
+And the question of whether nearby values are similar is measured with **spatial autocorrelation** statistics, such as Moran's I (Chapter 22). Chapter 17 covers the spatial descriptive statistics.
 
 ## Check your understanding
 

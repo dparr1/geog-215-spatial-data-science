@@ -2,28 +2,22 @@
 title: "Unit 4: Spatial Analysis"
 ---
 
-This unit puts data together and starts to analyze it. It joins tables by a shared column and by location, then explores data the way an analyst first meets a new dataset: describing each variable's center and spread, plotting its distribution, and mapping it. It ends with statistics that describe where features are, and with the R tools that save you from repeating yourself: writing your own functions, making decisions with `if`, and repeating work with loops.
+This unit puts data together and starts to analyze it. It joins tables by a shared column and by location, then explores data the way an analyst first meets a new dataset: describing each variable's center and spread, plotting its distribution, and mapping it. It ends with statistics that describe where features are, and puts your own R functions to work calculating them.
 
-## Chapter 12: [Joins: Attribute and Spatial](../chapters/joins.qmd)
+## Chapter 15: [Joins: Attribute and Spatial](../chapters/joins.qmd)
 
 A join combines tables by matching rows. This chapter covers dplyr's inner, left, right, and full joins, naming the key with `join_by()`, and chaining joins across several tables. It explains cardinality, and why you should know it before you join. It then joins by location with sf's `st_join()`, compares simple and summarized, inside and distance spatial joins, and shows why distances need a projected coordinate system.
 
-[Chapter 12 quiz](../chapters/joins-quiz.qmd)
+[Chapter 15 quiz](../chapters/joins-quiz.qmd)
 
-## Chapter 13: [Exploratory Spatial Data Analysis](../chapters/esda.qmd)
+## Chapter 16: [Exploratory Spatial Data Analysis](../chapters/esda.qmd)
 
 Before modeling data, get to know it. This chapter places exploratory data analysis in the data science workflow and adds the spatial question: how do values vary across space? It covers checking a data table, measures of central tendency (mean, median, mode) and dispersion (range, IQR, standard deviation), histograms, boxplots, and density plots, distribution shapes and outliers, and mapping rates rather than counts.
 
-[Chapter 13 quiz](../chapters/esda-quiz.qmd)
+[Chapter 16 quiz](../chapters/esda-quiz.qmd)
 
-## Chapter 14: [Spatial Descriptive Statistics](../chapters/spatial-statistics.qmd)
+## Chapter 17: [Spatial Descriptive Statistics](../chapters/spatial-statistics.qmd)
 
-Spatial descriptive statistics describe where features are. This chapter covers the mean center, the weighted mean center (including the U.S. center of population), the central feature, and the standard distance, each matched to the familiar statistic it extends. It then introduces functions in R, from a one-line `addSeven()` to a `meanCenter()` function for any layer of polygons.
+Spatial descriptive statistics describe where features are. This chapter covers the mean center, the weighted mean center (including the U.S. center of population), the central feature, and the standard distance, each matched to the familiar statistic it extends. It then reviews writing functions in R, from a one-line `addSeven()` to a `meanCenter()` function for any layer of polygons.
 
-[Chapter 14 quiz](../chapters/spatial-statistics-quiz.qmd)
-
-## Chapter 15: [Blocks, Loops, and Functions](../chapters/blocks-loops-functions.qmd)
-
-Good programmers are productively lazy. This chapter shows how blocks group lines of code, how `if`, `else if`, and `else` decide whether a block runs, and how `while` and `for` loops repeat one. It compares loops with R's vectorized functions, such as `ifelse()`, then takes functions apart: arguments, defaults, return values, error checks with `stop()`, and variable scope.
-
-[Chapter 15 quiz](../chapters/blocks-loops-functions-quiz.qmd)
+[Chapter 17 quiz](../chapters/spatial-statistics-quiz.qmd)
