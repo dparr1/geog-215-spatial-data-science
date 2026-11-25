@@ -28,8 +28,32 @@
 # shorter term inside them is not) and left unmarked.
 exclude:
   - scale up
+  - joined with
 
 terms:
+
+  # --- Chapter-specific meanings ----------------------------------------------
+  # When two entries match the same word, the one listed first wins. These
+  # entries give a word a different meaning in a few chapters, so they come
+  # before the general entries for the same word further down
+  # ("vector" in R vs. vector data; "scale" in a plot vs. scale of analysis).
+
+  - term: vector data model
+    aliases: [vector, vectors, vector model]
+    chapters: [geographic-information]
+    definition: >-
+      Storing geographic features as coordinates: points, lines (chains of
+      vertices), and polygons, each with a row of attributes. It suits
+      discrete objects with clear edges, such as roads and parcels.
+
+  - term: scale (in a plot or map)
+    aliases: [scale, scales]
+    chapters: [tidyverse-ggplot, thematic-maps-tmap]
+    definition: >-
+      The rules that turn data values into visual values: which colors,
+      which classes, which axis breaks. Every mapped aesthetic has one, and
+      functions such as `scale_fill_manual()` or `tm_scale_intervals()`
+      change it.
 
   # --- What is Spatial Data Science? -----------------------------------------
 
@@ -561,7 +585,7 @@ terms:
 
   - term: tidy data
     aliases: [tidy, tidying]
-    chapters: [tidyverse-filter-pipe, tidyverse-arrange-select-mutate, tidyverse-summarize-group-by]
+    chapters: [tidyverse-filter-pipe, tidyverse-arrange-select-mutate, tidyverse-summarize-group-by, tidyverse-ggplot, thematic-maps-tmap]
     definition: >-
       Data arranged so that each variable is a column, each observation is a
       row, and each value has its own cell.
@@ -654,7 +678,7 @@ terms:
 
   - term: mean
     case_sensitive: true
-    chapters: [tidyverse-summarize-group-by]
+    chapters: [tidyverse-summarize-group-by, esda, spatial-statistics]
     definition: >-
       The average: the sum of the values divided by how many there are. A few
       very large or small values can pull it a long way.
@@ -929,3 +953,855 @@ terms:
     definition: >-
       A way of dividing values into map classes that puts the breaks where
       the gaps between values are largest, so similar values share a color.
+
+  # --- Into the Tidyverse: Graphs with ggplot2 -------------------------------
+
+  - term: grammar of graphics
+    definition: >-
+      The idea that any chart can be described with the same small set
+      of parts: data, aesthetic mappings, geoms, scales, facets, and
+      coordinates. ggplot2 is built on it.
+
+  - term: aesthetic
+    aliases: [aesthetics, aes]
+    chapters: [tidyverse-ggplot]
+    definition: >-
+      A visual property of a mark, such as its x position, y position,
+      color, fill, size, or shape. In ggplot2, `aes()` connects columns
+      to aesthetics.
+
+  - term: mapping an aesthetic
+    aliases: [mapping, mappings, mapped]
+    chapters: [tidyverse-ggplot]
+    definition: >-
+      Tying an aesthetic to a column, inside `aes()`, as in `aes(color =
+      origin)`. The look of each mark then comes from the data, and
+      ggplot2 adds a legend.
+
+  - term: setting an aesthetic
+    aliases: [setting]
+    chapters: [tidyverse-ggplot, thematic-maps-tmap]
+    definition: >-
+      Giving every mark the same fixed value, outside `aes()`, as in
+      `geom_point(color = "blue")`. It is a design choice, not a data
+      choice.
+
+  - term: geom
+    aliases: [geoms]
+    chapters: [tidyverse-ggplot]
+    definition: >-
+      Short for geometric object: the marks a ggplot draws to show the
+      data, such as points (`geom_point()`), bars (`geom_bar()`), or
+      boxes (`geom_boxplot()`).
+
+  - term: layer
+    aliases: [layers]
+    chapters: [tidyverse-ggplot, thematic-maps-tmap, geographic-information]
+    definition: >-
+      One piece of a plot or map, added with `+` and drawn on top of the
+      layers before it. In GIS, a layer holds one theme of features,
+      such as roads or soils.
+
+  - term: scatterplot
+    aliases: [scatterplots, scatter plot]
+    chapters: [tidyverse-ggplot]
+    definition: >-
+      A plot of two continuous variables against each other, with one
+      point per observation. In ggplot2, `geom_point()`.
+
+  - term: confidence interval
+    aliases: [confidence band]
+    chapters: [tidyverse-ggplot]
+    definition: >-
+      A range that is likely to contain the true value of something
+      estimated from data. `geom_smooth()` shades a 95% confidence
+      interval around its trend line.
+
+  - term: legend
+    aliases: [legends]
+    chapters: [tidyverse-ggplot, thematic-maps-tmap]
+    definition: >-
+      The key that explains what the colors, sizes, or shapes on a plot
+      or map mean. ggplot2 and tmap build one for every mapped
+      aesthetic.
+
+  - term: hex code
+    aliases: [hex codes]
+    chapters: [tidyverse-ggplot]
+    definition: >-
+      A six-character code for a color, such as `#3182bd`: two
+      characters each for its red, green, and blue.
+
+  - term: bar chart
+    aliases: [bar charts]
+    chapters: [tidyverse-ggplot]
+    definition: >-
+      A chart that compares counts or amounts across categories with
+      bars. `geom_bar()` counts rows for you; `geom_col()` draws heights
+      you give it.
+
+  - term: stacked bar chart
+    aliases: [stacked bar charts, stacked bars]
+    chapters: [tidyverse-ggplot]
+    definition: >-
+      A bar chart where each bar is split into colored segments, one per
+      group, so the bar's height is the total.
+
+  - term: boxplot
+    aliases: [boxplots, box plot, box plots]
+    chapters: [tidyverse-ggplot, esda]
+    definition: >-
+      A chart that summarizes a distribution: the box spans the middle
+      half of the values, a line marks the median, and dots beyond the
+      whiskers are outliers.
+
+  - term: small multiples
+    aliases: [facet, facets, faceting]
+    chapters: [tidyverse-ggplot]
+    definition: >-
+      A set of small charts, one per group, that share the same axes so
+      they can be compared directly. ggplot2 calls this faceting.
+
+  - term: theme
+    aliases: [themes]
+    chapters: [tidyverse-ggplot]
+    definition: >-
+      The settings for everything on a plot that isn't data: background,
+      grid lines, fonts. Add one with a layer such as `theme_minimal()`.
+
+  - term: dpi
+    aliases: [dots per inch]
+    chapters: [tidyverse-ggplot]
+    definition: >-
+      Dots per inch: the resolution of a saved image. 300 dpi is print
+      quality.
+
+  # --- Thematic Maps with tmap ------------------------------------------------
+
+  - term: thematic map
+    aliases: [thematic maps]
+    chapters: [thematic-maps-tmap, geographic-information]
+    definition: >-
+      A map that shows how one theme, such as income, tree height, or
+      building age, varies from place to place.
+
+  - term: feature
+    aliases: [features]
+    chapters: [thematic-maps-tmap, geographic-information]
+    definition: >-
+      One spatial object in a layer of data, such as one tree, one
+      sidewalk segment, or one building. In an sf object, each row is a
+      feature.
+
+  - term: attribute
+    aliases: [attributes, attribute table, attribute tables, attribute data]
+    chapters: [thematic-maps-tmap, geographic-information]
+    definition: >-
+      A non-spatial fact about a spatial feature, such as a tree's
+      species or a building's year built. Attributes are the columns of
+      a layer's attribute table.
+
+  - term: geometry column
+    aliases: [geometry columns]
+    chapters: [thematic-maps-tmap, geographic-information]
+    definition: >-
+      The column of an sf object that holds each feature's shape: a
+      point, a line, or a polygon.
+
+  - term: sequential palette
+    aliases: [sequential palettes]
+    chapters: [thematic-maps-tmap]
+    definition: >-
+      Colors that run from light to dark, used for numbers so that
+      bigger values look darker.
+
+  - term: qualitative palette
+    aliases: [qualitative palettes]
+    chapters: [thematic-maps-tmap]
+    definition: >-
+      Distinct colors with no order, one per category, used for text
+      columns such as species names.
+
+  - term: classification
+    aliases: [class, classes]
+    chapters: [thematic-maps-tmap]
+    definition: >-
+      Dividing a numeric variable into a few classes for a map, by
+      choosing how many classes there are and where the breaks between
+      them fall.
+
+  - term: equal intervals
+    aliases: [equal interval, equal-interval]
+    chapters: [thematic-maps-tmap]
+    definition: >-
+      A classification method that makes every class cover the same
+      range of values.
+
+  - term: choropleth map
+    aliases: [choropleth, choropleths, choropleth maps]
+    chapters: [thematic-maps-tmap]
+    definition: >-
+      A map that shades areas, such as counties or buildings, by the
+      value of a variable.
+
+  - term: extent
+    aliases: [map extent]
+    chapters: [thematic-maps-tmap, geographic-information]
+    definition: >-
+      The area a map or a layer covers, from its westernmost to
+      easternmost and southernmost to northernmost points.
+
+  - term: scale bar
+    aliases: [scale bars]
+    chapters: [thematic-maps-tmap]
+    definition: >-
+      A bar on a map that shows how distances on the map relate to
+      distances on the ground.
+
+  - term: north arrow
+    aliases: [north arrows, compass]
+    chapters: [thematic-maps-tmap]
+    definition: >-
+      A symbol on a map that shows which direction is north. In tmap,
+      `tm_compass()`.
+
+  - term: basemap
+    aliases: [basemaps, basemap tiles]
+    chapters: [thematic-maps-tmap]
+    definition: >-
+      A background map of streets, places, or imagery, loaded from the
+      web as tiles, that your own data are drawn on top of.
+
+  - term: interactive map
+    aliases: [interactive maps, interactive web map]
+    chapters: [thematic-maps-tmap]
+    definition: >-
+      A web map you can pan, zoom, and click to see each feature's
+      attributes. tmap makes one in view mode.
+
+  - term: GeoJSON
+    case_sensitive: true
+    definition: >-
+      An open, plain-text format for vector features, written in JSON.
+      Coordinates are longitude first, then latitude, in WGS84.
+
+  # --- What Is Geographic Data? -----------------------------------------------
+
+  - term: entity
+    aliases: [entities]
+    chapters: [geographic-information]
+    definition: >-
+      A real-world object or thing we want to record, such as a tree, a
+      building, or a lake.
+
+  - term: data abstraction
+    aliases: [abstraction]
+    chapters: [geographic-information]
+    definition: >-
+      The process of making the real world readable by a computer: from
+      reality, to a data model, to a data structure, to machine code.
+
+  - term: data model
+    aliases: [data models, geographic data model, geographic data models]
+    chapters: [geographic-information]
+    definition: >-
+      A formal way of representing geographic information in a computer,
+      deciding which objects and properties to keep. Vector and raster
+      are the two main ones.
+
+  - term: data structure
+    aliases: [data structures]
+    chapters: [geographic-information]
+    definition: >-
+      How a data model is actually laid out in memory or on disk, such
+      as lists of coordinates and tables.
+
+  - term: continuous data
+    aliases: [continuous]
+    chapters: [geographic-information]
+    definition: >-
+      Data with a value everywhere on the map that changes from place to
+      place, such as elevation or temperature.
+
+  - term: discrete object
+    aliases: [discrete objects, discrete]
+    chapters: [geographic-information]
+    definition: >-
+      Something that exists in one place and not another, with clear
+      edges, such as a road, a house, or a state.
+
+  - term: generalization
+    aliases: [generalize, generalized]
+    chapters: [geographic-information]
+    definition: >-
+      Simplifying features when a map shows a place at a smaller scale,
+      for example drawing a city as a point instead of an area.
+
+  - term: map scale
+    aliases: [large-scale map, small-scale map, large scale, small scale]
+    chapters: [geographic-information]
+    definition: >-
+      The ratio of a distance on the map to the same distance on the
+      ground. A large-scale map (1:10,000) shows a small area in detail;
+      a small-scale map (1:10,000,000) shows a large area with little
+      detail.
+
+  - term: spatial data
+    aliases: [non-spatial data]
+    chapters: [geographic-information]
+    definition: >-
+      Data that have a location, such as campus buildings or rain
+      gauges. Data with no location of their own, such as class grades,
+      are non-spatial.
+
+  - term: node
+    aliases: [nodes]
+    chapters: [geographic-information]
+    definition: >-
+      The start or end point of a line. Lines in a network, such as
+      streets, connect at nodes.
+
+  - term: vertex
+    aliases: [vertices]
+    chapters: [geographic-information]
+    definition: >-
+      A point between the ends of a line where it changes direction.
+      More vertices make a smoother line and a bigger file.
+
+  - term: line segment
+    aliases: [line segments]
+    chapters: [geographic-information]
+    definition: >-
+      The straight piece of a line between two vertices.
+
+  - term: thematic layer
+    aliases: [thematic layers]
+    chapters: [geographic-information]
+    definition: >-
+      A layer that holds one theme of features, such as roads, soils, or
+      elevation. Layers that share a coordinate system stack into a map.
+
+  - term: overlay analysis
+    aliases: [overlay]
+    chapters: [geographic-information]
+    definition: >-
+      Combining thematic layers to find places that meet several
+      conditions at once, such as wetlands on one soil type near a road.
+
+  - term: cell
+    aliases: [cells, grid cell, grid cells]
+    chapters: [geographic-information]
+    definition: >-
+      One square of a raster's grid. Each cell holds exactly one value.
+
+  - term: cell size
+    aliases: [cell sizes]
+    chapters: [geographic-information]
+    definition: >-
+      The length of one side of a raster cell in real-world units, such
+      as 30 m. It is the raster's resolution.
+
+  - term: resolution
+    chapters: [geographic-information]
+    definition: >-
+      How much detail a raster holds, set by its cell size: smaller
+      cells mean higher resolution, and more data.
+
+  - term: origin
+    chapters: [geographic-information]
+    definition: >-
+      The corner of a raster, usually the lower left, whose coordinates
+      fix where the whole grid sits.
+
+  - term: no data
+    aliases: [NoData]
+    chapters: [geographic-information]
+    definition: >-
+      A flag for raster cells with no measurement. In R these cells
+      become `NA`.
+
+  - term: matrix
+    aliases: [matrices]
+    chapters: [geographic-information]
+    definition: >-
+      A grid of values in R with rows and columns, all of the same type,
+      made with `matrix()`. A small raster can be held in one.
+
+  - term: topological data structure
+    aliases: [topological, topology]
+    chapters: [geographic-information]
+    definition: >-
+      A data structure that records how features connect and share
+      boundaries, so a shared border is stored only once.
+
+  - term: shapefile
+    aliases: [shapefiles]
+    chapters: [geographic-information]
+    definition: >-
+      Esri's common format for vector data: a group of files with the
+      same name (`.shp`, `.shx`, `.dbf`, `.prj`, and more) that must be
+      kept together.
+
+  - term: KML
+    case_sensitive: true
+    definition: >-
+      Keyhole Markup Language: the XML-based format behind Google Earth.
+      A `.kmz` file is a zipped KML file.
+
+  - term: GeoTIFF
+    aliases: [GeoTIFFs]
+    case_sensitive: true
+    definition: >-
+      The standard file format for raster data: a TIFF image with its
+      location and coordinate system stored inside the file.
+
+  - term: Cloud Optimized GeoTIFF (COG)
+    aliases: [Cloud Optimized GeoTIFF, COG]
+    definition: >-
+      A GeoTIFF arranged in tiles with zoomed-out copies, so software
+      can read only the area and detail it needs.
+
+  - term: WGS84
+    case_sensitive: true
+    definition: >-
+      The World Geodetic System of 1984, the datum GPS uses. GeoJSON and
+      KML give coordinates as WGS84 longitude and latitude.
+
+  - term: FGDC
+    case_sensitive: true
+    definition: >-
+      The Federal Geographic Data Committee, whose metadata standard US
+      federal agencies follow. Internationally, the standard is ISO
+      19115.
+
+  # --- Chapter 11: Location and Coordinate Systems -------------------------------
+
+  - term: geodesy
+    definition: >-
+      The science of measuring the Earth's size, shape, orientation, and
+      gravity. Every coordinate rests on a geodetic model of the Earth.
+
+  - term: ellipsoid
+    aliases: [ellipsoids, spheroid, spheroids, oblate spheroid]
+    definition: >-
+      A sphere flattened at the poles: the smooth mathematical shape used
+      to model the Earth, defined by its semi-major and semi-minor axes.
+
+  - term: semi-major axis
+    definition: >-
+      On an ellipsoid, the distance from the center to the Equator: about
+      6,378 km for the Earth.
+
+  - term: semi-minor axis
+    definition: >-
+      On an ellipsoid, the distance from the center to a pole: about
+      6,357 km for the Earth.
+
+  - term: flattening
+    chapters: [location-coordinate-systems]
+    definition: >-
+      How much an ellipsoid is squashed: (a − b) / a, where a and b are
+      the semi-major and semi-minor axes. About 1/298 for the Earth.
+
+  - term: geoid (shape of the Earth)
+    aliases: [geoid]
+    case_sensitive: true
+    chapters: [location-coordinate-systems]
+    definition: >-
+      The lumpy shape of the Earth defined by gravity, roughly where mean
+      sea level would be. Ellipsoids are smooth approximations of it.
+
+  - term: datum
+    aliases: [datums, geodetic datum, geodetic datums]
+    definition: >-
+      A model that fixes an ellipsoid to the real Earth, so that a
+      latitude and longitude point to one place on the ground. NAD83 and
+      WGS84 are datums.
+
+  - term: benchmark
+    aliases: [benchmarks, control point, control points]
+    chapters: [location-coordinate-systems]
+    definition: >-
+      A surveyed point marked on the ground, often by a brass disk, whose
+      position is precisely known. Datums are made real by thousands of
+      them.
+
+  - term: NAD27
+    case_sensitive: true
+    definition: >-
+      The North American Datum of 1927, based on the Clarke 1866
+      ellipsoid and a single origin point in Kansas.
+
+  - term: NAD83
+    case_sensitive: true
+    definition: >-
+      The North American Datum of 1983, based on the GRS80 ellipsoid and
+      maintained through a network of permanent GPS stations (CORS).
+
+  - term: CORS
+    case_sensitive: true
+    definition: >-
+      Continuously Operating Reference Stations: permanent GPS stations
+      across the US that the National Geodetic Survey uses to maintain
+      NAD83.
+
+  - term: latitude
+    aliases: [latitudes]
+    definition: >-
+      The angle north or south of the Equator, from 0° to 90°. Lines of
+      equal latitude are parallels.
+
+  - term: longitude
+    aliases: [longitudes]
+    definition: >-
+      The angle east or west of the Prime Meridian, from 0° to 180°.
+      Lines of equal longitude are meridians.
+
+  - term: parallel
+    aliases: [parallels]
+    chapters: [location-coordinate-systems]
+    definition: >-
+      A line of latitude. Parallels run east–west, parallel to the
+      Equator.
+
+  - term: meridian
+    aliases: [meridians]
+    definition: >-
+      A line of longitude. Meridians run from pole to pole and meet at
+      the poles.
+
+  - term: Equator
+    case_sensitive: true
+    definition: >-
+      The circle halfway between the North and South Poles: 0° latitude.
+
+  - term: Prime Meridian
+    case_sensitive: true
+    definition: >-
+      The meridian through Greenwich, England, chosen in 1884 as 0°
+      longitude.
+
+  - term: graticule
+    aliases: [graticules]
+    definition: >-
+      The network of parallels and meridians drawn on a map or globe.
+
+  - term: decimal degrees
+    aliases: [DD]
+    case_sensitive: true
+    definition: >-
+      Coordinates written as signed decimal numbers, such as −79.05°.
+      Negative means south latitude or west longitude.
+
+  - term: degrees, minutes, and seconds
+    aliases: [DMS, "degrees-minutes-seconds"]
+    definition: >-
+      Coordinates written as whole degrees, minutes (1/60 of a degree),
+      and seconds (1/3,600 of a degree), with a letter N, S, E, or W,
+      such as 79° 3′ 21″ W.
+
+  - term: map projection
+    aliases: [map projections, projection, projections, projected]
+    definition: >-
+      A method for flattening the curved graticule onto a flat map.
+      Every projection distorts shape, area, distance, or direction.
+
+  - term: conformal
+    definition: >-
+      Describes a projection that preserves local shapes and angles, such
+      as Mercator or Lambert Conformal Conic.
+
+  - term: equal-area
+    definition: >-
+      Describes a projection that preserves area, such as Albers or
+      Mollweide. No projection is both equal-area and conformal.
+
+  - term: equidistant
+    definition: >-
+      Describes a projection that preserves distance from one point, or
+      along chosen lines.
+
+  - term: azimuthal
+    chapters: [location-coordinate-systems]
+    definition: >-
+      Describes a projection that preserves direction from a center
+      point. Also called planar.
+
+  - term: compromise projection
+    aliases: [compromise projections, compromise]
+    chapters: [location-coordinate-systems]
+    definition: >-
+      A projection, such as Robinson, that preserves no property exactly
+      but keeps every distortion moderate.
+
+  - term: secant
+    definition: >-
+      Describes a map surface that cuts through the globe, meeting it
+      along two standard lines where the scale is true.
+
+  - term: standard line
+    aliases: [standard lines]
+    definition: >-
+      A line where a map projection's surface touches the globe, so the
+      scale there is exactly true.
+
+  - term: Mercator projection
+    aliases: [Mercator]
+    case_sensitive: true
+    definition: >-
+      A conformal cylindrical projection, made for navigation, that
+      greatly enlarges areas near the poles.
+
+  - term: State Plane Coordinate System
+    aliases: [State Plane]
+    case_sensitive: true
+    definition: >-
+      A set of local projections for the US, with one or more zones per
+      state, in feet or meters. North Carolina's zone is EPSG:32119.
+
+  - term: EPSG code
+    aliases: [EPSG codes, EPSG]
+    case_sensitive: true
+    definition: >-
+      A number that identifies a coordinate reference system in a public
+      registry, such as 4326 for WGS84 latitude and longitude.
+
+  # --- Chapter 12: Joins ---------------------------------------------------------
+
+  - term: key
+    aliases: [keys]
+    chapters: [joins]
+    definition: >-
+      The column whose values are matched to line up rows in a join, such
+      as a student ID or a county FIPS code.
+
+  - term: attribute join
+    aliases: [attribute joins]
+    definition: >-
+      A join that matches rows using a shared key column.
+
+  - term: spatial join
+    aliases: [spatial joins]
+    definition: >-
+      A join that matches features by their location, such as attaching
+      to each point the polygon it falls inside. `st_join()` in R.
+
+  - term: inner join
+    aliases: [inner joins]
+    definition: >-
+      A join that keeps only the rows whose key appears in both tables.
+      `inner_join()` in dplyr.
+
+  - term: left join
+    aliases: [left joins]
+    definition: >-
+      A join that keeps every row of the first (left) table, with NA
+      where the second table has no match. `left_join()` in dplyr.
+
+  - term: right join
+    aliases: [right joins]
+    definition: >-
+      A join that keeps every row of the second (right) table.
+      `right_join()` in dplyr.
+
+  - term: full join
+    aliases: [full joins]
+    definition: >-
+      A join that keeps every row of both tables, with NA wherever there
+      is no match. `full_join()` in dplyr.
+
+  - term: natural join
+    aliases: [natural joins]
+    definition: >-
+      An inner join on every column the two tables share by name. Handy
+      but fragile, so name your key instead.
+
+  - term: cross join
+    aliases: [cross joins, cartesian product]
+    definition: >-
+      A join that pairs every row of one table with every row of the
+      other. `cross_join()` in dplyr.
+
+  - term: self join
+    definition: >-
+      A join of a table to itself, such as employees to their managers.
+
+  - term: cardinality
+    definition: >-
+      How many rows in one table can match a row in another: one-to-one,
+      one-to-many, many-to-one, or many-to-many.
+
+  - term: one-to-one
+    definition: >-
+      A relationship where each row matches at most one row in the other
+      table, such as states and governors.
+
+  - term: one-to-many
+    definition: >-
+      A relationship where one row matches many rows in the other table,
+      such as a state and its cities.
+
+  - term: many-to-one
+    definition: >-
+      A relationship where many rows match one row in the other table,
+      such as cities and their state.
+
+  - term: many-to-many
+    definition: >-
+      A relationship where rows on both sides can match many rows, such
+      as students and classes. Joins like this multiply rows.
+
+  - term: destination table
+    aliases: [destination feature class, destination layer, destination]
+    chapters: [joins]
+    definition: >-
+      In a join, the table that receives new columns: `x` in
+      `st_join(x, y)`.
+
+  - term: source table
+    aliases: [source feature class, source layer, source]
+    chapters: [joins]
+    definition: >-
+      In a join, the table that supplies the new columns: `y` in
+      `st_join(x, y)`.
+
+  - term: summarized join
+    aliases: [summarized joins, summarized spatial join]
+    definition: >-
+      A spatial join that aggregates all the matching features, such as
+      counting the schools in each county.
+
+  - term: simple join
+    aliases: [simple joins, simple spatial join]
+    definition: >-
+      A spatial join that attaches the attributes of one matching
+      feature, such as the county each school is in.
+
+  # --- Chapter 13: Exploratory Spatial Data Analysis -----------------------------
+
+  - term: exploratory data analysis (EDA)
+    aliases: [exploratory data analysis, EDA]
+    definition: >-
+      Learning what is in a dataset, with summaries and plots, before
+      trying to explain or predict anything with it.
+
+  - term: exploratory spatial data analysis (ESDA)
+    aliases: [exploratory spatial data analysis, ESDA]
+    definition: >-
+      EDA that also asks how values vary across space, using maps,
+      spatial autocorrelation, and clustering.
+
+  - term: central tendency
+    definition: >-
+      One value that describes the center of a set of values: the mean,
+      median, or mode.
+
+  - term: mode
+    chapters: [esda, spatial-statistics]
+    case_sensitive: true
+    definition: >-
+      The most common value. The only measure of center that works for
+      categorical data.
+
+  - term: dispersion
+    definition: >-
+      How spread out values are around their center, measured by the
+      range, interquartile range, or standard deviation.
+
+  - term: range
+    chapters: [esda]
+    case_sensitive: true
+    definition: >-
+      The largest value minus the smallest. `range()` in R returns both.
+
+  - term: quartile
+    aliases: [quartiles]
+    definition: >-
+      The values that split sorted data into four groups of equal size.
+      Q1 is the 25th percentile and Q3 the 75th.
+
+  - term: interquartile range (IQR)
+    aliases: [interquartile range, IQR]
+    definition: >-
+      Q3 minus Q1: the spread of the middle half of the data. Outliers
+      barely affect it. `IQR()` in R.
+
+  - term: histogram
+    aliases: [histograms]
+    definition: >-
+      A chart that divides a variable's range into bins and draws a bar
+      for how many values fall in each. `geom_histogram()` in ggplot2.
+
+  - term: bin width
+    aliases: [binwidth, bins]
+    definition: >-
+      The width of each bar in a histogram. Too narrow shows noise; too
+      wide hides detail.
+
+  - term: density plot
+    aliases: [density plots]
+    definition: >-
+      A smoothed histogram whose total area is 1. `geom_density()` in
+      ggplot2.
+
+  - term: distribution
+    aliases: [distributions]
+    chapters: [esda, spatial-statistics]
+    definition: >-
+      How a variable's values are spread out: where they are common,
+      where they are rare, and the shape that makes.
+
+  - term: bimodal
+    definition: >-
+      Having two peaks. It often means two different groups are mixed
+      together.
+
+  - term: multimodal
+    definition: >-
+      Having several peaks.
+
+  # --- Chapter 14: Spatial Descriptive Statistics --------------------------------
+
+  - term: spatial descriptive statistics
+    aliases: [spatial descriptive statistic]
+    definition: >-
+      Statistics that describe the center and spread of a set of
+      locations, such as the mean center and standard distance.
+
+  - term: mean center
+    aliases: [mean centers]
+    definition: >-
+      The average x coordinate and average y coordinate of a set of
+      features. Like the mean, outliers pull it.
+
+  - term: weighted mean center
+    aliases: [weighted mean centers]
+    definition: >-
+      A mean center in which each feature counts in proportion to an
+      attribute, such as population.
+
+  - term: central feature
+    definition: >-
+      The existing feature with the smallest total distance to all the
+      others: the spatial counterpart of the median.
+
+  - term: standard distance
+    definition: >-
+      The typical distance of features from their mean center: the
+      spatial counterpart of the standard deviation, drawn as a circle.
+
+  - term: centroid
+    aliases: [centroids]
+    definition: >-
+      The geometric center of a polygon. `st_centroid()` in R.
+
+  - term: return value
+    definition: >-
+      What a function gives back. In R, it is the value of the last line
+      in the function's body.
+
+  - term: normal distribution
+    aliases: [bell curve]
+    definition: >-
+      A symmetric, bell-shaped distribution. About 68% of values fall
+      within one standard deviation of the mean, and 95% within two.

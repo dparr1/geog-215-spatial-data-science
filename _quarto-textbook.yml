@@ -6,6 +6,7 @@
 project:
   render:
     - preface.qmd
+    - units/*.qmd
     - chapters/*.qmd
     - glossary.qmd
 
@@ -13,7 +14,7 @@ book:
   chapters:
     - preface.qmd
     # Each chapter is followed by its (unnumbered) chapter quiz page.
-    - part: "R and Spatial Data Science"
+    - part: units/unit-1.qmd
       chapters:
         - chapters/intro-spatial-data-science.qmd
         - chapters/intro-spatial-data-science-quiz.qmd
@@ -23,7 +24,7 @@ book:
         - chapters/r-basics-quiz.qmd
         - chapters/indexing-vectors-data-frames.qmd
         - chapters/indexing-vectors-data-frames-quiz.qmd
-    - part: "Into the Tidyverse"
+    - part: units/unit-2.qmd
       chapters:
         - chapters/tidyverse-filter-pipe.qmd
         - chapters/tidyverse-filter-pipe-quiz.qmd
@@ -31,7 +32,25 @@ book:
         - chapters/tidyverse-arrange-select-mutate-quiz.qmd
         - chapters/tidyverse-summarize-group-by.qmd
         - chapters/tidyverse-summarize-group-by-quiz.qmd
-    - part: "Data"
+        - chapters/tidyverse-ggplot.qmd
+        - chapters/tidyverse-ggplot-quiz.qmd
+    - part: units/unit-3.qmd
+      chapters:
+        - chapters/thematic-maps-tmap.qmd
+        - chapters/thematic-maps-tmap-quiz.qmd
+        - chapters/geographic-information.qmd
+        - chapters/geographic-information-quiz.qmd
+        - chapters/location-coordinate-systems.qmd
+        - chapters/location-coordinate-systems-quiz.qmd
+    - part: units/unit-4.qmd
+      chapters:
+        - chapters/joins.qmd
+        - chapters/joins-quiz.qmd
+        - chapters/esda.qmd
+        - chapters/esda-quiz.qmd
+        - chapters/spatial-statistics.qmd
+        - chapters/spatial-statistics-quiz.qmd
+    - part: units/unit-5.qmd
       chapters:
         - chapters/census-data-apis.qmd
         - chapters/census-data-apis-quiz.qmd

@@ -7,3 +7,17 @@ Every chapter is a runnable Quarto document. The R code in each chapter runs whe
 ## About this book
 
 This is an interactive textbook specifically designed and written for this class, GEOG 215. 
+
+## How this book is organized
+
+The chapters are grouped into five units. Each unit opens with a page that summarizes its chapters, and each chapter is followed by a chapter quiz you can take as many times as you like.
+
+**[Unit 1: R and Spatial Data Science](units/unit-1.qmd)** (Chapters 1–4) sets up everything else. It explains what spatial data science is and why location matters, then gets you working in R, RStudio, and R Markdown, with R's basic building blocks: vectors, data types, and data frames.
+
+**[Unit 2: Into the Tidyverse](units/unit-2.qmd)** (Chapters 5–8) introduces the tidyverse. Working with a year of flights from New York's airports, you learn the dplyr verbs that filter, sort, select, change, and summarize data, chained together with the pipe, and then turn the results into graphs with ggplot2.
+
+**[Unit 3: Maps and Geographic Data](units/unit-3.qmd)** (Chapters 9–11) moves from graphs to maps. You make thematic maps of the UNC campus with tmap, then step back to see how the real world becomes geographic data: the vector and raster data models, the file formats that store them, and the datums, coordinate systems, and map projections that give every feature its location.
+
+**[Unit 4: Spatial Analysis](units/unit-4.qmd)** (Chapters 12–14) starts to analyze spatial data. You join tables by a shared column and by location, explore variables with descriptive statistics, plots, and maps, and describe where features are with spatial statistics such as the mean center, writing your own R functions along the way.
+
+**[Unit 5: Data](units/unit-5.qmd)** (Chapter 15) is about getting data from the places that publish it, starting with the US Census Bureau and the APIs that let your code download its data directly.

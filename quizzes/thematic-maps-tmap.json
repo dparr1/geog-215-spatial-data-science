@@ -1,0 +1,315 @@
+{
+  "id": "thematic-maps-tmap",
+  "title": "Thematic Maps with tmap",
+  "perSession": 10,
+  "minR": 4,
+  "questions": [
+    {
+      "id": "thematic-map",
+      "type": "choice",
+      "prompt": "A *thematic map* shows:",
+      "choices": [
+        "How one theme, such as tree height, varies from place to place",
+        "Every feature in an area, in the same color",
+        "Only roads and place names",
+        "A photo taken from the air"
+      ],
+      "answer": 0,
+      "explain": "Thematic maps focus on one variable, such as income or building age, across space."
+    },
+    {
+      "id": "sf-row",
+      "type": "choice",
+      "prompt": "In an sf object, each row is one:",
+      "choices": [
+        "Feature",
+        "Attribute",
+        "Coordinate system",
+        "Layer"
+      ],
+      "answer": 0,
+      "explain": "Each row is a feature (a tree, a building), and each column is an attribute."
+    },
+    {
+      "id": "sf-geometry",
+      "type": "choice",
+      "prompt": "What makes an sf object different from an ordinary data frame?",
+      "choices": [
+        "A geometry column holding each feature's point, line, or polygon",
+        "It can't be used with dplyr",
+        "It has no column names",
+        "It only holds numbers"
+      ],
+      "answer": 0,
+      "explain": "Apart from the geometry column, it is an ordinary data frame, so tidyverse verbs still work."
+    },
+    {
+      "id": "read-sf",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which function reads a GeoJSON file into an sf object?",
+      "choices": [
+        "`read_sf()`",
+        "`read_csv()`",
+        "`tm_shape()`",
+        "`glimpse()`"
+      ],
+      "answer": 0,
+      "explain": "`read_sf(\"Tree_Inventory.geojson\")` returns an sf object."
+    },
+    {
+      "id": "fill-tmshape",
+      "type": "fill",
+      "prompt": "Complete the code to map the trees as dots.",
+      "code": "trees |>\n  ___() +\n  tm_dots()",
+      "answers": [
+        "tm_shape",
+        "tm_shape()"
+      ],
+      "explain": "`tm_shape()` names the data; the layer function after it draws it."
+    },
+    {
+      "id": "layer-lines",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which layer function draws a sidewalk network?",
+      "choices": [
+        "`tm_lines()`",
+        "`tm_dots()`",
+        "`tm_polygons()`",
+        "`tm_bubbles()`"
+      ],
+      "answer": 0,
+      "explain": "`tm_lines()` draws line features."
+    },
+    {
+      "id": "layer-polys",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which layer function draws building footprints with a fill and an outline?",
+      "choices": [
+        "`tm_polygons()`",
+        "`tm_lines()`",
+        "`tm_dots()`",
+        "`tm_compass()`"
+      ],
+      "answer": 0,
+      "explain": "Polygons have an inside, so `tm_polygons()` fills them."
+    },
+    {
+      "id": "quotes",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which is the right way to color trees by height in tmap?",
+      "choices": [
+        "`tm_dots(fill = \"HEIGHT\")`",
+        "`tm_dots(fill = HEIGHT)`",
+        "`tm_dots(aes(fill = HEIGHT))`",
+        "`tm_dots(\"fill\" = HEIGHT)`"
+      ],
+      "answer": 0,
+      "explain": "tmap takes column names as text, in quotes, unlike ggplot2's `aes()`."
+    },
+    {
+      "id": "lines-col",
+      "type": "truefalse",
+      "r": true,
+      "prompt": "To color lines by a column, tmap uses `col =` rather than `fill =`.",
+      "answer": true,
+      "explain": "A line has no inside to fill, so its color is set with `col`."
+    },
+    {
+      "id": "seq-palette",
+      "type": "choice",
+      "prompt": "`HEIGHT` is a numeric column. What kind of palette does tmap use for it by default?",
+      "choices": [
+        "Sequential: light to dark",
+        "Qualitative: distinct colors with no order",
+        "A single color",
+        "Black and white only"
+      ],
+      "answer": 0,
+      "explain": "Numbers get a sequential palette so bigger values look darker."
+    },
+    {
+      "id": "qual-palette",
+      "type": "choice",
+      "prompt": "`COMMONNAME` is a text column. What kind of palette does tmap use?",
+      "choices": [
+        "Qualitative: one distinct color per category",
+        "Sequential: light to dark",
+        "Diverging: two colors meeting in the middle",
+        "None: text can't be mapped"
+      ],
+      "answer": 0,
+      "explain": "Categories have no order, so they get distinct colors."
+    },
+    {
+      "id": "too-many-species",
+      "type": "choice",
+      "prompt": "With 158 tree species, the map is unreadable. Which is a good fix?",
+      "choices": [
+        "Keep the most common species and label the rest \"other\"",
+        "Use a sequential palette",
+        "Make the dots bigger",
+        "Remove the legend title"
+      ],
+      "answer": 0,
+      "explain": "`mutate()` with `if_else()` lumps rare categories together, so every tree stays on the map."
+    },
+    {
+      "id": "if-else-na",
+      "type": "choice",
+      "r": true,
+      "prompt": "In `if_else(COMMONNAME %in% top_nine, COMMONNAME, \"other\")`, what happens to a tree whose `COMMONNAME` is `NA`?",
+      "choices": [
+        "It becomes \"other\"",
+        "It stays `NA`",
+        "R gives an error",
+        "It is removed from the data"
+      ],
+      "answer": 0,
+      "explain": "`NA %in% top_nine` is `FALSE`, so the tree gets \"other\"."
+    },
+    {
+      "id": "drop-geom",
+      "type": "choice",
+      "prompt": "Why use `st_drop_geometry()` before `count(COMMONNAME)`?",
+      "choices": [
+        "It makes counting much faster, because sf won't merge the points of each species",
+        "`count()` doesn't work on data frames",
+        "It projects the data",
+        "It removes the `NA` species"
+      ],
+      "answer": 0,
+      "explain": "Without it, sf tries to combine all the points of each group into one shape."
+    },
+    {
+      "id": "choropleth",
+      "type": "choice",
+      "prompt": "A map of buildings shaded by year built is a:",
+      "choices": [
+        "Choropleth map",
+        "Dot density map",
+        "Basemap",
+        "Scale bar"
+      ],
+      "answer": 0,
+      "explain": "A choropleth shades areas by a value."
+    },
+    {
+      "id": "n-classes",
+      "type": "choice",
+      "r": true,
+      "prompt": "In `tm_scale_intervals(n = 4, style = \"equal\")`, what does `n` set?",
+      "choices": [
+        "The number of classes",
+        "The number of layers",
+        "The dot size",
+        "The number of decimal places"
+      ],
+      "answer": 0,
+      "explain": "`n` is how many classes; `style` is how the breaks are chosen."
+    },
+    {
+      "id": "equal-style",
+      "type": "choice",
+      "prompt": "With `style = \"equal\"`, the classes:",
+      "choices": [
+        "Each cover the same range of values",
+        "Each hold the same number of features",
+        "Break where the gaps in the data are largest",
+        "Are chosen at random"
+      ],
+      "answer": 0,
+      "explain": "Equal intervals split the range evenly. `\"quantile\"` puts the same number of features in each class, and `\"jenks\"` uses the gaps."
+    },
+    {
+      "id": "fill-scale",
+      "type": "fill",
+      "prompt": "Complete the tmap v4 code for four equal-interval classes.",
+      "code": "tm_polygons(fill = \"YEARBUILT\",\n            ___ = tm_scale_intervals(n = 4, style = \"equal\"))",
+      "answers": [
+        "fill.scale"
+      ],
+      "explain": "In tmap v4, classification goes in `fill.scale = tm_scale_intervals()`."
+    },
+    {
+      "id": "layer-order",
+      "type": "choice",
+      "prompt": "You add `map_buildings + map_sidewalks + map_trees`. Why do the buildings go first?",
+      "choices": [
+        "They set the map extent, and later layers draw on top of them",
+        "tmap only allows polygons first",
+        "It makes the legend alphabetical",
+        "It doesn't matter at all"
+      ],
+      "answer": 0,
+      "explain": "Layers draw in order, and the first sets the extent. Polygons first, points last, so nothing gets covered."
+    },
+    {
+      "id": "compass",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which function adds a north arrow?",
+      "choices": [
+        "`tm_compass()`",
+        "`tm_scalebar()`",
+        "`tm_title()`",
+        "`tm_arrow()`"
+      ],
+      "answer": 0,
+      "explain": "`tm_compass()` adds the north arrow; `tm_scalebar()` adds the scale bar."
+    },
+    {
+      "id": "view-mode",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `tmap_mode(\"view\")` do?",
+      "choices": [
+        "Makes interactive web maps you can pan and zoom",
+        "Saves the map as a PNG",
+        "Shows only the legend",
+        "Switches to ggplot2"
+      ],
+      "answer": 0,
+      "explain": "View mode puts the map on a basemap in a web map. `tmap_mode(\"plot\")` switches back to static maps."
+    },
+    {
+      "id": "view-internet",
+      "type": "truefalse",
+      "prompt": "View mode needs an internet connection to load its basemap tiles.",
+      "answer": true,
+      "explain": "The basemap tiles come from the web."
+    },
+    {
+      "id": "bubbles-setting",
+      "type": "choice",
+      "prompt": "In `tm_bubbles(size = \"pop2030\", fill = \"orange\")`, which argument is *mapped* to the data?",
+      "choices": [
+        "`size`",
+        "`fill`",
+        "Both",
+        "Neither"
+      ],
+      "answer": 0,
+      "explain": "`\"pop2030\"` is a column, so size comes from the data. `\"orange\"` is a fixed color, so every bubble is orange."
+    },
+    {
+      "id": "order-map",
+      "type": "order",
+      "prompt": "Put the pieces in order to map the buildings by number of floors.",
+      "answer": [
+        "buildings",
+        "|>",
+        "tm_shape()",
+        "+",
+        "tm_polygons(fill = \"FLOORS\")"
+      ],
+      "extra": [
+        "tm_lines()"
+      ],
+      "explain": "Pipe the data into `tm_shape()`, then add the layer with `+`."
+    }
+  ]
+}

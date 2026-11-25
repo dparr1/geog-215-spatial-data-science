@@ -1,0 +1,29 @@
+---
+title: "Unit 1: R and Spatial Data Science"
+---
+
+This unit sets up everything else in the book. It starts with what spatial data science is and why location matters. It then gets you working in R and RStudio, writing reproducible R Markdown reports, and handling R's basic building blocks: vectors, data types, and data frames. By the end of the unit you can load data into R and pull out exactly the values you need.
+
+## Chapter 1: [What is Spatial Data Science?](../chapters/intro-spatial-data-science.qmd)
+
+Spatial data science uses data with locations to answer questions about the world. This chapter explains how data become information, walks through the steps of a data science project, from a question to communicating results, and shows why spatial data need special care: near things tend to be alike, patterns change with scale, and relationships change from place to place. It ends by introducing the tools used in this course: R, RStudio, the tidyverse, sf, and tmap.
+
+[Chapter 1 quiz](../chapters/intro-spatial-data-science-quiz.qmd)
+
+## Chapter 2: [R, RStudio, and R Markdown](../chapters/r-rstudio-rmarkdown.qmd)
+
+R is the language that does the computing, RStudio is the workspace where you write and run it, and R Markdown is the format that combines your writing, your code, and its results in one report. This chapter tours RStudio's four panes, explains how knitting builds a reproducible report, and introduces variables, comments, functions, and the pipe.
+
+[Chapter 2 quiz](../chapters/r-rstudio-rmarkdown-quiz.qmd)
+
+## Chapter 3: [R Basics](../chapters/r-basics.qmd)
+
+R runs one line at a time, in the order you run it, so this chapter shows how to think sequentially and make sure a file will knit. It covers installing and loading packages, R's four basic data types and how vectors hold them, good names for variables, and how to read error messages and find help.
+
+[Chapter 3 quiz](../chapters/r-basics-quiz.qmd)
+
+## Chapter 4: [Indexing Vectors and Data Frames](../chapters/indexing-vectors-data-frames.qmd)
+
+Indexing selects part of a vector or a table with square brackets: by position, by name, or by a condition built from comparison and logical operators. The chapter then introduces the data frame, R's table of variables and observations, and shows how to read a CSV file into one and select its rows and columns.
+
+[Chapter 4 quiz](../chapters/indexing-vectors-data-frames-quiz.qmd)

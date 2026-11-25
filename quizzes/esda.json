@@ -1,0 +1,340 @@
+{
+  "id": "esda",
+  "title": "Exploratory Spatial Data Analysis",
+  "perSession": 10,
+  "minR": 2,
+  "questions": [
+    {
+      "id": "eda-def",
+      "type": "choice",
+      "prompt": "Exploratory data analysis is:",
+      "choices": [
+        "Learning what is in a dataset before explaining or predicting anything with it",
+        "Testing a hypothesis with a p-value",
+        "Publishing the final results",
+        "Collecting new data"
+      ],
+      "answer": 0,
+      "explain": "It lives in the 'understand' loop: transform, visualize, model, and repeat."
+    },
+    {
+      "id": "esda-adds",
+      "type": "choice",
+      "prompt": "What question does ESDA add to EDA?",
+      "choices": [
+        "What type of geographic variation occurs within my variables?",
+        "How big is my dataset?",
+        "Which variables are numeric?",
+        "What is the mean?"
+      ],
+      "answer": 0,
+      "explain": "Maps, spatial autocorrelation, and clustering answer it."
+    },
+    {
+      "id": "q2",
+      "type": "choice",
+      "prompt": "\"What type of variation occurs between my variables?\" is answered with:",
+      "choices": [
+        "Scatterplots, grouped boxplots, and correlation",
+        "A single histogram",
+        "The mean of one variable",
+        "A table of NA counts"
+      ],
+      "answer": 0,
+      "explain": "Question 1 is about one variable; question 2 is about relationships."
+    },
+    {
+      "id": "step-one",
+      "type": "choice",
+      "prompt": "Which is part of step one, getting to know the data table?",
+      "choices": [
+        "Counting rows, NAs, and columns, and checking each field's type",
+        "Fitting a regression model",
+        "Making a choropleth map",
+        "Calculating Moran's I"
+      ],
+      "answer": 0,
+      "explain": "nrow(), ncol(), glimpse(), and summary() help."
+    },
+    {
+      "id": "na-mean",
+      "type": "choice",
+      "prompt": "What does `mean(x)` return if `x` contains an NA?",
+      "choices": [
+        "NA",
+        "The mean of the other values",
+        "0",
+        "An error"
+      ],
+      "answer": 0,
+      "explain": "Use mean(x, na.rm = TRUE) to drop the missing values."
+    },
+    {
+      "id": "mean",
+      "type": "fill",
+      "r": false,
+      "prompt": "What is the mean of {3, 8, 12, 6, 5, 10, 2, 3, 6, 3}?",
+      "answers": [
+        "5.8"
+      ],
+      "numeric": true,
+      "tolerance": 0.001,
+      "explain": "The sum is 58, and 58 / 10 = 5.8."
+    },
+    {
+      "id": "median",
+      "type": "fill",
+      "r": false,
+      "prompt": "What is the median of {3, 8, 12, 6, 5, 10, 2, 3, 6, 3}?",
+      "answers": [
+        "5.5"
+      ],
+      "numeric": true,
+      "tolerance": 0.001,
+      "explain": "Sorted: 2, 3, 3, 3, 5, 6, 6, 8, 10, 12. The middle two are 5 and 6, so (5 + 6) / 2 = 5.5."
+    },
+    {
+      "id": "mode",
+      "type": "fill",
+      "r": false,
+      "prompt": "What is the mode of {3, 8, 12, 6, 5, 10, 2, 3, 6, 3}?",
+      "answers": [
+        "3"
+      ],
+      "numeric": true,
+      "explain": "3 appears three times, more than any other value."
+    },
+    {
+      "id": "mode-cat",
+      "type": "choice",
+      "prompt": "Which measure of center works for categorical data, such as land-cover class?",
+      "choices": [
+        "Mode",
+        "Mean",
+        "Median",
+        "Standard deviation"
+      ],
+      "answer": 0,
+      "explain": "You can find the most common class, but you can't average classes."
+    },
+    {
+      "id": "mode-r",
+      "type": "choice",
+      "prompt": "What does base R's `mode(x)` return for a numeric vector?",
+      "choices": [
+        "\"numeric\", the storage type",
+        "The most common value",
+        "The middle value",
+        "An error"
+      ],
+      "answer": 0,
+      "explain": "Use table() or count() and take the most frequent value instead."
+    },
+    {
+      "id": "median-robust",
+      "type": "choice",
+      "prompt": "Which measure of center is least affected by a few extreme values?",
+      "choices": [
+        "Median",
+        "Mean",
+        "Range",
+        "Standard deviation"
+      ],
+      "answer": 0,
+      "explain": "Half the values are below it and half above, so extremes barely move it."
+    },
+    {
+      "id": "range",
+      "type": "fill",
+      "r": false,
+      "prompt": "What is the range of {3, 1, 2, 8, 12, 6, 5, 10, 2, 3, 6, 3}?",
+      "answers": [
+        "11"
+      ],
+      "numeric": true,
+      "explain": "12 − 1 = 11."
+    },
+    {
+      "id": "iqr",
+      "type": "choice",
+      "prompt": "The interquartile range is:",
+      "choices": [
+        "Q3 − Q1, the spread of the middle half of the data",
+        "The maximum minus the minimum",
+        "The square root of the variance",
+        "The mean minus the median"
+      ],
+      "answer": 0,
+      "explain": "It ignores the extremes, so outliers barely affect it."
+    },
+    {
+      "id": "iqr-methods",
+      "type": "truefalse",
+      "prompt": "Software can give slightly different quartiles for the same small dataset, because there are several rules for percentiles.",
+      "answer": true,
+      "explain": "By hand the IQR of the 12 values is 4.5; R's IQR() interpolates and returns 3.75."
+    },
+    {
+      "id": "sd-steps",
+      "type": "choice",
+      "prompt": "Why are deviations squared when calculating the standard deviation?",
+      "choices": [
+        "So negative and positive deviations don't cancel out",
+        "To make the numbers bigger",
+        "To convert to percentages",
+        "To remove outliers"
+      ],
+      "answer": 0,
+      "explain": "Deviations from the mean always sum to zero; squaring keeps them all positive."
+    },
+    {
+      "id": "same-mean",
+      "type": "truefalse",
+      "prompt": "Two variables with the same mean always have the same spread.",
+      "answer": false,
+      "explain": "Sets A and B both have a mean of 5.8, but standard deviations of 3.3 and 45.7."
+    },
+    {
+      "id": "skew",
+      "type": "choice",
+      "prompt": "A variable's mean is about twice its median, and its standard deviation is bigger than its mean. Its distribution is probably:",
+      "choices": [
+        "Skewed right",
+        "Skewed left",
+        "Symmetric",
+        "Uniform"
+      ],
+      "answer": 0,
+      "explain": "A few very large values pull the mean up. Report the median and IQR."
+    },
+    {
+      "id": "boxplot",
+      "type": "choice",
+      "prompt": "In a boxplot, the box spans:",
+      "choices": [
+        "Q1 to Q3, with a line at the median",
+        "The minimum to the maximum",
+        "The mean ± one standard deviation",
+        "The 10th to the 90th percentile"
+      ],
+      "answer": 0,
+      "explain": "Whiskers reach 1.5 × IQR from the box; points beyond are potential outliers."
+    },
+    {
+      "id": "binwidth",
+      "type": "choice",
+      "prompt": "A histogram with very narrow bins tends to:",
+      "choices": [
+        "Show noisy spikes that hide the shape",
+        "Hide all the detail",
+        "Show the mean",
+        "Turn into a boxplot"
+      ],
+      "answer": 0,
+      "explain": "Too wide hides detail; too narrow shows noise. Try a few widths."
+    },
+    {
+      "id": "bimodal",
+      "type": "choice",
+      "prompt": "In a bimodal distribution, the mean can:",
+      "choices": [
+        "Fall in the dip between the peaks, where few values are",
+        "Never be calculated",
+        "Always equal the mode",
+        "Only be at a peak"
+      ],
+      "answer": 0,
+      "explain": "Two peaks often mean two groups mixed together, such as urban and rural counties."
+    },
+    {
+      "id": "outlier-do",
+      "type": "choice",
+      "prompt": "You find an outlier. What should you do first?",
+      "choices": [
+        "Find out what explains it",
+        "Delete it",
+        "Replace it with the mean",
+        "Ignore it"
+      ],
+      "answer": 0,
+      "explain": "A real value stays in; a typo or wrong unit is an error to fix. Either way, say what you did."
+    },
+    {
+      "id": "density-area",
+      "type": "truefalse",
+      "prompt": "The total area under a density curve is 1.",
+      "answer": true,
+      "explain": "That's why the y-axis is a density, not a count."
+    },
+    {
+      "id": "alpha",
+      "type": "choice",
+      "prompt": "In `geom_density(alpha = 0.6)`, what does `alpha` do?",
+      "choices": [
+        "Makes the fill semi-transparent so overlapping curves stay visible",
+        "Sets the bin width",
+        "Sets the smoothness of the curve",
+        "Adds a legend"
+      ],
+      "answer": 0,
+      "explain": "alpha runs from 0 (invisible) to 1 (solid)."
+    },
+    {
+      "id": "pivot",
+      "type": "choice",
+      "prompt": "To plot two columns as two density curves on one set of axes, first:",
+      "choices": [
+        "Stack them into one column with pivot_longer()",
+        "Join them with left_join()",
+        "Sort them with arrange()",
+        "Remove the geometry with st_area()"
+      ],
+      "answer": 0,
+      "explain": "Then map the new name column to fill."
+    },
+    {
+      "id": "choropleth-rates",
+      "type": "choice",
+      "prompt": "Why map births per square kilometer rather than total births?",
+      "choices": [
+        "Big counties have more of almost everything, so raw counts mostly show size",
+        "Rates are always larger numbers",
+        "tmap can't map counts",
+        "Counts can't be skewed"
+      ],
+      "answer": 0,
+      "explain": "Choropleth maps should show rates, densities, or percentages."
+    },
+    {
+      "id": "autocorr",
+      "type": "choice",
+      "prompt": "Spatial autocorrelation asks:",
+      "choices": [
+        "Are similar values located near each other?",
+        "What is the mean of a variable?",
+        "How many rows have NA?",
+        "Which projection should I use?"
+      ],
+      "answer": 0,
+      "explain": "It's Tobler's first law in action, measured with statistics such as Moran's I."
+    },
+    {
+      "id": "code-sd",
+      "type": "code",
+      "prompt": "Store the standard deviation of `b` in `s`.",
+      "starter": "b <- c(-56, 8, -1, 64, -34, 84, -5, 38, 6, -46)\n",
+      "check": "isTRUE(all.equal(s, sd(c(-56, 8, -1, 64, -34, 84, -5, 38, 6, -46))))",
+      "solution": "b <- c(-56, 8, -1, 64, -34, 84, -5, 38, 6, -46)\ns <- sd(b)",
+      "explain": "sd(b) is about 45.7, even though the mean is only 5.8."
+    },
+    {
+      "id": "code-mode",
+      "type": "code",
+      "prompt": "Store the mode (the most frequent value) of `a` in `m`, as a number.",
+      "starter": "a <- c(4, 7, 7, 2, 9, 7, 4, 1)\n",
+      "check": "isTRUE(all.equal(as.numeric(m), 7))",
+      "solution": "a <- c(4, 7, 7, 2, 9, 7, 4, 1)\nm <- as.numeric(names(which.max(table(a))))",
+      "explain": "table(a) counts each value; which.max() finds the biggest count, and names() gives the value. 7 appears three times."
+    }
+  ]
+}

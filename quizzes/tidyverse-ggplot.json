@@ -1,0 +1,335 @@
+{
+  "id": "tidyverse-ggplot",
+  "title": "Into the Tidyverse: Graphs with ggplot2",
+  "perSession": 10,
+  "minR": 4,
+  "questions": [
+    {
+      "id": "warmup-arrow",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does this code do?",
+      "code": "flights -> flights.new",
+      "choices": [
+        "Stores `flights` in a new object called `flights.new`",
+        "Gives an error, because `->` isn't valid R",
+        "Compares `flights` with `flights.new`",
+        "Deletes `flights`"
+      ],
+      "answer": 0,
+      "explain": "`->` is assignment pointing right. It works, but the style guide prefers `<-` so the new object's name is on the left."
+    },
+    {
+      "id": "glimpse-shows",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `glimpse(flights)` show?",
+      "choices": [
+        "One line per column, with its type and first few values",
+        "A scatterplot of every column",
+        "Only the first six rows",
+        "The number of missing values in each column"
+      ],
+      "answer": 0,
+      "explain": "`glimpse()` is a quick check that the data loaded and the column types are what you expect."
+    },
+    {
+      "id": "grammar-parts",
+      "type": "choice",
+      "prompt": "Which three parts does every ggplot need?",
+      "choices": [
+        "Data, aesthetic mappings, and a geom",
+        "A title, a legend, and a theme",
+        "Facets, scales, and coordinates",
+        "A pipe, a filter, and a summary"
+      ],
+      "answer": 0,
+      "explain": "Steps 1–3 (data, `aes()`, a geom) are required. Scales, labels, and themes are optional polish."
+    },
+    {
+      "id": "aesthetic-def",
+      "type": "choice",
+      "prompt": "In the grammar of graphics, an *aesthetic* is:",
+      "choices": [
+        "A visual property of a mark, such as x position, color, or size",
+        "A pretty theme",
+        "A kind of chart, such as a bar chart",
+        "A data frame"
+      ],
+      "answer": 0,
+      "explain": "`aes()` connects columns in the data to these visual properties."
+    },
+    {
+      "id": "fill-aes",
+      "type": "fill",
+      "prompt": "Complete the code so departure delay goes on the x axis.",
+      "code": "ggplot(flights) +\n  geom_point(___(x = dep_delay, y = arr_delay))",
+      "answers": [
+        "aes"
+      ],
+      "explain": "`aes()` maps columns to aesthetics."
+    },
+    {
+      "id": "plus-start",
+      "type": "truefalse",
+      "prompt": "In a ggplot, it's fine to put the `+` at the start of the next line.",
+      "answer": false,
+      "explain": "The `+` must end the line. Otherwise R thinks the command finished at the end of the line before."
+    },
+    {
+      "id": "geom-two-cont",
+      "type": "choice",
+      "r": true,
+      "prompt": "You want to plot two continuous variables against each other. Which geom fits best?",
+      "choices": [
+        "`geom_point()`",
+        "`geom_bar()`",
+        "`geom_boxplot()`",
+        "`geom_histogram()`"
+      ],
+      "answer": 0,
+      "explain": "A scatterplot (`geom_point()`) shows the relationship between two continuous variables."
+    },
+    {
+      "id": "geom-cat-cont",
+      "type": "choice",
+      "r": true,
+      "prompt": "You want to compare a continuous variable (distance) across a categorical one (carrier). Which geom fits best?",
+      "choices": [
+        "`geom_boxplot()`",
+        "`geom_point()`",
+        "`geom_line()`",
+        "`geom_density()`"
+      ],
+      "answer": 0,
+      "explain": "A boxplot puts each category on x and summarizes the continuous y for each."
+    },
+    {
+      "id": "setting-vs-mapping",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which line *maps* color to the data?",
+      "choices": [
+        "`geom_point(aes(color = origin))`",
+        "`geom_point(color = \"blue\")`",
+        "`geom_point(color = \"origin\")`",
+        "`geom_point() + theme_minimal()`"
+      ],
+      "answer": 0,
+      "explain": "Mapping puts a column inside `aes()`. A fixed color outside `aes()` is setting."
+    },
+    {
+      "id": "aes-blue",
+      "type": "choice",
+      "r": true,
+      "prompt": "What happens with this code?",
+      "code": "ggplot(october_flights) +\n  geom_point(aes(x = dep_delay, y = arr_delay, color = \"blue\"))",
+      "choices": [
+        "The points are salmon pink, with a legend entry called *blue*",
+        "The points are blue",
+        "R gives an error",
+        "The points are invisible"
+      ],
+      "answer": 0,
+      "explain": "Inside `aes()`, \"blue\" is treated as a data value. ggplot2 makes a one-item legend and uses its first default color."
+    },
+    {
+      "id": "mapping-in-ggplot",
+      "type": "choice",
+      "prompt": "Why put `aes()` inside `ggplot()` instead of inside a geom?",
+      "choices": [
+        "Mappings in `ggplot()` apply to every layer",
+        "It makes the plot draw faster",
+        "Geoms can't take `aes()`",
+        "It hides the legend"
+      ],
+      "answer": 0,
+      "explain": "Then `geom_point()` and `geom_smooth()` share the same x and y without repeating them."
+    },
+    {
+      "id": "smooth-lines",
+      "type": "choice",
+      "r": true,
+      "prompt": "How many trend lines does this draw?",
+      "code": "ggplot(october_flights, aes(x = dep_delay, y = arr_delay, color = origin)) +\n  geom_point() +\n  geom_smooth()",
+      "choices": [
+        "Three, one per airport",
+        "One",
+        "None",
+        "Twelve"
+      ],
+      "answer": 0,
+      "explain": "`color = origin` is mapped in `ggplot()`, so `geom_smooth()` also splits by the three airports."
+    },
+    {
+      "id": "smooth-lm",
+      "type": "choice",
+      "prompt": "Which argument makes `geom_smooth()` draw a straight regression line?",
+      "choices": [
+        "`method = \"lm\"`",
+        "`se = FALSE`",
+        "`linewidth = 2`",
+        "`straight = TRUE`"
+      ],
+      "answer": 0,
+      "explain": "`method = \"lm\"` fits a linear model. `se = FALSE` hides the gray confidence band."
+    },
+    {
+      "id": "bar-count",
+      "type": "choice",
+      "r": true,
+      "prompt": "With `geom_bar(aes(x = carrier))`, where does the height of each bar come from?",
+      "choices": [
+        "ggplot2 counts the rows for each carrier",
+        "A column called `n`",
+        "The mean of `dep_delay`",
+        "You must give a `y`"
+      ],
+      "answer": 0,
+      "explain": "`geom_bar()` counts for you. Use `geom_col()` when the heights are already a column."
+    },
+    {
+      "id": "fill-fill",
+      "type": "fill",
+      "prompt": "For bars, which aesthetic colors the inside? (`color` only colors the outline.)",
+      "answers": [
+        "fill"
+      ],
+      "explain": "`fill` is the interior of bars, boxes, and polygons; `color` is the border."
+    },
+    {
+      "id": "position-fill",
+      "type": "choice",
+      "prompt": "Which `position` makes every bar the same height, so you compare shares?",
+      "choices": [
+        "`\"fill\"`",
+        "`\"dodge\"`",
+        "`\"stack\"`",
+        "`\"jitter\"`"
+      ],
+      "answer": 0,
+      "explain": "`position = \"fill\"` stretches each bar to 100%. `\"dodge\"` puts bars side by side; `\"stack\"` is the default."
+    },
+    {
+      "id": "box-line",
+      "type": "choice",
+      "prompt": "In a boxplot, what does the thick line inside the box show?",
+      "choices": [
+        "The median",
+        "The mean",
+        "The maximum",
+        "The outliers"
+      ],
+      "answer": 0,
+      "explain": "The box runs from the 25th to the 75th percentile, and the line is the median."
+    },
+    {
+      "id": "box-dots",
+      "type": "choice",
+      "prompt": "In a boxplot, the dots beyond the whiskers are:",
+      "choices": [
+        "Outliers",
+        "Means",
+        "Missing values",
+        "Medians of other groups"
+      ],
+      "answer": 0,
+      "explain": "Points further than 1.5 times the box height from the box are drawn individually as outliers."
+    },
+    {
+      "id": "facet-wrap",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `facet_wrap(~ carrier)` do?",
+      "choices": [
+        "Draws one small panel per carrier, with shared axes",
+        "Colors the points by carrier",
+        "Sorts the carriers",
+        "Removes the carrier legend"
+      ],
+      "answer": 0,
+      "explain": "Facets make small multiples, a better choice than many colors on one chart."
+    },
+    {
+      "id": "facet-grid",
+      "type": "choice",
+      "r": true,
+      "prompt": "`facet_grid(origin ~ month)` makes how many panels for the flights data?",
+      "choices": [
+        "36",
+        "12",
+        "3",
+        "15"
+      ],
+      "answer": 0,
+      "explain": "3 airports in rows times 12 months in columns."
+    },
+    {
+      "id": "scale-manual",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which function sets your own colors for a mapped `fill`?",
+      "choices": [
+        "`scale_fill_manual()`",
+        "`scale_color_manual()`",
+        "`labs()`",
+        "`theme_minimal()`"
+      ],
+      "answer": 0,
+      "explain": "Match the scale to the aesthetic: `scale_fill_*` for fill, `scale_color_*` for color."
+    },
+    {
+      "id": "labs-legend",
+      "type": "choice",
+      "prompt": "In `labs(color = \"Origin airport\")`, what gets renamed?",
+      "choices": [
+        "The legend title for the mapped color",
+        "The color of the points",
+        "The x axis",
+        "The plot title"
+      ],
+      "answer": 0,
+      "explain": "`labs()` argument names match the aesthetics, so `color =` names the color legend."
+    },
+    {
+      "id": "ggsave-last",
+      "type": "choice",
+      "prompt": "Which plot does `ggsave(\"plot.png\")` save?",
+      "choices": [
+        "The last plot you made",
+        "Every plot in the file",
+        "Nothing, unless you give `plot =`",
+        "The first plot in the file"
+      ],
+      "answer": 0,
+      "explain": "It saves the last plot. To save another, store it (`p <- ggplot(...)`) and use `plot = p`."
+    },
+    {
+      "id": "fill-dpi",
+      "type": "fill",
+      "prompt": "Complete the code to save the plot at print quality.",
+      "code": "ggsave(\"delays.png\", width = 8, height = 6, dpi = ___)",
+      "answers": [
+        "300"
+      ],
+      "numeric": true,
+      "explain": "`dpi = 300` is print quality. `width` and `height` are in inches."
+    },
+    {
+      "id": "order-plot",
+      "type": "order",
+      "prompt": "Put the pieces in order to make a scatterplot of the October flights.",
+      "answer": [
+        "october_flights",
+        "|>",
+        "ggplot(aes(x = dep_delay, y = arr_delay))",
+        "+",
+        "geom_point()"
+      ],
+      "extra": [
+        "geom_bar()"
+      ],
+      "explain": "Data flow into `ggplot()` with the pipe, then layers are joined with `+`."
+    }
+  ]
+}

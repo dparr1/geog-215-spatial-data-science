@@ -1,0 +1,11 @@
+---
+title: "Unit 5: Data"
+---
+
+This unit is about getting data from the places that publish it. It focuses on the US Census Bureau, the largest source of data about people and places in the United States, and on APIs, the way code asks a server for data directly.
+
+## Chapter 15: [Census Data and APIs](../chapters/census-data-apis.qmd)
+
+US Census data come from the decennial census, a full count every ten years, and the American Community Survey, a continuous sample with a margin of error on every estimate. This chapter explains how Census geography nests from states down to tracts and blocks, how APIs work, and how the tidycensus package downloads tidy, map-ready Census data. It also shows how to carry margins of error through calculations and compare data across years.
+
+[Chapter 15 quiz](../chapters/census-data-apis-quiz.qmd)
