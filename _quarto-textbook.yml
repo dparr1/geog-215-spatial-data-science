@@ -64,13 +64,11 @@ book:
         - chapters/regression-quiz.qmd
         - chapters/writing-spatial-data-science.qmd
         - chapters/writing-spatial-data-science-quiz.qmd
-    - part: units/unit-6.qmd
-      chapters:
         - chapters/distance-neighborhoods.qmd
         - chapters/distance-neighborhoods-quiz.qmd
         - chapters/spatial-autocorrelation.qmd
         - chapters/spatial-autocorrelation-quiz.qmd
-    - part: units/unit-7.qmd
+    - part: units/unit-6.qmd
       chapters:
         - chapters/dashboards.qmd
         - chapters/whats-next.qmd

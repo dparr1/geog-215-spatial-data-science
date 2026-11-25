@@ -2,7 +2,7 @@
 title: "Unit 5: Statistics and Science"
 ---
 
-This unit turns data into evidence. It tests whether groups of places differ, models how one variable changes with others, and then puts the pieces together into a reproducible spatial data science project, from the research question to the conclusion.
+This unit turns data into evidence. It tests whether groups of places differ, models how one variable changes with others, and puts the pieces together into a reproducible spatial data science project, from the research question to the conclusion. It ends by testing Tobler's first law of geography, that near things are more related than distant things: first deciding what "near" means, with distances and neighbors, and then measuring whether values on a map are clustered, random, or dispersed.
 
 ## Chapter 18: [Comparing Groups: p-values and ANOVA](../chapters/anova.qmd)
 
@@ -21,3 +21,15 @@ Regression asks how one variable changes as another changes. This chapter covers
 This chapter steps back to ask how data become knowledge. It covers the data, information, knowledge, wisdom pyramid, big data, choosing sources, and why reproducibility and replicability matter. It then walks through the parts of a project, from the research question and background to methods, results, and conclusions, and ends with what makes a project spatial data science.
 
 [Chapter 20 quiz](../chapters/writing-spatial-data-science-quiz.qmd)
+
+## Chapter 21: [Distance and Neighborhoods](../chapters/distance-neighborhoods.qmd)
+
+This chapter covers what distance means and the main ways to measure it: Euclidean, great circle, Manhattan, and network distance. It then uses distance and shared borders to decide which features are neighbors, with distance bands, *k* nearest neighbors, and rook and queen contiguity, and stores those relationships in a neighborhood weight matrix, built in R with spdep.
+
+[Chapter 21 quiz](../chapters/distance-neighborhoods-quiz.qmd)
+
+## Chapter 22: [Spatial Clustering and Spatial Autocorrelation](../chapters/spatial-autocorrelation.qmd)
+
+This chapter tests objectively whether things on a map are clustered. It measures point patterns with the Average Nearest Neighbor ratio, global spatial autocorrelation with Moran's I and a permutation test, and local hot spots and cold spots with Getis-Ord Gi\*, using births in North Carolina's counties.
+
+[Chapter 22 quiz](../chapters/spatial-autocorrelation-quiz.qmd)
