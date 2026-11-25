@@ -54,7 +54,7 @@ The **DIKW pyramid** takes the idea further, in four levels (@fig-dikw). Each bu
 
 ## The data science process {#sec-ds-process}
 
-Chapter 5 introduced the **data science workflow** from *R for Data Science*: **import** the data, **tidy** it, then cycle through **transform**, **visualize**, and **model** until you **understand** it, and finally **communicate** the results. The middle loop repeats, and programming runs through every step. A project write-up is the "communicate" step, but a good one shows all the others too.
+Chapter 6 introduced the **data science workflow** from *R for Data Science*: **import** the data, **tidy** it, then cycle through **transform**, **visualize**, and **model** until you **understand** it, and finally **communicate** the results. The middle loop repeats, and programming runs through every step. A project write-up is the "communicate" step, but a good one shows all the others too.
 
 ### Big data
 
@@ -71,7 +71,7 @@ Many spatial datasets, such as satellite imagery or the GPS traces from phones, 
 | Sources | Formats |
 |:--------|:--------|
 | Authoritative: federal, state, county, and local government | Files: GeoJSON, shapefiles, CSV |
-| Web scraping: social media, live feeds, news | API calls: data on demand (Chapters 16 and 17) |
+| Web scraping: social media, live feeds, news | API calls: data on demand (Chapters 13 and 14) |
 | The Internet of Things: sensors streaming readings | Images, text, and 3D formats |
 | Real-time analytics feeds | |
 
@@ -104,7 +104,7 @@ What it means for your analysis:
 
 - **Clustered residuals make standard tests overconfident.** Map your model's residuals and test them with Moran's I (Chapter 22).
 - **Scale and zoning matter.** County and tract results can differ: the **modifiable areal unit problem**.
-- **Projection matters.** Distances and areas depend on the coordinate system (Chapter 11).
+- **Projection matters.** Distances and areas depend on the coordinate system (Chapter 12).
 
 ## Building blocks of a project {#sec-building-blocks}
 

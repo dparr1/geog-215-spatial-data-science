@@ -373,7 +373,7 @@ grades[grades$exam2 > 90, ]
 grades[grades$bonus & grades$exam1 == "A", "name"]
 ```
 
-The first line returns the two students who scored over 90 on exam 2. The second returns the names of the students who earned the bonus *and* an A on exam 1. In the next chapter you will meet `filter()`, the tidyverse's way to do the same thing with less typing.
+The first line returns the two students who scored over 90 on exam 2. The second returns the names of the students who earned the bonus *and* an A on exam 1. In Chapter 6 you will meet `filter()`, the tidyverse's way to do the same thing with less typing.
 
 ## Reading tabular data {#sec-read-data}
 

@@ -42,7 +42,7 @@ Imagine how the world would look if they were. A map of population density with 
 
 ### Seeing a pattern is not testing it
 
-Looking at a map is subjective. Two people can look at the same map and disagree about whether it is clustered. And map design changes what we see: the classification breaks and the color ramp (Chapter 9) can make the same data look clustered or not. Spatial statistics give repeatable, testable answers.
+Looking at a map is subjective. Two people can look at the same map and disagree about whether it is clustered. And map design changes what we see: the classification breaks and the color ramp (Chapter 10) can make the same data look clustered or not. Spatial statistics give repeatable, testable answers.
 
 ## Spatial cluster analysis: global and local {#sec-global-local}
 
@@ -233,7 +233,7 @@ Would you expect Moran's I for median household income in North Carolina's censu
 
 ## Moran's I in R {#sec-morans-r}
 
-In R, the **spdep** package does the work. Here is Moran's I for births per square kilometer in North Carolina's counties from 1974 to 1978, using the sf package's `nc` data (Chapter 13) and queen contiguity (@fig-nc-density):
+In R, the **spdep** package does the work. Here is Moran's I for births per square kilometer in North Carolina's counties from 1974 to 1978, using the sf package's `nc` data (Chapter 16) and queen contiguity (@fig-nc-density):
 
 ```r
 library(sf)

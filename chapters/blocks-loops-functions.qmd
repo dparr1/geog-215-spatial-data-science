@@ -24,7 +24,7 @@ By the end of this chapter you should be able to:
 
 What is the first virtue of a programmer? Ingenuity? Grit? Devotion to R? Larry Wall, who created the Perl programming language, gave a surprising answer: **laziness**. He meant a particular kind of laziness: refusing to do the same work twice. A lazy programmer writes a piece of code once and reuses it, instead of typing (or copying and pasting) the same steps again and again.
 
-This chapter covers the R tools that let you be productively lazy. **Blocks** group lines of code together. `if` statements decide *whether* a block runs, and loops decide *how many times* it runs. **Functions**, which you met in Chapter 14, give a block a name so you can run it again with new inputs.
+This chapter covers the R tools that let you be productively lazy. **Blocks** group lines of code together. `if` statements decide *whether* a block runs, and loops decide *how many times* it runs. **Functions**, which you have been calling since Chapter 2, give a block a name so you can run it again with new inputs.
 
 ## Blocks group lines of code {#sec-blocks}
 
@@ -153,7 +153,7 @@ Use a `for` loop when you know what you want to repeat over: a set of files, cou
 files <- list.files("data", pattern = "\\.csv$", full.names = TRUE)
 
 for (f in files) {
-  d <- read_csv(f)
+  d <- read.csv(f)
   print(nrow(d))
 }
 ```
@@ -182,17 +182,17 @@ miles <- c(5, 12, 26.2)
 miles * 1.609
 ```
 
-Before you write a loop, check for a vectorized way to do the job. `x + 1`, `sqrt(x)`, `round(x)`, `ifelse()`, and the dplyr verbs all work on whole vectors or columns. Reach for a loop when there isn't one, such as reading many files or downloading data for many years.
+Before you write a loop, check for a vectorized way to do the job. `x + 1`, `sqrt(x)`, `round(x)`, `ifelse()`, and the dplyr verbs you'll meet in Unit 2 all work on whole vectors or columns. Reach for a loop when there isn't one, such as reading many files or downloading data for many years.
 
 ::: {.callout-tip appearance="simple"}
 ## Think about it
 
-Chapter 16 downloads American Community Survey data with tidycensus. How could a `for` loop help you download the same table for 2019, 2020, 2021, 2022, and 2023, and save each year to its own file?
+Later in the book, Chapter 13 downloads American Community Survey data with tidycensus. How could a `for` loop help you download the same table for 2019, 2020, 2021, 2022, and 2023, and save each year to its own file?
 :::
 
 ## Functions name a block so you can reuse it {#sec-functions-blocks}
 
-A **function** is a block with a name, inputs, and an output. You have called functions all semester, such as `mean()`, `st_centroid()`, and `read_csv()`, and Chapter 14 introduced writing your own. Here are the parts again, now that you know what a block is:
+A **function** is a block with a name, inputs, and an output. You have already called many functions, such as `mean()`, `round()`, and `read.csv()`. Now that you know what a block is, you can write your own. Every function has the same parts:
 
 ```r
 name <- function(argument1, argument2) {
@@ -220,9 +220,9 @@ addSeven(c(1, 2, 3))
 
 Because `+` is vectorized, `addSeven(c(1, 2, 3))` returns 8, 9, 10 without a loop.
 
-### The weighted mean center, part by part
+### A preview: the weighted mean center
 
-Chapter 14's `meanCenter()` function has exactly the same parts. Its name is `meanCenter`, its arguments are `layer` and `weights`, its body turns polygons into centroids and takes the weighted mean of their coordinates, and its last line, `mean_center`, is the return value:
+In Chapter 17 you'll use a function, `meanCenter()`, that finds the weighted mean center of a map layer. You don't need to follow its spatial steps yet, but you can already pick out its parts. Its name is `meanCenter`, its arguments are `layer` and `weights`, its body turns polygons into centroids and takes the weighted mean of their coordinates, and its last line, `mean_center`, is the return value:
 
 ```r
 meanCenter <- function(layer, weights) {
@@ -362,7 +362,7 @@ countAbove(c(-2, 5, 0, 8), 6) # 1
 3.  **Loop or not?** Write a `for` loop that converts `c(32, 50, 68, 86, 104)` from degrees Fahrenheit to Celsius, `(f - 32) * 5 / 9`, and stores the results. Then do the same thing in one line without a loop.
 4.  **Running total.** Use a `for` loop to find the running total of births in `c(1091, 487, 3188, 508, 1421)`: the first value, then the first two added up, and so on. Check your answer with `cumsum()`.
 5.  **Checking inputs.** Add an `if` statement and `stop()` to `toKm()` so that it gives a helpful error when `distance` is negative.
-6.  **Standard distance again.** Chapter 14's `standardDistance(x, y)` function returns the standard distance of a set of points. Add a check that `x` and `y` are the same length, and stop with a message if they aren't.
+6.  **Standard distance again.** (Come back to this one after Chapter 17.) Chapter 17's `standardDistance(x, y)` function returns the standard distance of a set of points. Add a check that `x` and `y` are the same length, and stop with a message if they aren't.
 
 ## Further reading
 

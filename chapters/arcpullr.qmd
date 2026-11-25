@@ -21,13 +21,13 @@ By the end of this chapter you should be able to:
 5.  Filter a layer on the server with a `where` clause, and explain why that is better than filtering after you download.
 :::
 
-Chapter 16 showed how an **API** lets your code ask another program's server for data, using the Census Bureau's API and the tidycensus package. This chapter uses the same idea for a different, and very common, source of GIS data: layers published with Esri's ArcGIS software. By the end of it you'll load a layer from North Carolina's statewide GIS portal, NC OneMap, straight into R and map it.
+Chapter 13 showed how an **API** lets your code ask another program's server for data, using the Census Bureau's API and the tidycensus package. This chapter uses the same idea for a different, and very common, source of GIS data: layers published with Esri's ArcGIS software. By the end of it you'll load a layer from North Carolina's statewide GIS portal, NC OneMap, straight into R and map it.
 
 ## Recap: APIs {#sec-api-recap}
 
 An API is a set of rules that lets your code request data from another program's server. The pattern is always the same: **request, then response**. Your code sends an **endpoint** URL, often with **parameters** that say what you want, and the server sends data back, usually as JSON.
 
-Why bother, when you could click a Download button? Two reasons from Chapter 16 still apply:
+Why bother, when you could click a Download button? Two reasons from Chapter 13 still apply:
 
 - **Reproducibility.** Your script is the record of exactly where the data came from and how you got them. Anyone can rerun it.
 - **Efficiency.** You download only the data you need, not a whole statewide file.
@@ -111,7 +111,7 @@ Why filter on the server instead of downloading everything and using `filter()` 
 ::: {.callout-tip appearance="simple"}
 ## Think about it
 
-The REST page says the Medical Facilities layer was "geocoded from the facilities database". What could go wrong with locations made that way (Chapter 16)? How might you check a few of them?
+The REST page says the Medical Facilities layer was "geocoded from the facilities database". What could go wrong with locations made that way (Chapter 13)? How might you check a few of them?
 :::
 
 ## Two requests, one map {#sec-two-requests}
@@ -138,7 +138,7 @@ The dots alone trace the shape of the state, with dense clusters around Charlott
 The result is an ordinary sf object, so everything from earlier chapters applies:
 
 - **Check it.** `nrow()`, `names()`, and `glimpse()` show how many features came back and what the columns are called.
-- **Check the coordinate system.** Run `st_crs()` on the result. Before measuring distances or areas, project it to North Carolina State Plane with `st_transform(32119)` (Chapter 11).
+- **Check the coordinate system.** Run `st_crs()` on the result. Before measuring distances or areas, project it to North Carolina State Plane with `st_transform(32119)` (Chapter 12).
 - **Note the date.** Portal layers are **dynamic**: agencies update them, sometimes daily. Rerunning your script next month may give different data. Record the date you downloaded it, and save a copy with `st_write()` if your results must be exactly reproducible.
 
 ### More arcpullr functions
@@ -190,7 +190,7 @@ The result is an ordinary sf object, so everything from earlier chapters applies
 2.  **Two counties.** Use `IN` to download the facilities for Orange and Durham counties in one request. Map them, colored by county.
 3.  **A new layer.** Find a different feature service on NC OneMap, such as schools, parks, or fire stations. Record its REST URL, geometry type, MaxRecordCount, and three of its field names, then download and map it.
 4.  **Polygons.** Find a polygon layer on NC OneMap. Download it, project it with `st_transform(32119)`, and calculate the area of each feature with `st_area()`.
-5.  **Join it up.** Count the medical facilities in each county, then join the counts to a county boundary layer (Chapter 12) and make a choropleth map of facilities per 10,000 people, using county populations from tidycensus (Chapter 16).
+5.  **Join it up.** Count the medical facilities in each county, then join the counts to a county boundary layer (Chapter 15) and make a choropleth map of facilities per 10,000 people, using county populations from tidycensus (Chapter 13).
 
 ## Further reading
 
