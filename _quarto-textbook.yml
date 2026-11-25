@@ -5,14 +5,14 @@
 # preface.qmd over index.qmd before rendering with this profile.
 project:
   render:
-    - preface.qmd
+    - index.qmd
     - units/*.qmd
     - chapters/*.qmd
     - glossary.qmd
 
 book:
   chapters:
-    - preface.qmd
+    - index.qmd
     # Each chapter is followed by its (unnumbered) chapter quiz page.
     - part: units/unit-1.qmd
       chapters:
