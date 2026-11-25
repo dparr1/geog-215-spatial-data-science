@@ -72,6 +72,9 @@ book:
         - chapters/distance-neighborhoods-quiz.qmd
         - chapters/spatial-autocorrelation.qmd
         - chapters/spatial-autocorrelation-quiz.qmd
+    - part: units/unit-8.qmd
+      chapters:
+        - chapters/whats-next.qmd
   appendices:
     - glossary.qmd
     - about.qmd

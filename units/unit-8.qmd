@@ -1,0 +1,9 @@
+---
+title: "Unit 8: Next Steps"
+---
+
+This unit looks beyond the course. It shows where the skills from this book are used, previews the advanced topics that build on them, and maps out the courses, credentials, and careers that come next.
+
+## Chapter 23: [What's Next in Spatial Data Science](../chapters/whats-next.qmd)
+
+This chapter shows spatial data science at work in public health, environmental science, planning, social science, and business. It previews three advanced areas: remote sensing and NDVI, space-time modeling, and GeoAI, including why spatial autocorrelation matters for machine learning. It ends with a path through UNC's GIS courses, the GIS minor and Geospatial Data Science major, and careers in GIS and spatial data science. This chapter has no quiz.

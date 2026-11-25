@@ -29,6 +29,13 @@
 exclude:
   - scale up
   - joined with
+  - Geography and Environment
+  - Environment, Ecology
+  - massive scale
+  - code at scale
+  - Environment and Public Health
+  - Join a professional
+  - programs and courses
 
 terms:
 
@@ -2428,3 +2435,178 @@ terms:
     definition: >-
       Moran's I calculated for each observation, to find clusters and
       outliers. `localmoran()` in spdep.
+
+  # --- Chapter 23: What's Next in Spatial Data Science ------------------------
+
+  - term: spatial epidemiology
+    definition: >-
+      The study of how health outcomes, such as disease cases, vary across
+      places, and why.
+
+  - term: scan statistic
+    aliases: [scan statistics]
+    definition: >-
+      A cluster test that moves a window across a map (and often through
+      time) to find areas with more cases than chance would produce.
+      SaTScan is a widely used program for it.
+
+  - term: accessibility
+    chapters: [whats-next]
+    definition: >-
+      How easily people can reach a service, such as a clinic, given the
+      distance or travel time, how many providers there are, and how many
+      people need them.
+
+  - term: two-step floating catchment area
+    aliases: [2SFCA]
+    definition: >-
+      An accessibility measure that combines provider supply, population
+      demand, and travel time, in two steps: one around each provider and
+      one around each population location.
+
+  - term: environmental justice
+    definition: >-
+      The fair sharing of environmental burdens, such as pollution, and
+      benefits, such as parks, across communities, whatever their race or
+      income.
+
+  - term: urban heat island
+    aliases: [urban heat islands]
+    definition: >-
+      An area of a city, usually paved and with few trees, that is hotter
+      than its surroundings.
+
+  - term: species distribution model
+    aliases: [species distribution models]
+    definition: >-
+      A model, often a regression with environmental predictors, that
+      predicts where a plant or animal can live.
+
+  - term: location–allocation
+    aliases: [location-allocation]
+    definition: >-
+      A method that chooses which of several candidate sites to use, such
+      as for fire stations, so that they minimize travel or serve the most
+      people.
+
+  - term: location intelligence
+    definition: >-
+      The business use of spatial data and analysis, for site selection,
+      routing, market areas, and real estate.
+
+  - term: remote sensing
+    definition: >-
+      Collecting information about Earth without touching it, from sensors
+      on satellites, aircraft, or drones. It produces most of the world's
+      raster data.
+
+  - term: passive sensor
+    aliases: [passive sensors]
+    chapters: [whats-next]
+    definition: >-
+      A sensor that records sunlight reflected from a surface, or heat the
+      surface gives off, such as a camera or multispectral scanner.
+
+  - term: active sensor
+    aliases: [active sensors]
+    chapters: [whats-next]
+    definition: >-
+      A sensor that sends out its own signal and measures what comes back,
+      such as radar or lidar.
+
+  - term: radar
+    definition: >-
+      An active sensor that sends out microwaves. It sees through clouds
+      and at night, so it is used to map floods during storms.
+
+  - term: lidar
+    definition: >-
+      An active sensor that measures distance with laser pulses, to build
+      detailed 3D models of terrain, buildings, and trees.
+
+  - term: spatial resolution
+    definition: >-
+      The size of one pixel on the ground, such as 30 m for Landsat.
+
+  - term: spectral resolution
+    definition: >-
+      How many wavelength bands a sensor records, and how narrow they are.
+
+  - term: temporal resolution
+    definition: >-
+      How often a sensor revisits the same place.
+
+  - term: radiometric resolution
+    definition: >-
+      How finely a sensor records differences in brightness.
+
+  - term: spectral signature
+    definition: >-
+      The pattern of how much light a material reflects at each
+      wavelength. Different surfaces, such as plants, soil, and water,
+      have different signatures.
+
+  - term: NDVI
+    case_sensitive: true
+    aliases: [normalized difference vegetation index]
+    definition: >-
+      Normalized difference vegetation index: (NIR − Red) / (NIR + Red).
+      It ranges from −1 to 1, and dense green vegetation is high.
+
+  - term: image classification
+    aliases: [classification]
+    chapters: [whats-next]
+    definition: >-
+      Assigning each pixel of an image a land cover class, such as forest,
+      water, or developed land.
+
+  - term: change detection
+    definition: >-
+      Comparing images of the same place from different dates to find
+      what changed.
+
+  - term: space-time cube
+    definition: >-
+      A way to store space-time data: a map for every time step, stacked
+      on top of each other, with x, y, and time as its three axes.
+
+  - term: emerging hot spot analysis
+    definition: >-
+      Running a hot spot statistic, such as Gi*, for every time step and
+      classifying each location's trend: new, intensifying, persistent, or
+      diminishing.
+
+  - term: spatiotemporal kriging
+    definition: >-
+      Predicting values at places and times with no measurements, from
+      measurements nearby in both space and time.
+
+  - term: GeoAI
+    case_sensitive: true
+    definition: >-
+      Artificial intelligence methods, such as deep learning, applied to
+      spatial data, for example to find buildings in satellite images.
+
+  - term: geospatial foundation model
+    aliases: [geospatial foundation models, foundation model, foundation models]
+    definition: >-
+      A large AI model pretrained on huge image archives that can be
+      fine-tuned for many tasks, such as mapping floods, with little
+      labeled data.
+
+  - term: spatial cross-validation
+    definition: >-
+      Testing a model by holding out whole regions, rather than random
+      observations, so the test data really are new places.
+
+  - term: PostGIS
+    case_sensitive: true
+    definition: >-
+      An extension that adds spatial data types and spatial queries, such
+      as spatial joins, to the PostgreSQL database.
+
+  - term: GISP
+    case_sensitive: true
+    definition: >-
+      Geographic Information Systems Professional: a certification from the
+      GIS Certification Institute for experienced GIS practitioners.

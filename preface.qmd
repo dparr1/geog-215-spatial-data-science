@@ -10,7 +10,7 @@ This is an interactive textbook specifically designed and written for this class
 
 ## How this book is organized
 
-The chapters are grouped into seven units. Each unit opens with a page that summarizes its chapters, and each chapter is followed by a chapter quiz you can take as many times as you like.
+The chapters are grouped into eight units. Each unit opens with a page that summarizes its chapters, and each chapter through Chapter 22 is followed by a chapter quiz you can take as many times as you like.
 
 **[Unit 1: R and Spatial Data Science](units/unit-1.qmd)** (Chapters 1–4) sets up everything else. It explains what spatial data science is and why location matters, then gets you working in R, RStudio, and R Markdown, with R's basic building blocks: vectors, data types, and data frames.
 
@@ -25,3 +25,5 @@ The chapters are grouped into seven units. Each unit opens with a page that summ
 **[Unit 6: Statistics and Science](units/unit-6.qmd)** (Chapters 18–20) turns data into evidence. You compare groups with p-values and ANOVA, model relationships with linear regression, and put it all together in a reproducible spatial data science project.
 
 **[Unit 7: Spatial Dependence](units/unit-7.qmd)** (Chapters 21–22) asks whether near things are more related than distant things. You measure distance, define neighbors and weight matrices, and test for clustering and hot spots with the Average Nearest Neighbor ratio, Moran's I, and Getis-Ord Gi\*.
+
+**[Unit 8: Next Steps](units/unit-8.qmd)** (Chapter 23) looks beyond the course: where spatial data science is used, the advanced topics that build on this book, such as remote sensing, space-time modeling, and GeoAI, and the UNC courses and careers that come next.
