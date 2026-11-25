@@ -10,7 +10,7 @@ The book is published in two places from this repo:
 | Site | Who can read it | Built by |
 |---|---|---|
 | **https://geog215.org** | Students on the class roster, after signing in with an emailed code. Their progress is recorded for the instructor. | Cloudflare Workers Builds (`wrangler.jsonc`, `scripts/cloudflare-build.sh`) |
-| **https://daveparr.com/geog215/** | Anyone. No sign-in, and nothing is recorded. | GitHub Action (`.github/workflows/publish.yml`), which commits the rendered book into the `daveparr.com` repo |
+| **https://daveparr.com/intro-spatial-data-science/** | Anyone. No sign-in, and nothing is recorded. | GitHub Action (`.github/workflows/publish.yml`), which commits the rendered book into the `daveparr.com` repo |
 
 Both rebuild automatically on every push to `main`.
 
@@ -33,7 +33,7 @@ The public pages are listed in `PUBLIC_PAGES` in `assets/auth-gate.html`; keep t
 the menu in `_quarto-site.yml`. The course pages are copied from the Fall 2026 Course Resources doc in
 Google Drive, so update them each semester.
 
-daveparr.com/geog215/ gets **only the textbook**: the chapters, chapter quizzes, and glossary, with
+daveparr.com/intro-spatial-data-science/ gets **only the textbook**: the chapters, chapter quizzes, and glossary, with
 the Preface as its home page and no top menu. The `textbook` profile (`_quarto-textbook.yml`) lists
 those chapters, and `_quarto-site.yml` lists the full site; one of the two is always active, and
 `site` is the default. A new chapter goes in both files.
@@ -134,7 +134,7 @@ each branch, and merging publishes both sites.
 chapter, an introduction, the webR extension for in-browser R, and table IDs.
 
 **November 7: publishing and sign-in.** The first plan, Netlify with a Netlify Identity login, was
-tried and dropped the same day. Instead, the public copy is published to daveparr.com/geog215/ by a
+tried and dropped the same day. Instead, the public copy is published to daveparr.com/intro-spatial-data-science/ by a
 GitHub Action, and webexercises self-check questions are added to the introduction. A Supabase
 sign-in gate limited to approved emails is added, and geog215.org launches on Cloudflare (first with
 `wrangler-action`, then with Cloudflare Workers Builds connected to the repo). Resend is set up to send

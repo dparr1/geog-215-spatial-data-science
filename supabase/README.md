@@ -399,7 +399,7 @@ project, or a different book).
   receives it, and only roster or instructor emails get an account.
 - The gate hides pages in the browser but doesn't encrypt them: the page text
   is still in the downloaded HTML, and the same book is public at
-  daveparr.com/geog215/.
+  daveparr.com/intro-spatial-data-science/.
 - Students who set up with the very first version of the sign-in have
   accounts named `<code>@students.geog215.org`; they show as **No email** on
   the admin page. Delete and re-add them with their real email.
