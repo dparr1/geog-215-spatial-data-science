@@ -1,0 +1,12 @@
+{
+  "id": "unit-2",
+  "title": "Unit 2 quiz: Into the Tidyverse",
+  "perSession": 20,
+  "minR": 6,
+  "chapters": [
+    "tidyverse-filter-pipe",
+    "tidyverse-arrange-select-mutate",
+    "tidyverse-summarize-group-by",
+    "tidyverse-ggplot"
+  ]
+}

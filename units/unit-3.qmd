@@ -33,3 +33,7 @@ US Census data come from the decennial census, a full count every ten years, and
 Governments publish many of their GIS layers on ArcGIS REST services. This chapter shows how to find a layer's URL and read its REST page, then download it into R as an sf object with arcpullr's `get_spatial_layer()`. It covers SQL `where` clauses that download only the features you need, the server's record limit, and the other ways arcpullr can query a layer.
 
 [Chapter 14 quiz](../chapters/arcpullr-quiz.qmd)
+
+## Unit 3 quiz
+
+When you have finished the unit, the [Unit 3 quiz](unit-3-quiz.qmd) mixes questions from all 5 chapter quizzes, so you can review the whole unit at once.

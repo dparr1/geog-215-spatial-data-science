@@ -1,0 +1,9 @@
+# Unit 3 quiz: Maps and Geographic Data {.unnumbered}
+
+Review all of [Unit 3: Maps and Geographic Data](unit-3.qmd) at once. This quiz draws from the chapter quizzes for Chapters 10–14, so every question here is one you can also find on a chapter quiz page. Each quiz is 20 questions picked at random and spread across the chapters, and any you miss come back at the end until you've got them all right. Take it as many times as you like.
+
+```{=html}
+<link rel="stylesheet" href="../assets/quiz/quiz.css">
+<div class="sds-quiz" data-bank="../quizzes/unit-3.json"><p>Loading the quiz…</p></div>
+<script src="../assets/quiz/quiz.js" defer></script>
+```

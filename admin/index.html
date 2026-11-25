@@ -140,6 +140,9 @@
   .section-title { font-size: 0.95rem; margin: 18px 0 8px; }
   .section-title:first-of-type { margin-top: 4px; }
   tr.group td { background: var(--surface-2); font-weight: 600; }
+  /* Unit quizzes (unit-1 ... unit-5): shaded rows and leaderboard columns. */
+  tr.unit-quiz td, th.unit-quiz, td.unit-quiz { background: var(--neutral-bg); }
+  tr.unit-quiz td:first-child, tr.unit-quiz td:nth-child(2) { font-weight: 600; }
   th.sortable { cursor: pointer; user-select: none; }
   th.sortable:hover, th.sortable:focus-visible { color: var(--text, inherit); }
   th.sortable::after { content: "\2195"; margin-left: 4px; opacity: 0.35; font-weight: 400; }
@@ -406,12 +409,13 @@
           <select id="scores-note"><option value="">All</option></select>
         </div>
       </div>
-      <p class="hint">Points from the chapter quizzes. Every answer, re-asks included, is
+      <p class="hint">Points from the chapter and unit quizzes. Every answer, re-asks included, is
         <strong>+100</strong> if right and <strong>&minus;100</strong> if wrong. A right answer also earns a
         streak bonus of <strong>+10</strong> for each right answer in a row just before it in the same quiz,
         so a run of right answers scores 100, 110, 120, 130, and so on. A wrong answer resets the streak, and
         every new quiz starts from zero. A student's <strong>total</strong> adds up every quiz they have taken;
-        each chapter column is the total for that chapter's quizzes. <strong>Best streak</strong> is the most
+        each chapter column is the total for that chapter's quizzes, and each shaded
+        <strong>Unit quiz</strong> column is the total for that unit's quizzes (separate from its chapters). <strong>Best streak</strong> is the most
         right answers in a row in any one quiz. Quizzes taken before scoring was added count 100 per right
         answer and &minus;100 per wrong one, with no streak bonus.</p>
       <div class="table-wrap">
@@ -438,7 +442,9 @@
         missed until all are right. <strong>Correct</strong> and <strong>incorrect</strong> count every answer,
         re-asks included, and <strong>success</strong> is correct answers as a share of all answers.
         <strong>Best first try</strong> is the highest share of a finished quiz's questions a student got right
-        the first time.</p>
+        the first time. <strong>Unit quizzes</strong> (shaded rows) are 15&ndash;20 questions drawn from all of a
+        unit's chapter quizzes. They are counted on their own, so a question answered in a unit quiz doesn't
+        change that chapter's numbers.</p>
 
       <h3 class="section-title" id="cq-chapters-title">By chapter</h3>
       <div class="table-wrap" id="cq-chapters-wrap">
@@ -1650,19 +1656,22 @@
   }
 
   // Chapters seen in the data, in the book's order where possible.
+  // Each unit quiz (unit-1 ... unit-5) comes right after its unit's last chapter.
   const BOOK_ORDER = ["intro-spatial-data-science", "r-rstudio-rmarkdown", "r-basics",
-    "indexing-vectors-data-frames", "blocks-loops-functions", "tidyverse-filter-pipe", "tidyverse-arrange-select-mutate",
-    "tidyverse-summarize-group-by", "tidyverse-ggplot", "thematic-maps-tmap",
-    "geographic-information", "location-coordinate-systems", "census-data-apis", "arcpullr",
-    "joins", "esda", "spatial-statistics", "anova", "regression", "writing-spatial-data-science",
-    "distance-neighborhoods", "spatial-autocorrelation"];
+    "indexing-vectors-data-frames", "blocks-loops-functions", "unit-1",
+    "tidyverse-filter-pipe", "tidyverse-arrange-select-mutate",
+    "tidyverse-summarize-group-by", "tidyverse-ggplot", "unit-2", "thematic-maps-tmap",
+    "geographic-information", "location-coordinate-systems", "census-data-apis", "arcpullr", "unit-3",
+    "joins", "esda", "spatial-statistics", "unit-4", "anova", "regression", "writing-spatial-data-science",
+    "distance-neighborhoods", "spatial-autocorrelation", "unit-5"];
+  const isUnitQuiz = (c) => /^unit-\d+$/.test(c);
   function chapters() {
     const titles = {};
     state.cq.forEach((r) => { titles[r.chapter] = r.chapter_title || titles[r.chapter] || r.chapter; });
     state.cqQuestions.forEach((r) => { if (!titles[r.chapter]) titles[r.chapter] = r.chapter; });
     const rank = (c) => { const i = BOOK_ORDER.indexOf(c); return i < 0 ? 999 : i; };
     return Object.keys(titles).sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
-      .map((chapter) => ({ chapter, title: titles[chapter] }));
+      .map((chapter) => ({ chapter, title: titles[chapter], unit: isUnitQuiz(chapter) }));
   }
 
   function renderChapterQuizzes() {
@@ -1680,7 +1689,7 @@
       return { ...c, finishers: rs.filter((r) => Number(r.completed) > 0).length,
                completed: sum("completed"), correct: sum("correct"), incorrect: sum("incorrect") };
     });
-    $("cq-chapters-body").innerHTML = byChapter.length ? byChapter.map((c) => `<tr>
+    $("cq-chapters-body").innerHTML = byChapter.length ? byChapter.map((c) => `<tr${c.unit ? ' class="unit-quiz"' : ""}>
         <td>${esc(c.title)}</td>
         <td>${share(c.finishers, total)}</td>
         <td class="num">${c.completed}</td>
@@ -1690,7 +1699,7 @@
       </tr>`).join("") : `<tr><td colspan="6" class="empty">No chapter quizzes taken yet.</td></tr>`;
 
     // By student
-    $("cq-students-body").innerHTML = rows.length ? rows.map((r) => `<tr>
+    $("cq-students-body").innerHTML = rows.length ? rows.map((r) => `<tr${isUnitQuiz(r.chapter) ? ' class="unit-quiz"' : ""}>
         <td>${esc(r.student_name)}</td>
         <td>${esc(titleOf[r.chapter] || r.chapter)}</td>
         <td class="num" title="${Number(r.started)} started">${Number(r.completed)} of ${Number(r.started)}</td>
@@ -1750,7 +1759,7 @@
       a.s.student_name.localeCompare(b.s.student_name));
 
     $("scores-head").innerHTML = `<tr><th class="num" data-sort-first="asc">Rank</th><th>Student</th><th class="num">Total</th>` +
-      chs.map((c) => `<th class="num">${esc(c.title)}</th>`).join("") +
+      chs.map((c) => `<th class="num${c.unit ? " unit-quiz" : ""}">${esc(c.title)}</th>`).join("") +
       `<th class="num">Quizzes finished</th><th class="num">Best streak</th></tr>`;
 
     // Ties share a rank (1, 2, 2, 4); students with no answers get none.
@@ -1763,7 +1772,7 @@
         <td class="num">${scoreCell(r.total, r.answered)}</td>` +
         chs.map((c) => {
           const x = r.per[c.chapter];
-          return `<td class="num">${x ? scoreCell(x.score, Number(x.correct) + Number(x.incorrect)) : '<span class="muted-dash">–</span>'}</td>`;
+          return `<td class="num${c.unit ? " unit-quiz" : ""}">${x ? scoreCell(x.score, Number(x.correct) + Number(x.incorrect)) : '<span class="muted-dash">–</span>'}</td>`;
         }).join("") + `
         <td class="num">${Number(r.s.cq_completed)}</td>
         <td class="num">${r.answered ? r.bestStreak : "–"}</td>

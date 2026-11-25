@@ -26,6 +26,7 @@ book:
         - chapters/indexing-vectors-data-frames-quiz.qmd
         - chapters/blocks-loops-functions.qmd
         - chapters/blocks-loops-functions-quiz.qmd
+        - units/unit-1-quiz.qmd
     - part: units/unit-2.qmd
       chapters:
         - chapters/tidyverse-filter-pipe.qmd
@@ -36,6 +37,7 @@ book:
         - chapters/tidyverse-summarize-group-by-quiz.qmd
         - chapters/tidyverse-ggplot.qmd
         - chapters/tidyverse-ggplot-quiz.qmd
+        - units/unit-2-quiz.qmd
     - part: units/unit-3.qmd
       chapters:
         - chapters/thematic-maps-tmap.qmd
@@ -48,6 +50,7 @@ book:
         - chapters/census-data-apis-quiz.qmd
         - chapters/arcpullr.qmd
         - chapters/arcpullr-quiz.qmd
+        - units/unit-3-quiz.qmd
     - part: units/unit-4.qmd
       chapters:
         - chapters/joins.qmd
@@ -56,6 +59,7 @@ book:
         - chapters/esda-quiz.qmd
         - chapters/spatial-statistics.qmd
         - chapters/spatial-statistics-quiz.qmd
+        - units/unit-4-quiz.qmd
     - part: units/unit-5.qmd
       chapters:
         - chapters/anova.qmd
@@ -68,6 +72,7 @@ book:
         - chapters/distance-neighborhoods-quiz.qmd
         - chapters/spatial-autocorrelation.qmd
         - chapters/spatial-autocorrelation-quiz.qmd
+        - units/unit-5-quiz.qmd
     - part: units/unit-6.qmd
       chapters:
         - chapters/dashboards.qmd

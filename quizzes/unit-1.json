@@ -1,0 +1,13 @@
+{
+  "id": "unit-1",
+  "title": "Unit 1 quiz: R and Spatial Data Science",
+  "perSession": 20,
+  "minR": 6,
+  "chapters": [
+    "intro-spatial-data-science",
+    "r-rstudio-rmarkdown",
+    "r-basics",
+    "indexing-vectors-data-frames",
+    "blocks-loops-functions"
+  ]
+}

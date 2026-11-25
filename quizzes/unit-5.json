@@ -1,0 +1,13 @@
+{
+  "id": "unit-5",
+  "title": "Unit 5 quiz: Statistics and Science",
+  "perSession": 20,
+  "minR": 4,
+  "chapters": [
+    "anova",
+    "regression",
+    "writing-spatial-data-science",
+    "distance-neighborhoods",
+    "spatial-autocorrelation"
+  ]
+}
