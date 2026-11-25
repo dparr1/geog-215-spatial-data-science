@@ -30,6 +30,33 @@ what students see, so change it and the SQL together.
 On geog215.org every answer is saved for the admin page's **Chapter quizzes** tab (see
 `supabase/README.md`). On daveparr.com the quiz works the same way but nothing is saved.
 
+## Unit quizzes
+
+Units 1–5 end with a unit quiz page (`units/unit-<n>-quiz.qmd`, listed last in the unit in
+`_quarto-site.yml` and `_quarto-textbook.yml`). Its bank, `quizzes/unit-<n>.json`, has no questions of
+its own. It lists the unit's chapter banks, and `quiz.js` loads their questions from those files, so
+editing a chapter bank changes the unit quiz too:
+
+```json
+{
+  "id": "unit-1",
+  "title": "Unit 1 quiz: R and Spatial Data Science",
+  "perSession": 20,
+  "minR": 6,
+  "chapters": ["intro-spatial-data-science", "r-rstudio-rmarkdown", "r-basics",
+               "indexing-vectors-data-frames", "blocks-loops-functions"]
+}
+```
+
+A unit quiz spreads its `perSession` questions evenly across the chapters, with at least `minR` R
+questions, and shows which chapter each question comes from. It is scored and saved like a chapter
+quiz, with the unit's `id` (`unit-1`) in place of a chapter's, so the admin page lists it as its own row
+and leaderboard column, right after the unit's last chapter. Its question ids are the chapter's id and
+the question's id (`r-basics/interpreted`), so unit results never mix with chapter results.
+
+If you add a chapter to a unit, add its bank's `id` to the unit bank's `chapters` too. Don't change a
+unit bank's `id` once students have used it.
+
 ## Adding a chapter quiz
 
 1. Write `quizzes/<chapter>.json`. Copy an existing bank as a starting point.
@@ -38,6 +65,7 @@ On geog215.org every answer is saved for the admin page's **Chapter quizzes** ta
 3. In `_quarto-site.yml` and `_quarto-textbook.yml`, list the quiz page right after its chapter.
 4. In `admin/index.html`, add the bank's `id` to `BOOK_ORDER` so the admin page lists chapters in
    book order.
+5. Add the bank's `id` to its unit's bank (`quizzes/unit-<n>.json`) so the unit quiz includes it.
 
 ## Bank format
 

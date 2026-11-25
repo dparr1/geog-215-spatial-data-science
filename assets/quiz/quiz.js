@@ -6,6 +6,8 @@
   and loads this script and quiz.css. The bank (see quizzes/README.md) lists
   20-30 questions; each session asks `perSession` of them (default 10) at
   random, with at least `minR` R questions (default 3) when the bank has them.
+  A unit quiz bank (quizzes/unit-N.json) lists chapter banks instead of
+  questions and draws evenly from all of them (see getUnitBank and pickAcross).
 
   Results are saved through window.sdsProgress, which the geog215.org sign-in
   gate (assets/auth-gate.html) provides. On daveparr.com there is no gate, so
@@ -331,10 +333,32 @@
       // A question is an R question if it says so ("r": true), or if it's a
       // fill, order or code question that doesn't say otherwise ("r": false).
       const isR = (q) => q.r ?? R_TYPES.includes(q.type);
+      if (this.bank.groups) return this.pickAcross(isR);
       const rQs = shuffle(this.bank.questions.filter(isR));
       const take = rQs.slice(0, Math.min(this.minR, rQs.length, this.perSession));
       const rest = shuffle(this.bank.questions.filter((q) => !take.includes(q)));
       return shuffle(take.concat(rest.slice(0, this.perSession - take.length)));
+    }
+
+    // A unit quiz: spread the session evenly over the unit's chapters. The R
+    // questions come first (minR of them, a chapter at a time), then the rest,
+    // always from the chapter with the fewest questions so far (ties at random).
+    pickAcross(isR) {
+      const pools = this.bank.groups.map((g) => shuffle(g.questions));
+      const counts = pools.map(() => 0);
+      const chosen = [];
+      const fill = (want, limit) => {
+        while (chosen.length < limit) {
+          const order = shuffle(pools.map((_, i) => i)).sort((a, b) => counts[a] - counts[b]);
+          const i = order.find((j) => pools[j].some(want));
+          if (i === undefined) break;
+          chosen.push(pools[i].splice(pools[i].findIndex(want), 1)[0]);
+          counts[i]++;
+        }
+      };
+      fill(isR, Math.min(this.minR, this.perSession));
+      fill(() => true, this.perSession);
+      return shuffle(chosen);
     }
 
     // ---- Screens ------------------------------------------------------------------
@@ -344,6 +368,7 @@
       const card = el("div", { class: "sds-q-card sds-q-intro" }, `
         <div class="sds-q-badge" aria-hidden="true">?</div>
         <h2>${esc(this.bank.title)}</h2>
+        ${this.bank.groups ? `<p>Questions from all ${this.bank.groups.length} chapter quizzes in this unit.</p>` : ""}
         <p>${n} questions, one at a time. Anything you miss comes back at the end until you've
           got every one right. Each quiz is a new random set, so take it as often as you like.</p>
         <button type="button" class="sds-q-btn sds-q-primary">Start quiz</button>`);
@@ -423,6 +448,7 @@
 
       const card = el("div", { class: "sds-q-card" });
       if (this.fixing) card.appendChild(el("div", { class: "sds-q-tag" }, "Fix a mistake"));
+      if (q.from) card.appendChild(el("div", { class: "sds-q-from" }, "From " + esc(q.from)));
       card.appendChild(el("h2", { class: "sds-q-prompt" }, md(q.prompt)));
       const body = el("div", { class: "sds-q-body" });
       card.appendChild(body);
@@ -781,11 +807,31 @@
   }
 
   // ---- Start -------------------------------------------------------------------
+  async function getBank(url) {
+    const res = await fetch(url, { cache: "no-cache" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return res.json();
+  }
+
+  // A unit bank lists chapter banks ("chapters": [ids]) instead of questions.
+  // Their questions are read straight from the chapter banks, so editing a
+  // chapter quiz changes the unit quiz too. Question ids get the chapter's id
+  // in front (r-basics/interpreted), because two chapters can use the same id.
+  async function getUnitBank(bank, url) {
+    const base = new URL(url, document.baseURI);
+    const banks = await Promise.all(bank.chapters.map((id) => getBank(new URL(id + ".json", base))));
+    bank.groups = banks.map((b) => ({
+      id: b.id, title: b.title,
+      questions: (b.questions || []).map((q) => ({ ...q, id: b.id + "/" + q.id, from: b.title })),
+    })).filter((g) => g.questions.length);
+    bank.questions = bank.groups.flatMap((g) => g.questions);
+    return bank;
+  }
+
   async function init(root) {
     try {
-      const res = await fetch(root.dataset.bank, { cache: "no-cache" });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const bank = await res.json();
+      let bank = await getBank(root.dataset.bank);
+      if (Array.isArray(bank.chapters)) bank = await getUnitBank(bank, root.dataset.bank);
       if (!bank.id || !Array.isArray(bank.questions) || !bank.questions.length) {
         throw new Error("the question bank is empty or missing its id");
       }

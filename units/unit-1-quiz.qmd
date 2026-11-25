@@ -1,0 +1,9 @@
+# Unit 1 quiz: R and Spatial Data Science {.unnumbered}
+
+Review all of [Unit 1: R and Spatial Data Science](unit-1.qmd) at once. This quiz draws from the chapter quizzes for Chapters 1–5, so every question here is one you can also find on a chapter quiz page. Each quiz is 20 questions picked at random and spread across the chapters, and any you miss come back at the end until you've got them all right. Take it as many times as you like.
+
+```{=html}
+<link rel="stylesheet" href="../assets/quiz/quiz.css">
+<div class="sds-quiz" data-bank="../quizzes/unit-1.json"><p>Loading the quiz…</p></div>
+<script src="../assets/quiz/quiz.js" defer></script>
+```

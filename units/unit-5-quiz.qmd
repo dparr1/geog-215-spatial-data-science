@@ -1,0 +1,9 @@
+# Unit 5 quiz: Statistics and Science {.unnumbered}
+
+Review all of [Unit 5: Statistics and Science](unit-5.qmd) at once. This quiz draws from the chapter quizzes for Chapters 18–22, so every question here is one you can also find on a chapter quiz page. Each quiz is 20 questions picked at random and spread across the chapters, and any you miss come back at the end until you've got them all right. Take it as many times as you like.
+
+```{=html}
+<link rel="stylesheet" href="../assets/quiz/quiz.css">
+<div class="sds-quiz" data-bank="../quizzes/unit-5.json"><p>Loading the quiz…</p></div>
+<script src="../assets/quiz/quiz.js" defer></script>
+```

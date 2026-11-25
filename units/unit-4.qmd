@@ -21,3 +21,7 @@ Before modeling data, get to know it. This chapter places exploratory data analy
 Spatial descriptive statistics describe where features are. This chapter covers the mean center, the weighted mean center (including the U.S. center of population), the central feature, and the standard distance, each matched to the familiar statistic it extends. It then reviews writing functions in R, from a one-line `addSeven()` to a `meanCenter()` function for any layer of polygons.
 
 [Chapter 17 quiz](../chapters/spatial-statistics-quiz.qmd)
+
+## Unit 4 quiz
+
+When you have finished the unit, the [Unit 4 quiz](unit-4-quiz.qmd) mixes questions from all 3 chapter quizzes, so you can review the whole unit at once.

@@ -1,0 +1,11 @@
+{
+  "id": "unit-4",
+  "title": "Unit 4 quiz: Spatial Analysis",
+  "perSession": 15,
+  "minR": 4,
+  "chapters": [
+    "joins",
+    "esda",
+    "spatial-statistics"
+  ]
+}

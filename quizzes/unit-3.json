@@ -1,0 +1,13 @@
+{
+  "id": "unit-3",
+  "title": "Unit 3 quiz: Maps and Geographic Data",
+  "perSession": 20,
+  "minR": 5,
+  "chapters": [
+    "thematic-maps-tmap",
+    "geographic-information",
+    "location-coordinate-systems",
+    "census-data-apis",
+    "arcpullr"
+  ]
+}

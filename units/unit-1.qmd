@@ -33,3 +33,7 @@ Indexing selects part of a vector or a table with square brackets: by position, 
 Good programmers are productively lazy. This chapter shows how blocks group lines of code, how `if`, `else if`, and `else` decide whether a block runs, and how `while` and `for` loops repeat one. It compares loops with R's vectorized functions, such as `ifelse()`, then takes functions apart: arguments, defaults, return values, error checks with `stop()`, and variable scope.
 
 [Chapter 5 quiz](../chapters/blocks-loops-functions-quiz.qmd)
+
+## Unit 1 quiz
+
+When you have finished the unit, the [Unit 1 quiz](unit-1-quiz.qmd) mixes questions from all 5 chapter quizzes, so you can review the whole unit at once.

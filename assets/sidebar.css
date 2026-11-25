@@ -4,3 +4,10 @@
 .sidebar-item a.sidebar-link[href$="-quiz.html"] {
   padding-left: 1.25rem;
 }
+
+/* Unit quiz pages (units/unit-N-quiz.qmd) close a whole unit, so they line
+   up with the chapters instead of sitting under the last one. */
+.sidebar-item a.sidebar-link[href$="-quiz.html"][href*="unit-"] {
+  padding-left: 0;
+  font-weight: 600;
+}
