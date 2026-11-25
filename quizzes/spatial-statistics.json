@@ -1,0 +1,338 @@
+{
+  "id": "spatial-statistics",
+  "title": "Spatial Descriptive Statistics",
+  "perSession": 10,
+  "minR": 2,
+  "questions": [
+    {
+      "id": "purpose",
+      "type": "choice",
+      "prompt": "Spatial descriptive statistics describe:",
+      "choices": [
+        "The center and spread of a set of locations",
+        "The attribute values of one feature",
+        "The projection of a layer",
+        "The file format of a dataset"
+      ],
+      "answer": 0,
+      "explain": "They do for locations what the mean and standard deviation do for values."
+    },
+    {
+      "id": "mc-def",
+      "type": "choice",
+      "prompt": "The mean center is:",
+      "choices": [
+        "The average x coordinate and the average y coordinate of all the features",
+        "The feature closest to all the others",
+        "The center of the map's bounding box",
+        "The point with the largest weight"
+      ],
+      "answer": 0,
+      "explain": "It doesn't have to be one of the features."
+    },
+    {
+      "id": "mc-x",
+      "type": "fill",
+      "r": false,
+      "prompt": "Points are at (0, 0), (4, 0), and (2, 6). What is the x coordinate of their mean center?",
+      "answers": [
+        "2"
+      ],
+      "numeric": true,
+      "explain": "(0 + 4 + 2) / 3 = 2."
+    },
+    {
+      "id": "mc-y",
+      "type": "fill",
+      "r": false,
+      "prompt": "Points are at (0, 0), (4, 0), and (2, 6). What is the y coordinate of their mean center?",
+      "answers": [
+        "2"
+      ],
+      "numeric": true,
+      "explain": "(0 + 0 + 6) / 3 = 2."
+    },
+    {
+      "id": "mc-outlier",
+      "type": "truefalse",
+      "prompt": "One distant outlier pulls the mean center toward it.",
+      "answer": true,
+      "explain": "Like the ordinary mean, the mean center uses every point."
+    },
+    {
+      "id": "mc-feature",
+      "type": "truefalse",
+      "prompt": "The mean center is always located at one of the features.",
+      "answer": false,
+      "explain": "That's the central feature. The mean center can fall anywhere."
+    },
+    {
+      "id": "wmc-def",
+      "type": "choice",
+      "prompt": "A weighted mean center:",
+      "choices": [
+        "Counts some features more than others, using an attribute such as population",
+        "Uses only the heaviest feature",
+        "Is always the same as the mean center",
+        "Weights features by their distance from the Equator"
+      ],
+      "answer": 0,
+      "explain": "Multiply each coordinate by its weight, add them up, and divide by the sum of the weights."
+    },
+    {
+      "id": "wmc-pull",
+      "type": "choice",
+      "prompt": "Compared with the mean center, a population-weighted mean center moves:",
+      "choices": [
+        "Toward the places with the most people",
+        "Toward the geographic middle",
+        "Away from cities",
+        "It doesn't move"
+      ],
+      "answer": 0,
+      "explain": "Heavier features pull the center toward themselves."
+    },
+    {
+      "id": "wmc-calc",
+      "type": "fill",
+      "r": false,
+      "prompt": "Two points are at x = 0 (weight 1) and x = 10 (weight 4). What is the weighted mean x?",
+      "answers": [
+        "8"
+      ],
+      "numeric": true,
+      "explain": "(0 × 1 + 10 × 4) / (1 + 4) = 40 / 5 = 8."
+    },
+    {
+      "id": "pop-center",
+      "type": "choice",
+      "prompt": "The U.S. center of population is an example of a:",
+      "choices": [
+        "Weighted mean center",
+        "Central feature",
+        "Standard distance",
+        "Spatial join"
+      ],
+      "answer": 0,
+      "explain": "The Census Bureau weights each location by the number of people living there."
+    },
+    {
+      "id": "pop-center-move",
+      "type": "choice",
+      "prompt": "Since 1790, the U.S. center of population has moved:",
+      "choices": [
+        "West, and since about 1950 also south",
+        "East",
+        "North",
+        "It hasn't moved"
+      ],
+      "answer": 0,
+      "explain": "From Kent County, Maryland, in 1790 to Wright County, Missouri, in 2020."
+    },
+    {
+      "id": "cf-def",
+      "type": "choice",
+      "prompt": "The central feature is:",
+      "choices": [
+        "The existing feature with the smallest total distance to all the others",
+        "The average location of all the features",
+        "The feature with the largest attribute value",
+        "The first feature in the table"
+      ],
+      "answer": 0,
+      "explain": "It is always a real feature in the data."
+    },
+    {
+      "id": "cf-counterpart",
+      "type": "choice",
+      "prompt": "The central feature is the spatial counterpart of the:",
+      "choices": [
+        "Median",
+        "Mean",
+        "Mode",
+        "Standard deviation"
+      ],
+      "answer": 0,
+      "explain": "Instead of averaging, it picks a real feature, as the median picks a middle value."
+    },
+    {
+      "id": "cf-when",
+      "type": "choice",
+      "prompt": "When is the central feature more useful than the mean center?",
+      "choices": [
+        "When the answer must be a real place, such as an existing office",
+        "When the data have no coordinates",
+        "When all features have the same weight",
+        "Never"
+      ],
+      "answer": 0,
+      "explain": "The mean center might fall in a lake or a field."
+    },
+    {
+      "id": "sd-def",
+      "type": "choice",
+      "prompt": "Standard distance is the spatial counterpart of the:",
+      "choices": [
+        "Standard deviation",
+        "Mean",
+        "Median",
+        "Range"
+      ],
+      "answer": 0,
+      "explain": "It is the typical distance from the mean center."
+    },
+    {
+      "id": "sd-circle",
+      "type": "choice",
+      "prompt": "A standard distance is usually drawn as:",
+      "choices": [
+        "A circle centered on the mean center",
+        "A line between the two farthest features",
+        "A square around all the features",
+        "A histogram"
+      ],
+      "answer": 0,
+      "explain": "Its radius is the standard distance."
+    },
+    {
+      "id": "sd-bigger",
+      "type": "choice",
+      "prompt": "A larger standard distance circle means the features are:",
+      "choices": [
+        "More spread out",
+        "More tightly clustered",
+        "Heavier",
+        "Closer to the Equator"
+      ],
+      "answer": 0,
+      "explain": "Comparing circles compares dispersion."
+    },
+    {
+      "id": "normal",
+      "type": "choice",
+      "prompt": "In a normal distribution, about what share of values fall within one standard deviation of the mean?",
+      "choices": [
+        "68%",
+        "50%",
+        "95%",
+        "99.7%"
+      ],
+      "answer": 0,
+      "explain": "About 95% fall within two."
+    },
+    {
+      "id": "fn-parts",
+      "type": "choice",
+      "prompt": "Every function has a name, inputs called arguments, and an output called the:",
+      "choices": [
+        "Return value",
+        "Data frame",
+        "Pipe",
+        "Geometry"
+      ],
+      "answer": 0,
+      "explain": "In R, the value of the last line is returned."
+    },
+    {
+      "id": "fn-addseven",
+      "type": "choice",
+      "prompt": "Given `addSeven <- function(numbers) { numbers + 7 }`, what does `addSeven(c(1, 2, 3))` return?",
+      "choices": [
+        "8 9 10",
+        "13",
+        "7 7 7",
+        "1 2 3 7"
+      ],
+      "answer": 0,
+      "explain": "R adds 7 to every element of the vector."
+    },
+    {
+      "id": "fn-addany",
+      "type": "choice",
+      "prompt": "Given `addAny <- function(numbers, amount) { numbers + amount }`, what does `addAny(c(1, 2), 5)` return?",
+      "choices": [
+        "6 7",
+        "8",
+        "5 5",
+        "1 2 5"
+      ],
+      "answer": 0,
+      "explain": "The second argument works just like `weights` in meanCenter()."
+    },
+    {
+      "id": "fn-centroid",
+      "type": "choice",
+      "prompt": "In `meanCenter()`, what does `st_centroid(layer)` do?",
+      "choices": [
+        "Turns each polygon into a point",
+        "Finds the mean center",
+        "Projects the layer",
+        "Removes the geometry"
+      ],
+      "answer": 0,
+      "explain": "Then st_coordinates() gives the x and y of each point."
+    },
+    {
+      "id": "fn-crs",
+      "type": "choice",
+      "prompt": "Why does `meanCenter()` call `st_set_crs()` on the new point?",
+      "choices": [
+        "So the point has the same coordinate reference system as the layer",
+        "To project it to WGS84",
+        "To calculate the weights",
+        "To draw it on a map"
+      ],
+      "answer": 0,
+      "explain": "st_point() makes bare coordinates with no CRS."
+    },
+    {
+      "id": "project-first",
+      "type": "choice",
+      "prompt": "Why calculate a mean center on projected data, such as NC State Plane?",
+      "choices": [
+        "Averaging latitudes and longitudes doesn't give a true center, because degrees aren't a distance",
+        "sf can't read latitude and longitude",
+        "Projected data have fewer features",
+        "It's faster"
+      ],
+      "answer": 0,
+      "explain": "A degree of longitude shrinks toward the poles."
+    },
+    {
+      "id": "code-timestwo",
+      "type": "code",
+      "prompt": "Write a function `timesTwo` that doubles its input.",
+      "starter": "timesTwo <- function(numbers) {\n  \n}\n",
+      "check": "is.function(timesTwo) && isTRUE(all.equal(timesTwo(c(1, 2, 3)), c(2, 4, 6)))",
+      "solution": "timesTwo <- function(numbers) {\n  numbers * 2\n}",
+      "explain": "The last line, numbers * 2, is the return value."
+    },
+    {
+      "id": "code-wmc",
+      "type": "code",
+      "prompt": "Store the weighted mean x coordinate of the points in `wx`, using the weights `w`.",
+      "starter": "x <- c(2, 4, 5, 7, 8, 12)\nw <- c(10, 50, 5, 20, 5, 10)\n",
+      "check": "isTRUE(all.equal(wx, 5.45))",
+      "solution": "x <- c(2, 4, 5, 7, 8, 12)\nw <- c(10, 50, 5, 20, 5, 10)\nwx <- weighted.mean(x, w)",
+      "explain": "weighted.mean(x, w), or sum(w * x) / sum(w), is 5.45."
+    },
+    {
+      "id": "code-sd-dist",
+      "type": "code",
+      "prompt": "Store the standard distance of the points in `sd_dist`: the square root of the mean squared x deviation plus the mean squared y deviation (divide by n).",
+      "starter": "x <- c(2, 4, 5, 7, 8, 12)\ny <- c(3, 7, 2, 5, 9, 4)\n",
+      "check": "isTRUE(all.equal(sd_dist, sqrt(mean((c(2,4,5,7,8,12) - mean(c(2,4,5,7,8,12)))^2) + mean((c(3,7,2,5,9,4) - mean(c(3,7,2,5,9,4)))^2))))",
+      "solution": "x <- c(2, 4, 5, 7, 8, 12)\ny <- c(3, 7, 2, 5, 9, 4)\nsd_dist <- sqrt(sum((x - mean(x))^2) / length(x) + sum((y - mean(y))^2) / length(y))",
+      "explain": "The standard distance is about 3.99 km."
+    },
+    {
+      "id": "code-cf",
+      "type": "code",
+      "prompt": "Store the number (1 to 6) of the central feature in `cf`: the point with the smallest total distance to all the others.",
+      "starter": "x <- c(2, 4, 5, 7, 8, 12)\ny <- c(3, 7, 2, 5, 9, 4)\n",
+      "check": "isTRUE(as.numeric(cf) == 4)",
+      "solution": "x <- c(2, 4, 5, 7, 8, 12)\ny <- c(3, 7, 2, 5, 9, 4)\nd <- as.matrix(dist(cbind(x, y)))\ncf <- which.min(rowSums(d))",
+      "explain": "rowSums() of the distance matrix gives each point's total distance; point 4 has the smallest."
+    }
+  ]
+}

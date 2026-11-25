@@ -40,7 +40,17 @@ book:
         - chapters/thematic-maps-tmap-quiz.qmd
         - chapters/geographic-information.qmd
         - chapters/geographic-information-quiz.qmd
+        - chapters/location-coordinate-systems.qmd
+        - chapters/location-coordinate-systems-quiz.qmd
     - part: units/unit-4.qmd
+      chapters:
+        - chapters/joins.qmd
+        - chapters/joins-quiz.qmd
+        - chapters/esda.qmd
+        - chapters/esda-quiz.qmd
+        - chapters/spatial-statistics.qmd
+        - chapters/spatial-statistics-quiz.qmd
+    - part: units/unit-5.qmd
       chapters:
         - chapters/census-data-apis.qmd
         - chapters/census-data-apis-quiz.qmd

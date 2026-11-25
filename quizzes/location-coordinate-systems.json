@@ -1,0 +1,408 @@
+{
+  "id": "location-coordinate-systems",
+  "title": "Location and Coordinate Systems",
+  "perSession": 10,
+  "minR": 2,
+  "questions": [
+    {
+      "id": "three-blocks",
+      "type": "choice",
+      "prompt": "Which three building blocks does a computer need to store a location on the Earth?",
+      "choices": [
+        "A datum, a coordinate system, and a projection",
+        "An address, a ZIP code, and a county",
+        "A raster, a vector, and a table",
+        "A scale bar, a legend, and a north arrow"
+      ],
+      "answer": 0,
+      "explain": "The datum models the Earth, the coordinate system lays a grid on it, and the projection flattens it."
+    },
+    {
+      "id": "coords-why",
+      "type": "choice",
+      "prompt": "Why are coordinates better than landmarks for storing location in a computer?",
+      "choices": [
+        "They are unambiguous and easy to store, compare, and measure between",
+        "They are easier for people to remember",
+        "They never change when the datum changes",
+        "They work without any reference system"
+      ],
+      "answer": 0,
+      "explain": "A landmark only helps people who know it; a pair of coordinates means one place to anyone with the same reference system."
+    },
+    {
+      "id": "geodesy",
+      "type": "choice",
+      "prompt": "The science of measuring the Earth's size, shape, orientation, and gravity is:",
+      "choices": [
+        "Geodesy",
+        "Cartography",
+        "Geology",
+        "Topology"
+      ],
+      "answer": 0,
+      "explain": "Every coordinate rests on a geodetic model of the Earth."
+    },
+    {
+      "id": "eratosthenes",
+      "type": "choice",
+      "prompt": "How did Eratosthenes estimate the Earth's circumference?",
+      "choices": [
+        "From the angle of noon shadows in two cities a known distance apart",
+        "By sailing around the world",
+        "From the shape of the Moon during an eclipse",
+        "By measuring the height of mountains"
+      ],
+      "answer": 0,
+      "explain": "A 7.2° shadow is 1/50 of a circle, so he multiplied the distance between Syene and Alexandria by 50."
+    },
+    {
+      "id": "ellipsoid",
+      "type": "choice",
+      "prompt": "The Earth's shape is best approximated by:",
+      "choices": [
+        "An ellipsoid, flattened at the poles",
+        "A perfect sphere",
+        "An ellipsoid, flattened at the Equator",
+        "A cube"
+      ],
+      "answer": 0,
+      "explain": "Because it spins, the Earth bulges at the Equator: about 6,378 km to the Equator and 6,357 km to the poles."
+    },
+    {
+      "id": "flattening",
+      "type": "fill",
+      "r": false,
+      "prompt": "The flattening of the Earth is about 1 / ___ .",
+      "answers": [
+        "298"
+      ],
+      "numeric": true,
+      "tolerance": 1,
+      "explain": "f = (a − b) / a ≈ 1/298."
+    },
+    {
+      "id": "semi-major",
+      "type": "choice",
+      "prompt": "On an ellipsoid, the semi-major axis runs from the center to:",
+      "choices": [
+        "The Equator",
+        "The North Pole",
+        "The Prime Meridian",
+        "Sea level"
+      ],
+      "answer": 0,
+      "explain": "The semi-major axis, a, is the longer one; the semi-minor axis, b, runs to a pole."
+    },
+    {
+      "id": "datum-def",
+      "type": "choice",
+      "prompt": "What does a geodetic datum do?",
+      "choices": [
+        "It fixes an ellipsoid and pins it to the real Earth",
+        "It flattens the globe onto a map",
+        "It stores the attributes of a feature",
+        "It chooses the map's colors"
+      ],
+      "answer": 0,
+      "explain": "Change the datum and the same latitude and longitude point to a slightly different place on the ground."
+    },
+    {
+      "id": "benchmark",
+      "type": "choice",
+      "prompt": "The brass disks set in bridges and sidewalks by the National Geodetic Survey are:",
+      "choices": [
+        "Benchmarks, or control points",
+        "Property markers",
+        "Projection centers",
+        "CORS antennas"
+      ],
+      "answer": 0,
+      "explain": "Thousands of surveyed control points make a datum real on the ground."
+    },
+    {
+      "id": "gps-datum",
+      "type": "choice",
+      "prompt": "Which datum does GPS use?",
+      "choices": [
+        "WGS84",
+        "NAD27",
+        "Clarke 1866",
+        "State Plane"
+      ],
+      "answer": 0,
+      "explain": "WGS84 is the World Geodetic System of 1984. In North America it is within a meter or two of NAD83."
+    },
+    {
+      "id": "nad27",
+      "type": "choice",
+      "prompt": "Which datum used the Clarke 1866 ellipsoid and a single origin point in Kansas?",
+      "choices": [
+        "NAD27",
+        "NAD83",
+        "WGS84",
+        "GRS80"
+      ],
+      "answer": 0,
+      "explain": "NAD83 replaced it, using the GRS80 ellipsoid. Shifts between the two can be tens of meters or more."
+    },
+    {
+      "id": "parallels",
+      "type": "choice",
+      "prompt": "Lines of latitude are called:",
+      "choices": [
+        "Parallels",
+        "Meridians",
+        "Graticules",
+        "Datums"
+      ],
+      "answer": 0,
+      "explain": "Parallels run east–west, parallel to the Equator."
+    },
+    {
+      "id": "meridians",
+      "type": "choice",
+      "prompt": "Lines of longitude, which run from pole to pole, are called:",
+      "choices": [
+        "Meridians",
+        "Parallels",
+        "Standard lines",
+        "Isolines"
+      ],
+      "answer": 0,
+      "explain": "Meridians meet at the poles."
+    },
+    {
+      "id": "prime-meridian",
+      "type": "choice",
+      "prompt": "Why was the Prime Meridian's location agreed on at a conference in 1884?",
+      "choices": [
+        "Unlike the Equator, 0° longitude has no natural place",
+        "Greenwich is at the center of the Earth",
+        "The poles move every year",
+        "It marks where the datum starts"
+      ],
+      "answer": 0,
+      "explain": "The poles and Equator come from the Earth's rotation; the starting meridian had to be chosen."
+    },
+    {
+      "id": "360",
+      "type": "choice",
+      "prompt": "Which goes all the way around the Earth through 360°?",
+      "choices": [
+        "Longitude",
+        "Latitude",
+        "Both",
+        "Neither"
+      ],
+      "answer": 0,
+      "explain": "Longitude runs 180° east and 180° west. Latitude runs 90° north and 90° south: 180° in all."
+    },
+    {
+      "id": "graticule",
+      "type": "choice",
+      "prompt": "The network of parallels and meridians drawn on a map is the:",
+      "choices": [
+        "Graticule",
+        "Datum",
+        "Projection",
+        "Legend"
+      ],
+      "answer": 0,
+      "explain": "Match its interval to the scale, and keep its lines thin and light."
+    },
+    {
+      "id": "dms-min",
+      "type": "fill",
+      "r": false,
+      "prompt": "Convert −104.54° to degrees, minutes, and seconds. How many minutes?",
+      "answers": [
+        "32"
+      ],
+      "numeric": true,
+      "explain": "0.54 × 60 = 32.4′, so 32 minutes and 0.4 × 60 = 24 seconds: 104° 32′ 24″ W."
+    },
+    {
+      "id": "dms-dd",
+      "type": "fill",
+      "r": false,
+      "prompt": "Convert 35° 30′ 0″ N to decimal degrees.",
+      "answers": [
+        "35.5"
+      ],
+      "numeric": true,
+      "tolerance": 0.001,
+      "explain": "35 + 30/60 = 35.5."
+    },
+    {
+      "id": "dd-sign",
+      "type": "choice",
+      "prompt": "In decimal degrees, a negative longitude means:",
+      "choices": [
+        "West of the Prime Meridian",
+        "East of the Prime Meridian",
+        "South of the Equator",
+        "An error in the data"
+      ],
+      "answer": 0,
+      "explain": "Negative means south latitude or west longitude. North Carolina's longitudes are all negative."
+    },
+    {
+      "id": "degree-length",
+      "type": "choice",
+      "prompt": "Why can't you convert a distance in degrees to kilometers with a single factor?",
+      "choices": [
+        "A degree of longitude shrinks toward the poles",
+        "Degrees are only used at sea",
+        "A degree of latitude changes with the datum",
+        "Kilometers are a projected unit"
+      ],
+      "answer": 0,
+      "explain": "A degree of longitude is about 111 km at the Equator, about 90 km in Chapel Hill, and zero at the poles."
+    },
+    {
+      "id": "pyramid",
+      "type": "order",
+      "r": false,
+      "prompt": "Put the layers of a projection in order, from the bottom (the real Earth) up.",
+      "answer": [
+        "The Earth",
+        "Ellipsoid",
+        "Datum",
+        "Geographic coordinate system",
+        "Map projection"
+      ],
+      "extra": [],
+      "explain": "Each layer rests on the one below; change a lower layer and everything above it shifts."
+    },
+    {
+      "id": "four-distortions",
+      "type": "choice",
+      "prompt": "Every map projection distorts at least one of:",
+      "choices": [
+        "Shape, area, distance, or direction",
+        "Color, size, scale, or font",
+        "Latitude, longitude, or elevation",
+        "Points, lines, or polygons"
+      ],
+      "answer": 0,
+      "explain": "You can't flatten the globe without stretching or tearing it."
+    },
+    {
+      "id": "mercator",
+      "type": "choice",
+      "prompt": "Which property does the Mercator projection preserve?",
+      "choices": [
+        "Local shape and angles (it is conformal)",
+        "Area",
+        "Distance from the center",
+        "Nothing"
+      ],
+      "answer": 0,
+      "explain": "That made it ideal for navigation, but it badly inflates areas near the poles."
+    },
+    {
+      "id": "greenland",
+      "type": "choice",
+      "prompt": "On a Mercator map, Greenland looks about as big as Africa. In reality, Africa is about how many times larger?",
+      "choices": [
+        "14",
+        "2",
+        "100",
+        "They are the same size"
+      ],
+      "answer": 0,
+      "explain": "Greenland is about the size of the Democratic Republic of the Congo."
+    },
+    {
+      "id": "equal-area",
+      "type": "choice",
+      "prompt": "You want to compare forest area across countries. Which kind of projection should you use?",
+      "choices": [
+        "Equal-area",
+        "Conformal",
+        "Azimuthal",
+        "Gnomonic"
+      ],
+      "answer": 0,
+      "explain": "Equal-area projections, such as Albers or Mollweide, keep relative sizes true."
+    },
+    {
+      "id": "conformal-equal",
+      "type": "truefalse",
+      "prompt": "A projection can be both conformal and equal-area.",
+      "answer": false,
+      "explain": "No projection can be both. Compromise projections, such as Robinson, preserve nothing exactly."
+    },
+    {
+      "id": "secant",
+      "type": "choice",
+      "prompt": "Where is the scale exactly true on a secant projection?",
+      "choices": [
+        "Along the standard lines, where the map surface cuts the globe",
+        "Only at the North Pole",
+        "Everywhere",
+        "At the edges of the map"
+      ],
+      "answer": 0,
+      "explain": "Distances shrink between the standard lines and stretch outside them."
+    },
+    {
+      "id": "state-plane",
+      "type": "choice",
+      "prompt": "North Carolina's State Plane zone uses which projection, because the state is wide from east to west?",
+      "choices": [
+        "Lambert Conformal Conic",
+        "Transverse Mercator",
+        "Mollweide",
+        "Robinson"
+      ],
+      "answer": 0,
+      "explain": "East–west zones use Lambert Conformal Conic; north–south zones use Transverse Mercator. NC is EPSG:32119."
+    },
+    {
+      "id": "st-transform",
+      "type": "choice",
+      "prompt": "Which sf function changes a layer's coordinates to a new CRS?",
+      "choices": [
+        "st_transform()",
+        "st_crs()",
+        "st_set_crs()",
+        "st_join()"
+      ],
+      "answer": 0,
+      "explain": "st_crs() reports the CRS; st_set_crs() only changes the label, not the coordinates."
+    },
+    {
+      "id": "epsg",
+      "type": "choice",
+      "prompt": "What is EPSG:4326?",
+      "choices": [
+        "WGS84 latitude and longitude",
+        "NC State Plane in meters",
+        "The Mercator projection",
+        "NAD27"
+      ],
+      "answer": 0,
+      "explain": "EPSG codes identify coordinate reference systems. 32119 is NC State Plane in meters."
+    },
+    {
+      "id": "code-dms",
+      "type": "code",
+      "prompt": "Convert 79° 3′ 21″ W to decimal degrees and store it in `dd`. Remember the sign.",
+      "starter": "deg <- 79\nmin <- 3\nsec <- 21\n",
+      "check": "isTRUE(all.equal(dd, -79.05583, tolerance = 1e-5))",
+      "solution": "deg <- 79\nmin <- 3\nsec <- 21\ndd <- -(deg + min / 60 + sec / 3600)",
+      "explain": "79 + 3/60 + 21/3600 = 79.0558, and west is negative."
+    },
+    {
+      "id": "code-km-lon",
+      "type": "code",
+      "prompt": "A degree of longitude is about `111.32 * cos(latitude)` km, with the latitude in radians. Store the length of a degree of longitude at 36° N in `km`.",
+      "starter": "lat <- 36\n",
+      "check": "isTRUE(all.equal(km, 111.32 * cos(36 * pi / 180)))",
+      "solution": "lat <- 36\nkm <- 111.32 * cos(lat * pi / 180)",
+      "explain": "Multiply degrees by pi / 180 to get radians. The answer is about 90 km."
+    }
+  ]
+}

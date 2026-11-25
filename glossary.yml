@@ -678,7 +678,7 @@ terms:
 
   - term: mean
     case_sensitive: true
-    chapters: [tidyverse-summarize-group-by]
+    chapters: [tidyverse-summarize-group-by, esda, spatial-statistics]
     definition: >-
       The average: the sum of the values divided by how many there are. A few
       very large or small values can pull it a long way.
@@ -1049,7 +1049,7 @@ terms:
 
   - term: boxplot
     aliases: [boxplots, box plot, box plots]
-    chapters: [tidyverse-ggplot]
+    chapters: [tidyverse-ggplot, esda]
     definition: >-
       A chart that summarizes a distribution: the box spans the middle
       half of the values, a line marks the median, and dots beyond the
@@ -1373,3 +1373,435 @@ terms:
       The Federal Geographic Data Committee, whose metadata standard US
       federal agencies follow. Internationally, the standard is ISO
       19115.
+
+  # --- Chapter 11: Location and Coordinate Systems -------------------------------
+
+  - term: geodesy
+    definition: >-
+      The science of measuring the Earth's size, shape, orientation, and
+      gravity. Every coordinate rests on a geodetic model of the Earth.
+
+  - term: ellipsoid
+    aliases: [ellipsoids, spheroid, spheroids, oblate spheroid]
+    definition: >-
+      A sphere flattened at the poles: the smooth mathematical shape used
+      to model the Earth, defined by its semi-major and semi-minor axes.
+
+  - term: semi-major axis
+    definition: >-
+      On an ellipsoid, the distance from the center to the Equator: about
+      6,378 km for the Earth.
+
+  - term: semi-minor axis
+    definition: >-
+      On an ellipsoid, the distance from the center to a pole: about
+      6,357 km for the Earth.
+
+  - term: flattening
+    chapters: [location-coordinate-systems]
+    definition: >-
+      How much an ellipsoid is squashed: (a − b) / a, where a and b are
+      the semi-major and semi-minor axes. About 1/298 for the Earth.
+
+  - term: geoid (shape of the Earth)
+    aliases: [geoid]
+    case_sensitive: true
+    chapters: [location-coordinate-systems]
+    definition: >-
+      The lumpy shape of the Earth defined by gravity, roughly where mean
+      sea level would be. Ellipsoids are smooth approximations of it.
+
+  - term: datum
+    aliases: [datums, geodetic datum, geodetic datums]
+    definition: >-
+      A model that fixes an ellipsoid to the real Earth, so that a
+      latitude and longitude point to one place on the ground. NAD83 and
+      WGS84 are datums.
+
+  - term: benchmark
+    aliases: [benchmarks, control point, control points]
+    chapters: [location-coordinate-systems]
+    definition: >-
+      A surveyed point marked on the ground, often by a brass disk, whose
+      position is precisely known. Datums are made real by thousands of
+      them.
+
+  - term: NAD27
+    case_sensitive: true
+    definition: >-
+      The North American Datum of 1927, based on the Clarke 1866
+      ellipsoid and a single origin point in Kansas.
+
+  - term: NAD83
+    case_sensitive: true
+    definition: >-
+      The North American Datum of 1983, based on the GRS80 ellipsoid and
+      maintained through a network of permanent GPS stations (CORS).
+
+  - term: CORS
+    case_sensitive: true
+    definition: >-
+      Continuously Operating Reference Stations: permanent GPS stations
+      across the US that the National Geodetic Survey uses to maintain
+      NAD83.
+
+  - term: latitude
+    aliases: [latitudes]
+    definition: >-
+      The angle north or south of the Equator, from 0° to 90°. Lines of
+      equal latitude are parallels.
+
+  - term: longitude
+    aliases: [longitudes]
+    definition: >-
+      The angle east or west of the Prime Meridian, from 0° to 180°.
+      Lines of equal longitude are meridians.
+
+  - term: parallel
+    aliases: [parallels]
+    chapters: [location-coordinate-systems]
+    definition: >-
+      A line of latitude. Parallels run east–west, parallel to the
+      Equator.
+
+  - term: meridian
+    aliases: [meridians]
+    definition: >-
+      A line of longitude. Meridians run from pole to pole and meet at
+      the poles.
+
+  - term: Equator
+    case_sensitive: true
+    definition: >-
+      The circle halfway between the North and South Poles: 0° latitude.
+
+  - term: Prime Meridian
+    case_sensitive: true
+    definition: >-
+      The meridian through Greenwich, England, chosen in 1884 as 0°
+      longitude.
+
+  - term: graticule
+    aliases: [graticules]
+    definition: >-
+      The network of parallels and meridians drawn on a map or globe.
+
+  - term: decimal degrees
+    aliases: [DD]
+    case_sensitive: true
+    definition: >-
+      Coordinates written as signed decimal numbers, such as −79.05°.
+      Negative means south latitude or west longitude.
+
+  - term: degrees, minutes, and seconds
+    aliases: [DMS, "degrees-minutes-seconds"]
+    definition: >-
+      Coordinates written as whole degrees, minutes (1/60 of a degree),
+      and seconds (1/3,600 of a degree), with a letter N, S, E, or W,
+      such as 79° 3′ 21″ W.
+
+  - term: map projection
+    aliases: [map projections, projection, projections, projected]
+    definition: >-
+      A method for flattening the curved graticule onto a flat map.
+      Every projection distorts shape, area, distance, or direction.
+
+  - term: conformal
+    definition: >-
+      Describes a projection that preserves local shapes and angles, such
+      as Mercator or Lambert Conformal Conic.
+
+  - term: equal-area
+    definition: >-
+      Describes a projection that preserves area, such as Albers or
+      Mollweide. No projection is both equal-area and conformal.
+
+  - term: equidistant
+    definition: >-
+      Describes a projection that preserves distance from one point, or
+      along chosen lines.
+
+  - term: azimuthal
+    chapters: [location-coordinate-systems]
+    definition: >-
+      Describes a projection that preserves direction from a center
+      point. Also called planar.
+
+  - term: compromise projection
+    aliases: [compromise projections, compromise]
+    chapters: [location-coordinate-systems]
+    definition: >-
+      A projection, such as Robinson, that preserves no property exactly
+      but keeps every distortion moderate.
+
+  - term: secant
+    definition: >-
+      Describes a map surface that cuts through the globe, meeting it
+      along two standard lines where the scale is true.
+
+  - term: standard line
+    aliases: [standard lines]
+    definition: >-
+      A line where a map projection's surface touches the globe, so the
+      scale there is exactly true.
+
+  - term: Mercator projection
+    aliases: [Mercator]
+    case_sensitive: true
+    definition: >-
+      A conformal cylindrical projection, made for navigation, that
+      greatly enlarges areas near the poles.
+
+  - term: State Plane Coordinate System
+    aliases: [State Plane]
+    case_sensitive: true
+    definition: >-
+      A set of local projections for the US, with one or more zones per
+      state, in feet or meters. North Carolina's zone is EPSG:32119.
+
+  - term: EPSG code
+    aliases: [EPSG codes, EPSG]
+    case_sensitive: true
+    definition: >-
+      A number that identifies a coordinate reference system in a public
+      registry, such as 4326 for WGS84 latitude and longitude.
+
+  # --- Chapter 12: Joins ---------------------------------------------------------
+
+  - term: key
+    aliases: [keys]
+    chapters: [joins]
+    definition: >-
+      The column whose values are matched to line up rows in a join, such
+      as a student ID or a county FIPS code.
+
+  - term: attribute join
+    aliases: [attribute joins]
+    definition: >-
+      A join that matches rows using a shared key column.
+
+  - term: spatial join
+    aliases: [spatial joins]
+    definition: >-
+      A join that matches features by their location, such as attaching
+      to each point the polygon it falls inside. `st_join()` in R.
+
+  - term: inner join
+    aliases: [inner joins]
+    definition: >-
+      A join that keeps only the rows whose key appears in both tables.
+      `inner_join()` in dplyr.
+
+  - term: left join
+    aliases: [left joins]
+    definition: >-
+      A join that keeps every row of the first (left) table, with NA
+      where the second table has no match. `left_join()` in dplyr.
+
+  - term: right join
+    aliases: [right joins]
+    definition: >-
+      A join that keeps every row of the second (right) table.
+      `right_join()` in dplyr.
+
+  - term: full join
+    aliases: [full joins]
+    definition: >-
+      A join that keeps every row of both tables, with NA wherever there
+      is no match. `full_join()` in dplyr.
+
+  - term: natural join
+    aliases: [natural joins]
+    definition: >-
+      An inner join on every column the two tables share by name. Handy
+      but fragile, so name your key instead.
+
+  - term: cross join
+    aliases: [cross joins, cartesian product]
+    definition: >-
+      A join that pairs every row of one table with every row of the
+      other. `cross_join()` in dplyr.
+
+  - term: self join
+    definition: >-
+      A join of a table to itself, such as employees to their managers.
+
+  - term: cardinality
+    definition: >-
+      How many rows in one table can match a row in another: one-to-one,
+      one-to-many, many-to-one, or many-to-many.
+
+  - term: one-to-one
+    definition: >-
+      A relationship where each row matches at most one row in the other
+      table, such as states and governors.
+
+  - term: one-to-many
+    definition: >-
+      A relationship where one row matches many rows in the other table,
+      such as a state and its cities.
+
+  - term: many-to-one
+    definition: >-
+      A relationship where many rows match one row in the other table,
+      such as cities and their state.
+
+  - term: many-to-many
+    definition: >-
+      A relationship where rows on both sides can match many rows, such
+      as students and classes. Joins like this multiply rows.
+
+  - term: destination table
+    aliases: [destination feature class, destination layer, destination]
+    chapters: [joins]
+    definition: >-
+      In a join, the table that receives new columns: `x` in
+      `st_join(x, y)`.
+
+  - term: source table
+    aliases: [source feature class, source layer, source]
+    chapters: [joins]
+    definition: >-
+      In a join, the table that supplies the new columns: `y` in
+      `st_join(x, y)`.
+
+  - term: summarized join
+    aliases: [summarized joins, summarized spatial join]
+    definition: >-
+      A spatial join that aggregates all the matching features, such as
+      counting the schools in each county.
+
+  - term: simple join
+    aliases: [simple joins, simple spatial join]
+    definition: >-
+      A spatial join that attaches the attributes of one matching
+      feature, such as the county each school is in.
+
+  # --- Chapter 13: Exploratory Spatial Data Analysis -----------------------------
+
+  - term: exploratory data analysis (EDA)
+    aliases: [exploratory data analysis, EDA]
+    definition: >-
+      Learning what is in a dataset, with summaries and plots, before
+      trying to explain or predict anything with it.
+
+  - term: exploratory spatial data analysis (ESDA)
+    aliases: [exploratory spatial data analysis, ESDA]
+    definition: >-
+      EDA that also asks how values vary across space, using maps,
+      spatial autocorrelation, and clustering.
+
+  - term: central tendency
+    definition: >-
+      One value that describes the center of a set of values: the mean,
+      median, or mode.
+
+  - term: mode
+    chapters: [esda, spatial-statistics]
+    case_sensitive: true
+    definition: >-
+      The most common value. The only measure of center that works for
+      categorical data.
+
+  - term: dispersion
+    definition: >-
+      How spread out values are around their center, measured by the
+      range, interquartile range, or standard deviation.
+
+  - term: range
+    chapters: [esda]
+    case_sensitive: true
+    definition: >-
+      The largest value minus the smallest. `range()` in R returns both.
+
+  - term: quartile
+    aliases: [quartiles]
+    definition: >-
+      The values that split sorted data into four groups of equal size.
+      Q1 is the 25th percentile and Q3 the 75th.
+
+  - term: interquartile range (IQR)
+    aliases: [interquartile range, IQR]
+    definition: >-
+      Q3 minus Q1: the spread of the middle half of the data. Outliers
+      barely affect it. `IQR()` in R.
+
+  - term: histogram
+    aliases: [histograms]
+    definition: >-
+      A chart that divides a variable's range into bins and draws a bar
+      for how many values fall in each. `geom_histogram()` in ggplot2.
+
+  - term: bin width
+    aliases: [binwidth, bins]
+    definition: >-
+      The width of each bar in a histogram. Too narrow shows noise; too
+      wide hides detail.
+
+  - term: density plot
+    aliases: [density plots]
+    definition: >-
+      A smoothed histogram whose total area is 1. `geom_density()` in
+      ggplot2.
+
+  - term: distribution
+    aliases: [distributions]
+    chapters: [esda, spatial-statistics]
+    definition: >-
+      How a variable's values are spread out: where they are common,
+      where they are rare, and the shape that makes.
+
+  - term: bimodal
+    definition: >-
+      Having two peaks. It often means two different groups are mixed
+      together.
+
+  - term: multimodal
+    definition: >-
+      Having several peaks.
+
+  # --- Chapter 14: Spatial Descriptive Statistics --------------------------------
+
+  - term: spatial descriptive statistics
+    aliases: [spatial descriptive statistic]
+    definition: >-
+      Statistics that describe the center and spread of a set of
+      locations, such as the mean center and standard distance.
+
+  - term: mean center
+    aliases: [mean centers]
+    definition: >-
+      The average x coordinate and average y coordinate of a set of
+      features. Like the mean, outliers pull it.
+
+  - term: weighted mean center
+    aliases: [weighted mean centers]
+    definition: >-
+      A mean center in which each feature counts in proportion to an
+      attribute, such as population.
+
+  - term: central feature
+    definition: >-
+      The existing feature with the smallest total distance to all the
+      others: the spatial counterpart of the median.
+
+  - term: standard distance
+    definition: >-
+      The typical distance of features from their mean center: the
+      spatial counterpart of the standard deviation, drawn as a circle.
+
+  - term: centroid
+    aliases: [centroids]
+    definition: >-
+      The geometric center of a polygon. `st_centroid()` in R.
+
+  - term: return value
+    definition: >-
+      What a function gives back. In R, it is the value of the last line
+      in the function's body.
+
+  - term: normal distribution
+    aliases: [bell curve]
+    definition: >-
+      A symmetric, bell-shaped distribution. About 68% of values fall
+      within one standard deviation of the mean, and 95% within two.

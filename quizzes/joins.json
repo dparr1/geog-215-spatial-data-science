@@ -1,0 +1,363 @@
+{
+  "id": "joins",
+  "title": "Joins: Attribute and Spatial",
+  "perSession": 10,
+  "minR": 2,
+  "questions": [
+    {
+      "id": "join-def",
+      "type": "choice",
+      "prompt": "A join:",
+      "choices": [
+        "Combines tables by matching rows",
+        "Stacks one table under another",
+        "Deletes duplicate rows",
+        "Sorts a table by a column"
+      ],
+      "answer": 0,
+      "explain": "An attribute join matches a shared key; a spatial join matches by location."
+    },
+    {
+      "id": "key",
+      "type": "choice",
+      "prompt": "The shared column used to match rows in an attribute join is the:",
+      "choices": [
+        "Key",
+        "Geometry",
+        "Index",
+        "Factor"
+      ],
+      "answer": 0,
+      "explain": "For example, a student ID or a county FIPS code."
+    },
+    {
+      "id": "inner",
+      "type": "choice",
+      "prompt": "Which join keeps only the rows whose key appears in both tables?",
+      "choices": [
+        "inner_join()",
+        "left_join()",
+        "right_join()",
+        "full_join()"
+      ],
+      "answer": 0,
+      "explain": "Unmatched rows on either side are dropped."
+    },
+    {
+      "id": "left",
+      "type": "choice",
+      "prompt": "Which join keeps every row of the first table and adds matching columns from the second?",
+      "choices": [
+        "left_join()",
+        "inner_join()",
+        "right_join()",
+        "cross_join()"
+      ],
+      "answer": 0,
+      "explain": "Rows with no match get NA in the new columns."
+    },
+    {
+      "id": "full",
+      "type": "choice",
+      "prompt": "Which join keeps every row from both tables?",
+      "choices": [
+        "full_join()",
+        "inner_join()",
+        "left_join()",
+        "semi_join()"
+      ],
+      "answer": 0,
+      "explain": "It fills NA wherever a row has no match."
+    },
+    {
+      "id": "right-left",
+      "type": "truefalse",
+      "prompt": "Any right join can be rewritten as a left join by swapping the order of the tables.",
+      "answer": true,
+      "explain": "students |> right_join(takes) keeps the same rows as takes |> left_join(students)."
+    },
+    {
+      "id": "left-grow",
+      "type": "choice",
+      "prompt": "A left join returns more rows than its left table. Why?",
+      "choices": [
+        "Some keys match more than one row in the right table",
+        "The right table had missing values",
+        "The join dropped unmatched rows",
+        "Left joins always add one row"
+      ],
+      "answer": 0,
+      "explain": "A one-to-many match copies the left row once for each match."
+    },
+    {
+      "id": "left-na",
+      "type": "choice",
+      "prompt": "After `students |> left_join(takes, by = join_by(id))`, a student who took no courses:",
+      "choices": [
+        "Appears once, with NA in the course columns",
+        "Is dropped",
+        "Appears once for every course",
+        "Causes an error"
+      ],
+      "answer": 0,
+      "explain": "A left join never drops a row from the left table."
+    },
+    {
+      "id": "join-by",
+      "type": "choice",
+      "prompt": "What does `by = join_by(id)` do?",
+      "choices": [
+        "Names the key column to match on",
+        "Sorts the result by id",
+        "Removes the id column",
+        "Groups the result by id"
+      ],
+      "answer": 0,
+      "explain": "Without it, dplyr joins on every shared column name and prints a message."
+    },
+    {
+      "id": "natural",
+      "type": "choice",
+      "prompt": "Why can a natural join be risky?",
+      "choices": [
+        "It matches on every column with the same name, even ones you didn't intend",
+        "It always returns a cross join",
+        "It drops the key column",
+        "It only works on spatial data"
+      ],
+      "answer": 0,
+      "explain": "If both tables also had a `name` or `year` column, it would silently join on those too."
+    },
+    {
+      "id": "cross",
+      "type": "fill",
+      "r": false,
+      "prompt": "A cross join of a 4-row table and a 5-row table has how many rows?",
+      "answers": [
+        "20"
+      ],
+      "numeric": true,
+      "explain": "A cross join pairs every row with every row: 4 × 5 = 20."
+    },
+    {
+      "id": "chain",
+      "type": "choice",
+      "prompt": "How do you combine three tables with dplyr?",
+      "choices": [
+        "Pipe the result of one join into the next",
+        "List all three in one join_by()",
+        "Use rbind()",
+        "You can't; joins take only two tables"
+      ],
+      "answer": 0,
+      "explain": "students |> inner_join(takes, ...) |> inner_join(instructor, ...)."
+    },
+    {
+      "id": "card-def",
+      "type": "choice",
+      "prompt": "Cardinality describes:",
+      "choices": [
+        "How many rows in one table can match a row in the other",
+        "The number of columns in a table",
+        "The order of the rows",
+        "The coordinate system of a layer"
+      ],
+      "answer": 0,
+      "explain": "Know it before you join, so you know how many rows to expect."
+    },
+    {
+      "id": "card-governor",
+      "type": "choice",
+      "prompt": "What is the cardinality between governors and states?",
+      "choices": [
+        "One-to-one",
+        "One-to-many",
+        "Many-to-one",
+        "Many-to-many"
+      ],
+      "answer": 0,
+      "explain": "Each state has one governor, and each governor governs one state."
+    },
+    {
+      "id": "card-classes",
+      "type": "choice",
+      "prompt": "What is the cardinality between students and classes?",
+      "choices": [
+        "Many-to-many",
+        "One-to-one",
+        "One-to-many",
+        "Many-to-one"
+      ],
+      "answer": 0,
+      "explain": "Each student takes many classes, and each class has many students."
+    },
+    {
+      "id": "card-capital",
+      "type": "choice",
+      "prompt": "What is the cardinality between capital cities and states?",
+      "choices": [
+        "One-to-one",
+        "One-to-many",
+        "Many-to-one",
+        "Many-to-many"
+      ],
+      "answer": 0,
+      "explain": "Each state has one capital, and each capital belongs to one state."
+    },
+    {
+      "id": "card-cities",
+      "type": "choice",
+      "prompt": "What is the cardinality between a state and its cities?",
+      "choices": [
+        "One-to-many",
+        "One-to-one",
+        "Many-to-one",
+        "Many-to-many"
+      ],
+      "answer": 0,
+      "explain": "One state has many cities. Seen from the cities' side, it is many-to-one."
+    },
+    {
+      "id": "why-spatial",
+      "type": "choice",
+      "prompt": "When do you need a spatial join instead of an attribute join?",
+      "choices": [
+        "When the tables share no key column, only location",
+        "When the tables have the same number of rows",
+        "When one table is a raster",
+        "Always, for sf objects"
+      ],
+      "answer": 0,
+      "explain": "EMS calls and neighborhoods share no ID; the only link is where each call happened."
+    },
+    {
+      "id": "st-join-x",
+      "type": "choice",
+      "prompt": "In `st_join(x, y)`, which layer receives the new attributes?",
+      "choices": [
+        "x, the destination",
+        "y, the source",
+        "Neither",
+        "Both"
+      ],
+      "answer": 0,
+      "explain": "x is the destination and y the source, like the left table of a left join."
+    },
+    {
+      "id": "st-join-default",
+      "type": "choice",
+      "prompt": "By default, `st_join()` behaves like which attribute join?",
+      "choices": [
+        "A left join",
+        "An inner join",
+        "A full join",
+        "A cross join"
+      ],
+      "answer": 0,
+      "explain": "It keeps every row of x. Set left = FALSE for an inner join."
+    },
+    {
+      "id": "nearest",
+      "type": "choice",
+      "prompt": "Which `join` argument attaches the closest feature?",
+      "choices": [
+        "st_nearest_feature",
+        "st_intersects",
+        "st_within",
+        "st_touches"
+      ],
+      "answer": 0,
+      "explain": "Then use st_distance() to find how far away it is."
+    },
+    {
+      "id": "summarized",
+      "type": "choice",
+      "prompt": "Counting the schools in each county is a:",
+      "choices": [
+        "Summarized inside join",
+        "Simple inside join",
+        "Simple distance join",
+        "Natural join"
+      ],
+      "answer": 0,
+      "explain": "Counties are the destination; all the schools inside each one are aggregated into a count."
+    },
+    {
+      "id": "simple",
+      "type": "choice",
+      "prompt": "Attaching the county each school is in is a:",
+      "choices": [
+        "Simple inside join",
+        "Summarized inside join",
+        "Summarized distance join",
+        "Cross join"
+      ],
+      "answer": 0,
+      "explain": "Each school is in exactly one county, so there's no ambiguity: many-to-one."
+    },
+    {
+      "id": "summarize-r",
+      "type": "choice",
+      "prompt": "In R, a summarized spatial join is usually `st_join()` followed by:",
+      "choices": [
+        "group_by() and summarize(), or count()",
+        "st_transform()",
+        "arrange()",
+        "pivot_longer()"
+      ],
+      "answer": 0,
+      "explain": "Aggregate the matches for each destination feature, then attach the result."
+    },
+    {
+      "id": "gcs-units",
+      "type": "choice",
+      "prompt": "A distance join on data in latitude and longitude returns distances like 0.47. What units are these, in most GIS software?",
+      "choices": [
+        "Decimal degrees",
+        "Miles",
+        "Kilometers",
+        "Meters"
+      ],
+      "answer": 0,
+      "explain": "Distances come out in the data's units. Project first."
+    },
+    {
+      "id": "gcs-match",
+      "type": "truefalse",
+      "prompt": "A nearest-feature join can attach a different feature when run on latitude and longitude than when run on projected data.",
+      "answer": true,
+      "explain": "Degrees stretch unevenly, so nearest in degrees isn't always nearest on the ground."
+    },
+    {
+      "id": "crs-check",
+      "type": "choice",
+      "prompt": "Before a distance join, you should:",
+      "choices": [
+        "Check both layers with st_crs() and project them with st_transform()",
+        "Drop the geometry",
+        "Convert both layers to rasters",
+        "Sort both layers by name"
+      ],
+      "answer": 0,
+      "explain": "Use a projection that preserves distance in your study area, such as NC State Plane."
+    },
+    {
+      "id": "code-merge",
+      "type": "code",
+      "prompt": "Base R's `merge()` joins two data frames. Store an inner join of `a` and `b` on the column `id` in `ab`.",
+      "starter": "a <- data.frame(id = c(1, 2, 3), name = c(\"Ana\", \"Ben\", \"Cy\"))\nb <- data.frame(id = c(2, 3, 3, 4), course = c(\"GEOG\", \"MATH\", \"HIST\", \"ART\"))\n",
+      "check": "is.data.frame(ab) && nrow(ab) == 3 && setequal(ab$name, c(\"Ben\", \"Cy\"))",
+      "solution": "a <- data.frame(id = c(1, 2, 3), name = c(\"Ana\", \"Ben\", \"Cy\"))\nb <- data.frame(id = c(2, 3, 3, 4), course = c(\"GEOG\", \"MATH\", \"HIST\", \"ART\"))\nab <- merge(a, b, by = \"id\")",
+      "explain": "merge(a, b, by = \"id\") is an inner join: Ben once, Cy twice. Add all.x = TRUE for a left join."
+    },
+    {
+      "id": "code-merge-left",
+      "type": "code",
+      "prompt": "Store a left join of `a` and `b` on `id` in `ab`, keeping every row of `a`. (Hint: `merge()` has an `all.x` argument.)",
+      "starter": "a <- data.frame(id = c(1, 2, 3), name = c(\"Ana\", \"Ben\", \"Cy\"))\nb <- data.frame(id = c(2, 3, 3, 4), course = c(\"GEOG\", \"MATH\", \"HIST\", \"ART\"))\n",
+      "check": "is.data.frame(ab) && nrow(ab) == 4 && sum(is.na(ab$course)) == 1",
+      "solution": "a <- data.frame(id = c(1, 2, 3), name = c(\"Ana\", \"Ben\", \"Cy\"))\nb <- data.frame(id = c(2, 3, 3, 4), course = c(\"GEOG\", \"MATH\", \"HIST\", \"ART\"))\nab <- merge(a, b, by = \"id\", all.x = TRUE)",
+      "explain": "Ana has no course, so she appears once with NA; Cy appears twice. That's 4 rows."
+    }
+  ]
+}

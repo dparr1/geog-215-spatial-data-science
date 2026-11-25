@@ -31,9 +31,9 @@ Free peer tutoring is also available from the [UNC Learning Center](https://lear
 | | Module 2: Processing data with the tidyverse | [Into the Tidyverse: glimpse, filter, and the Pipe](chapters/tidyverse-filter-pipe.qmd), [Into the Tidyverse: arrange, distinct, select, and mutate](chapters/tidyverse-arrange-select-mutate.qmd), [Into the Tidyverse: summarize, group_by, and drop_na](chapters/tidyverse-summarize-group-by.qmd) |
 | | Module 3: Exploring data for information | [Into the Tidyverse: Graphs with ggplot2](chapters/tidyverse-ggplot.qmd) |
 | | Project 1: Map contest with tmap | [Thematic Maps with tmap](chapters/thematic-maps-tmap.qmd) |
-| 2. Working with spatial data | Module 4: Overlaying two spatial layers | [What Is Geographic Data?](chapters/geographic-information.qmd) |
-| | Module 5: Joining tables | |
-| | Module 6: Spatial statistics | |
+| 2. Working with spatial data | Module 4: Overlaying two spatial layers | [What Is Geographic Data?](chapters/geographic-information.qmd), [Location and Coordinate Systems](chapters/location-coordinate-systems.qmd) |
+| | Module 5: Joining tables | [Joins: Attribute and Spatial](chapters/joins.qmd) |
+| | Module 6: Spatial statistics | [Exploratory Spatial Data Analysis](chapters/esda.qmd), [Spatial Descriptive Statistics](chapters/spatial-statistics.qmd) |
 | | Project 2: Map contest with online data | [Census Data and APIs](chapters/census-data-apis.qmd) |
 | 3. Spatial data science | Module 7: ANOVA | |
 | | Module 8: Regression | |
