@@ -29,10 +29,12 @@ bibliography: references.bib
 
 format:
   html:
-    # Sandstone plus Atkinson Hyperlegible fonts (assets/fonts.scss).
+    # Sandstone plus Atkinson Hyperlegible fonts (assets/fonts.scss) and UNC colors.
     theme:
       - sandstone
       - assets/fonts.scss
+      # UNC brand colors (assets/unc-colors.scss).
+      - assets/unc-colors.scss
     code-copy: true
     code-overflow: wrap
     toc-depth: 3
