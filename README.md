@@ -33,8 +33,10 @@ The public pages are listed in `PUBLIC_PAGES` in `assets/auth-gate.html`; keep t
 the menu in `_quarto-site.yml`. The course pages are copied from the Fall 2026 Course Resources doc in
 Google Drive, so update them each semester.
 
-daveparr.com/intro-spatial-data-science/ gets **only the textbook**: the chapters, chapter quizzes, and glossary, with
-the Preface as its home page and no top menu. The `textbook` profile (`_quarto-textbook.yml`) lists
+daveparr.com/intro-spatial-data-science/ and the PDF textbook get **only the textbook**: the unit
+pages, chapters, and glossary, with the Preface as the first page, no top menu, and **no quizzes**
+(neither the chapter quizzes nor the unit quizzes; those are only on geog215.org). Links to quiz pages
+on the unit pages and in the Preface are wrapped in `::: {.content-hidden when-profile="textbook"}`. The `textbook` profile (`_quarto-textbook.yml`) lists
 those chapters, and `_quarto-site.yml` lists the full site; one of the two is always active, and
 `site` is the default. A new chapter goes in both files.
 
@@ -116,16 +118,22 @@ See `supabase/README.md` for the one-time setup, the admin page and troubleshoot
 ```sh
 quarto preview                      # full site without the sign-in gate, live reload
 quarto render --profile geog215     # geog215.org version, with the sign-in gate
-quarto preview --profile textbook   # daveparr.com version: textbook only (the Action also
-                                    # copies preface.qmd over index.qmd first)
+quarto preview --profile textbook   # daveparr.com version: textbook only, no quizzes (the
+                                    # Action also copies preface.qmd over index.qmd first)
+quarto render --to PrettyPDF-pdf --profile textbook   # the PDF textbook, no quizzes
 ```
+
+The PDF needs R and a LaTeX install (TinyTeX: `quarto install tinytex`). Its cover is
+`images/cover.jpg`, placed full-page by `assets/pdf-cover.tex`; to change the cover, replace that
+image. PrettyPDF's own LaTeX files are committed under `_extensions/nrennie/PrettyPDF/` (they used to
+be caught by the `*.tex` rule in `.gitignore`).
 
 Chapters use `tidyverse`, `sf`, `tigris`, `tidycensus`, `tmap`, `httr2` and `webexercises`. The
 Census chapter needs a free Census API key (see the Preface); chunks that call the API are skipped
 when no key is set.
 
 To add a chapter, add its `.qmd` to `chapters/` and to both `_quarto-site.yml` and `_quarto-textbook.yml`, then add its quiz by following
-`quizzes/README.md`. Changes go through a pull request into `main`; Cloudflare builds a preview of
+`quizzes/README.md`. Quiz pages go in `_quarto-site.yml` only. Changes go through a pull request into `main`; Cloudflare builds a preview of
 each branch, and merging publishes both sites.
 
 ## History
@@ -158,3 +166,7 @@ the admin page. Each chapter gets a Duolingo-style quiz page, with results on th
 **November 20: the quiz cartoon.** A cartoon of the instructor now cheers on right answers with a
 speech bubble and appears on the end-of-quiz screen (#7). Wrong answers get a sad face and a kind
 word (#8).
+
+**November 25: a quiz-free PDF and public copy.** The PDF textbook and the public copy on
+daveparr.com no longer include the chapter or unit quizzes, which stay on geog215.org. The PDF gets a
+full-page cover, renders with the `textbook` profile, and now builds with the unit pages.

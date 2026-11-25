@@ -1,0 +1,9 @@
+% LaTeX fix for the PDF textbook (PrettyPDF-pdf in _quarto.yml).
+%
+% PrettyPDF loads sectsty, whose \part code for KOMA classes (scrreprt, which
+% Quarto books use) calls \@maybeasf, a command current KOMA-Script no longer
+% defines. Every unit is a \part, so without this the PDF fails with
+% "Undefined control sequence ... \@maybeasf".
+\makeatletter
+\providecommand{\@maybeasf}{}
+\makeatother

@@ -8,20 +8,30 @@ This unit puts data together and starts to analyze it. It joins tables by a shar
 
 A join combines tables by matching rows. This chapter covers dplyr's inner, left, right, and full joins, naming the key with `join_by()`, and chaining joins across several tables. It explains cardinality, and why you should know it before you join. It then joins by location with sf's `st_join()`, compares simple and summarized, inside and distance spatial joins, and shows why distances need a projected coordinate system.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 15 quiz](../chapters/joins-quiz.qmd)
+:::
 
 ## Chapter 16: [Exploratory Spatial Data Analysis](../chapters/esda.qmd)
 
 Before modeling data, get to know it. This chapter places exploratory data analysis in the data science workflow and adds the spatial question: how do values vary across space? It covers checking a data table, measures of central tendency (mean, median, mode) and dispersion (range, IQR, standard deviation), histograms, boxplots, and density plots, distribution shapes and outliers, and mapping rates rather than counts.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 16 quiz](../chapters/esda-quiz.qmd)
+:::
 
 ## Chapter 17: [Spatial Descriptive Statistics](../chapters/spatial-statistics.qmd)
 
 Spatial descriptive statistics describe where features are. This chapter covers the mean center, the weighted mean center (including the U.S. center of population), the central feature, and the standard distance, each matched to the familiar statistic it extends. It then reviews writing functions in R, from a one-line `addSeven()` to a `meanCenter()` function for any layer of polygons.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 17 quiz](../chapters/spatial-statistics-quiz.qmd)
+:::
+
+::: {.content-hidden when-profile="textbook"}
 
 ## Unit 4 quiz
 
 When you have finished the unit, the [Unit 4 quiz](unit-4-quiz.qmd) mixes questions from all 3 chapter quizzes, so you can review the whole unit at once.
+
+:::

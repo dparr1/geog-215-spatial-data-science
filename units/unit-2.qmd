@@ -8,26 +8,38 @@ This unit introduces the tidyverse, a family of R packages that share one way of
 
 This chapter introduces the tidyverse and the data science workflow it is built around. You look at a data frame with `glimpse()`, keep the rows you want with `filter()`, and chain steps together with the pipe, `|>`. It also explains missing values (`NA`) and how they affect filtering.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 6 quiz](../chapters/tidyverse-filter-pipe-quiz.qmd)
+:::
 
 ## Chapter 7: [Into the Tidyverse: arrange, distinct, select, and mutate](../chapters/tidyverse-arrange-select-mutate.qmd)
 
 dplyr verbs work on either rows or columns. This chapter sorts rows with `arrange()`, finds unique values with `distinct()`, keeps the columns you need with `select()`, and calculates new columns with `mutate()`. Sorting a new column turns out to be a quick way to spot outliers worth checking.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 7 quiz](../chapters/tidyverse-arrange-select-mutate-quiz.qmd)
+:::
 
 ## Chapter 8: [Into the Tidyverse: summarize, group_by, and drop_na](../chapters/tidyverse-summarize-group-by.qmd)
 
 `summarize()` collapses many rows into summary statistics, and `group_by()` makes it give one answer for each group, such as each month or each airline. The chapter compares two ways of handling missing values, `na.rm = TRUE` and `drop_na()`, and shows why the average of averages can mislead and how a weighted average fixes it.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 8 quiz](../chapters/tidyverse-summarize-group-by-quiz.qmd)
+:::
 
 ## Chapter 9: [Into the Tidyverse: Graphs with ggplot2](../chapters/tidyverse-ggplot.qmd)
 
 ggplot2 builds graphs from the grammar of graphics: data, aesthetics that map columns to visual properties, and geoms that draw the marks, added in layers with `+`. This chapter makes scatterplots, bar charts, and boxplots, explains the difference between setting and mapping an aesthetic, splits plots into small multiples with facets, and finishes plots with colors, labels, themes, and `ggsave()`.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 9 quiz](../chapters/tidyverse-ggplot-quiz.qmd)
+:::
+
+::: {.content-hidden when-profile="textbook"}
 
 ## Unit 2 quiz
 
 When you have finished the unit, the [Unit 2 quiz](unit-2-quiz.qmd) mixes questions from all 4 chapter quizzes, so you can review the whole unit at once.
+
+:::
