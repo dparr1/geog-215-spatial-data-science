@@ -1,0 +1,13 @@
+---
+title: "Unit 7: Next Steps"
+---
+
+This unit looks beyond the course. It first turns your maps and analysis into interactive dashboards that anyone can explore, then shows where the skills from this book are used, previews the advanced topics that build on them, and maps out the courses, credentials, and careers that come next. Neither chapter has a quiz.
+
+## Chapter 23: [Interactive Map Dashboards](../chapters/dashboards.qmd)
+
+This chapter builds an interactive dashboard of income and poverty by state. It makes interactive maps with leaflet (or tmap in view mode), lays out a map, value box, chart, and table with flexdashboard, links them with crosstalk in a single HTML file, and adds Shiny so the dashboard recalculates when readers make choices. It ends with how to share each kind of dashboard.
+
+## Chapter 24: [What's Next in Spatial Data Science](../chapters/whats-next.qmd)
+
+This chapter shows spatial data science at work in public health, environmental science, planning, social science, and business. It previews three advanced areas: remote sensing and NDVI, space-time modeling, and GeoAI, including why spatial autocorrelation matters for machine learning. It ends with a path through UNC's GIS courses, the GIS minor and Geospatial Data Science major, and careers in GIS and spatial data science.
