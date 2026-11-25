@@ -1,0 +1,23 @@
+% Full-page cover for the PDF textbook (PrettyPDF-pdf in _quarto.yml).
+%
+% Loaded with include-in-header and run by \AtBeginDocument, so the cover is
+% the very first page, before the title page that \maketitle makes.
+% (include-before-body would put it after the title page.)
+%
+% The picture is placed with eso-pic (already loaded by PrettyPDF) relative to
+% the page itself, so PrettyPDF's margins (left 20mm, right 50mm) don't apply:
+% it fills the whole A4 page and covers PrettyPDF's lavender side bar and
+% logo. The image (1792 x 2400 px) is a little wider than A4, so it is scaled
+% to the page height and trimmed evenly on the left and right (about 6mm
+% each side). To change the cover, replace images/cover.jpg.
+\AtBeginDocument{%
+  \begin{titlepage}%
+    \thispagestyle{empty}%
+    \AddToShipoutPictureFG*{%
+      \AtPageCenter{%
+        \makebox(0,0){\includegraphics[height=\paperheight]{images/cover.jpg}}%
+      }%
+    }%
+    \null
+  \end{titlepage}%
+}

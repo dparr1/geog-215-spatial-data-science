@@ -63,7 +63,14 @@ format:
     # `geog215` profile (_quarto-geog215.yml). daveparr.com stays public.
 
 
+  # The PDF textbook. Render it with the quiz-free textbook profile:
+  #   quarto render --to PrettyPDF-pdf --profile textbook
   PrettyPDF-pdf:
+    include-in-header:
+      # Lets PrettyPDF's section styles work with unit (part) pages.
+      - assets/pdf-fixes.tex
+      # Full-page cover (images/cover.jpg) before the title page.
+      - assets/pdf-cover.tex
     toc: true
     number-sections: true
     keep-tex: true

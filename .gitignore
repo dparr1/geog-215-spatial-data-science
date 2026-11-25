@@ -31,3 +31,7 @@ desktop.ini
 # Wrangler (geog215.org deploy)
 .wrangler/
 node_modules/
+
+# ...but keep the LaTeX that the PDF format needs.
+!_extensions/**/*.tex
+!assets/pdf-*.tex

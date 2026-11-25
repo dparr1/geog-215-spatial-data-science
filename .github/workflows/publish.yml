@@ -1,7 +1,8 @@
 name: Render and Publish Quarto Book
 
-# Every push to main renders the textbook (chapters, quizzes, glossary; not
-# the course pages) and commits it to
+# Every push to main renders the textbook (unit pages, chapters, glossary; not
+# the course pages, and no quizzes, which are only on geog215.org) with the
+# `textbook` profile (_quarto-textbook.yml) and commits it to
 # dparr1/daveparr.com under intro-spatial-data-science/, which triggers Cloudflare's build of
 # daveparr.com (https://daveparr.com/intro-spatial-data-science/).
 #

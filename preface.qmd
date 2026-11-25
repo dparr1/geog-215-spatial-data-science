@@ -10,7 +10,11 @@ This is an interactive textbook specifically designed and written for this class
 
 ## How this book is organized
 
-The chapters are grouped into six units. Each unit opens with a page that summarizes its chapters, and each chapter through Chapter 22 is followed by a chapter quiz you can take as many times as you like. Units 1 to 5 end with a unit quiz that mixes questions from all of the unit's chapter quizzes, for reviewing a whole unit at once.
+The chapters are grouped into six units. Each unit opens with a page that summarizes its chapters.
+
+::: {.content-hidden when-profile="textbook"}
+Each chapter through Chapter 22 is followed by a chapter quiz you can take as many times as you like. Units 1 to 5 end with a unit quiz that mixes questions from all of the unit's chapter quizzes, for reviewing a whole unit at once.
+:::
 
 **[Unit 1: R and Spatial Data Science](units/unit-1.qmd)** (Chapters 1–5) sets up everything else. It explains what spatial data science is and why location matters, then gets you working in R, RStudio, and R Markdown, with R's basic building blocks: vectors, data types, and data frames. It ends with `if` statements, loops, and writing your own functions, so you can make decisions and repeat work in code.
 

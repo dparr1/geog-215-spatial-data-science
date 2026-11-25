@@ -1,78 +1,61 @@
-# Textbook-only profile, used for the public copy on daveparr.com/intro-spatial-data-science/:
-# `quarto render --profile textbook`. It leaves out the course pages
-# (Welcome, Syllabus, Course materials, About) and the top menu, which live
-# only on geog215.org. A book needs index.qmd, so the publish workflow copies
-# preface.qmd over index.qmd before rendering with this profile.
+# Textbook-only profile: `quarto render --profile textbook`. Used for
+#   - the public copy on daveparr.com/intro-spatial-data-science/
+#     (.github/workflows/publish.yml, HTML), and
+#   - the PDF textbook (`quarto render --to PrettyPDF-pdf --profile textbook`).
+# It leaves out the course pages (Welcome, Syllabus, Course materials, About)
+# and the top menu, which live only on geog215.org, and it leaves out every
+# quiz: the chapter quizzes and the unit quizzes. Quizzes are only on
+# geog215.org (_quarto-site.yml). Links to quiz pages on the unit pages and in
+# the Preface are wrapped in `content-hidden when-profile="textbook"` so they
+# disappear here too.
+#
+# A book must start at index.qmd. With this profile index.qmd shows the
+# Preface instead of the Welcome page (see the top of index.qmd).
 project:
   render:
     - index.qmd
     - units/*.qmd
     - chapters/*.qmd
+    # No quiz pages, not even as unlisted pages.
+    - "!units/*-quiz.qmd"
+    - "!chapters/*-quiz.qmd"
     - glossary.qmd
 
 book:
   chapters:
     - index.qmd
-    # Each chapter is followed by its (unnumbered) chapter quiz page.
     - part: units/unit-1.qmd
       chapters:
         - chapters/intro-spatial-data-science.qmd
-        - chapters/intro-spatial-data-science-quiz.qmd
         - chapters/r-rstudio-rmarkdown.qmd
-        - chapters/r-rstudio-rmarkdown-quiz.qmd
         - chapters/r-basics.qmd
-        - chapters/r-basics-quiz.qmd
         - chapters/indexing-vectors-data-frames.qmd
-        - chapters/indexing-vectors-data-frames-quiz.qmd
         - chapters/blocks-loops-functions.qmd
-        - chapters/blocks-loops-functions-quiz.qmd
-        - units/unit-1-quiz.qmd
     - part: units/unit-2.qmd
       chapters:
         - chapters/tidyverse-filter-pipe.qmd
-        - chapters/tidyverse-filter-pipe-quiz.qmd
         - chapters/tidyverse-arrange-select-mutate.qmd
-        - chapters/tidyverse-arrange-select-mutate-quiz.qmd
         - chapters/tidyverse-summarize-group-by.qmd
-        - chapters/tidyverse-summarize-group-by-quiz.qmd
         - chapters/tidyverse-ggplot.qmd
-        - chapters/tidyverse-ggplot-quiz.qmd
-        - units/unit-2-quiz.qmd
     - part: units/unit-3.qmd
       chapters:
         - chapters/thematic-maps-tmap.qmd
-        - chapters/thematic-maps-tmap-quiz.qmd
         - chapters/geographic-information.qmd
-        - chapters/geographic-information-quiz.qmd
         - chapters/location-coordinate-systems.qmd
-        - chapters/location-coordinate-systems-quiz.qmd
         - chapters/census-data-apis.qmd
-        - chapters/census-data-apis-quiz.qmd
         - chapters/arcpullr.qmd
-        - chapters/arcpullr-quiz.qmd
-        - units/unit-3-quiz.qmd
     - part: units/unit-4.qmd
       chapters:
         - chapters/joins.qmd
-        - chapters/joins-quiz.qmd
         - chapters/esda.qmd
-        - chapters/esda-quiz.qmd
         - chapters/spatial-statistics.qmd
-        - chapters/spatial-statistics-quiz.qmd
-        - units/unit-4-quiz.qmd
     - part: units/unit-5.qmd
       chapters:
         - chapters/anova.qmd
-        - chapters/anova-quiz.qmd
         - chapters/regression.qmd
-        - chapters/regression-quiz.qmd
         - chapters/writing-spatial-data-science.qmd
-        - chapters/writing-spatial-data-science-quiz.qmd
         - chapters/distance-neighborhoods.qmd
-        - chapters/distance-neighborhoods-quiz.qmd
         - chapters/spatial-autocorrelation.qmd
-        - chapters/spatial-autocorrelation-quiz.qmd
-        - units/unit-5-quiz.qmd
     - part: units/unit-6.qmd
       chapters:
         - chapters/dashboards.qmd

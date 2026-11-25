@@ -1,3 +1,13 @@
+<!--
+The PDF textbook (`--profile textbook`) has no Welcome page: it opens with
+the Preface instead. (The daveparr.com Action copies preface.qmd over this
+file before rendering, so the sidebar there says "Preface".)
+-->
+::: {.content-visible when-profile="textbook"}
+{{< include preface.qmd >}}
+:::
+
+::: {.content-hidden when-profile="textbook"}
 # Welcome {.unnumbered}
 
 **GEOG 215: Introduction to Spatial Data Science**\
@@ -29,3 +39,5 @@ I'm here to support you every step of the way. Please reach out with any questio
 - **Gen Ed:** IDEAs in Action FC-QUANT; Making Connections SS, QI
 - **Assignments and grades:** on Canvas. Announcements and discussion are on Microsoft Teams.
 - **Final exam:** Friday, December 11, noon–3 pm, in our classroom
+
+:::

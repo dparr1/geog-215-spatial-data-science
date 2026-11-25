@@ -8,32 +8,46 @@ This unit turns data into evidence. It tests whether groups of places differ, mo
 
 This chapter places statistical tests in the cycle of data analysis. It explains what a p-value does and doesn't tell you, and why the replication crisis changed how scientists report them. It then compares group means with analysis of variance, from a small worked example to median male age across North Carolina's regions, with follow-up tests and alternatives for when ANOVA's assumptions fail.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 18 quiz](../chapters/anova-quiz.qmd)
+:::
 
 ## Chapter 19: [Linear Regression](../chapters/regression.qmd)
 
 Regression asks how one variable changes as another changes. This chapter covers correlation, fitting a line with `lm()`, slopes, intercepts, residuals, and predictions, and how to read R's model summary, including R² and adjusted R². It models median house value in North Carolina's counties, then maps the residuals to see where the model fails.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 19 quiz](../chapters/regression-quiz.qmd)
+:::
 
 ## Chapter 20: [Writing a Spatial Data Science Project](../chapters/writing-spatial-data-science.qmd)
 
 This chapter steps back to ask how data become knowledge. It covers the data, information, knowledge, wisdom pyramid, big data, choosing sources, and why reproducibility and replicability matter. It then walks through the parts of a project, from the research question and background to methods, results, and conclusions, and ends with what makes a project spatial data science.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 20 quiz](../chapters/writing-spatial-data-science-quiz.qmd)
+:::
 
 ## Chapter 21: [Distance and Neighborhoods](../chapters/distance-neighborhoods.qmd)
 
 This chapter covers what distance means and the main ways to measure it: Euclidean, great circle, Manhattan, and network distance. It then uses distance and shared borders to decide which features are neighbors, with distance bands, *k* nearest neighbors, and rook and queen contiguity, and stores those relationships in a neighborhood weight matrix, built in R with spdep.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 21 quiz](../chapters/distance-neighborhoods-quiz.qmd)
+:::
 
 ## Chapter 22: [Spatial Clustering and Spatial Autocorrelation](../chapters/spatial-autocorrelation.qmd)
 
 This chapter tests objectively whether things on a map are clustered. It measures point patterns with the Average Nearest Neighbor ratio, global spatial autocorrelation with Moran's I and a permutation test, and local hot spots and cold spots with Getis-Ord Gi\*, using births in North Carolina's counties.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 22 quiz](../chapters/spatial-autocorrelation-quiz.qmd)
+:::
+
+::: {.content-hidden when-profile="textbook"}
 
 ## Unit 5 quiz
 
 When you have finished the unit, the [Unit 5 quiz](unit-5-quiz.qmd) mixes questions from all 5 chapter quizzes, so you can review the whole unit at once.
+
+:::

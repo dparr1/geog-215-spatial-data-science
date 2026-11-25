@@ -8,32 +8,46 @@ This unit sets up everything else in the book. It starts with what spatial data 
 
 Spatial data science uses data with locations to answer questions about the world. This chapter explains how data become information, walks through the steps of a data science project, from a question to communicating results, and shows why spatial data need special care: near things tend to be alike, patterns change with scale, and relationships change from place to place. It ends by introducing the tools used in this course: R, RStudio, the tidyverse, sf, and tmap.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 1 quiz](../chapters/intro-spatial-data-science-quiz.qmd)
+:::
 
 ## Chapter 2: [R, RStudio, and R Markdown](../chapters/r-rstudio-rmarkdown.qmd)
 
 R is the language that does the computing, RStudio is the workspace where you write and run it, and R Markdown is the format that combines your writing, your code, and its results in one report. This chapter tours RStudio's four panes, explains how knitting builds a reproducible report, and introduces variables, comments, functions, and the pipe.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 2 quiz](../chapters/r-rstudio-rmarkdown-quiz.qmd)
+:::
 
 ## Chapter 3: [R Basics](../chapters/r-basics.qmd)
 
 R runs one line at a time, in the order you run it, so this chapter shows how to think sequentially and make sure a file will knit. It covers installing and loading packages, R's four basic data types and how vectors hold them, good names for variables, and how to read error messages and find help.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 3 quiz](../chapters/r-basics-quiz.qmd)
+:::
 
 ## Chapter 4: [Indexing Vectors and Data Frames](../chapters/indexing-vectors-data-frames.qmd)
 
 Indexing selects part of a vector or a table with square brackets: by position, by name, or by a condition built from comparison and logical operators. The chapter then introduces the data frame, R's table of variables and observations, and shows how to read a CSV file into one and select its rows and columns.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 4 quiz](../chapters/indexing-vectors-data-frames-quiz.qmd)
+:::
 
 ## Chapter 5: [Blocks, Loops, and Functions](../chapters/blocks-loops-functions.qmd)
 
 Good programmers are productively lazy. This chapter shows how blocks group lines of code, how `if`, `else if`, and `else` decide whether a block runs, and how `while` and `for` loops repeat one. It compares loops with R's vectorized functions, such as `ifelse()`, then takes functions apart: arguments, defaults, return values, error checks with `stop()`, and variable scope.
 
+::: {.content-hidden when-profile="textbook"}
 [Chapter 5 quiz](../chapters/blocks-loops-functions-quiz.qmd)
+:::
+
+::: {.content-hidden when-profile="textbook"}
 
 ## Unit 1 quiz
 
 When you have finished the unit, the [Unit 1 quiz](unit-1-quiz.qmd) mixes questions from all 5 chapter quizzes, so you can review the whole unit at once.
+
+:::
