@@ -1,0 +1,93 @@
+/*-- scss:defaults --*/
+
+// UNC-Chapel Hill brand colors, from https://identity.unc.edu/brand/color/
+// Layered after sandstone (see the theme list in _quarto.yml), so these
+// replace Sandstone's own blues and grays.
+//
+// Contrast notes (WCAG 2.2 AA, which UNC follows for digital materials):
+// - Carolina Blue on white is only 2.9:1, so UNC says to use it for text
+//   only at 24px+ (or 19px bold). Here it is used for accents (rules,
+//   borders, the line under the top menu, callout bars), never body text.
+// - Links use UNC's Hyperlink Blue (#007FAE, 4.6:1 on white).
+// - Bolin Creek (top menu, buttons) takes white text at 8.2:1.
+
+$unc-carolina-blue: #4B9CD3;
+$unc-navy: #13294B;
+$unc-bolin-creek: #2C5080;
+$unc-fordham-fountain: #B7D7ED;
+$unc-cloud: #EDF5FB;
+$unc-old-well-basin: #5B6670;
+$unc-cornerstone: #CFD3D5;
+$unc-franklin-fog: #ECEDED;
+$unc-hyperlink-blue: #007FAE;
+$unc-clay: #E95550;
+$unc-tulip-poplar: #FF9E1B;
+$unc-piedmont-pine: #006D6A;
+$unc-beautyberry: #9F237E;
+
+// Bootstrap theme colors.
+$primary: $unc-bolin-creek;
+$secondary: $unc-old-well-basin;
+$info: $unc-carolina-blue;
+$success: $unc-piedmont-pine;
+$warning: $unc-tulip-poplar;
+$danger: $unc-clay;
+$light: $unc-franklin-fog;
+$dark: $unc-navy;
+
+// Text. Body text stays near-black for readability; headings are Navy.
+$body-color: #212529;
+$headings-color: $unc-navy;
+$link-color: $unc-hyperlink-blue;
+$link-hover-color: $unc-bolin-creek;
+// Inline code (Bootstrap's default is pink); 7.4:1 on white.
+$code-color: $unc-beautyberry;
+
+// Top menu: Bolin Creek with white text; the current page and hover use
+// Fordham Fountain (5.6:1 on Bolin Creek).
+$navbar-bg: $unc-bolin-creek;
+$navbar-fg: #ffffff;
+$navbar-hl: $unc-fordham-fountain;
+
+// Left sidebar: a light Cloud background; the current page is Bolin Creek.
+$sidebar-bg: $unc-cloud;
+$sidebar-fg: #212529;
+$sidebar-hl: $unc-bolin-creek;
+
+// Callout bars and icons.
+$callout-color-note: $unc-carolina-blue;
+$callout-color-tip: $unc-piedmont-pine;
+$callout-color-important: $unc-beautyberry;
+$callout-color-caution: $unc-tulip-poplar;
+$callout-color-warning: $unc-clay;
+
+/*-- scss:rules --*/
+
+// A Carolina Blue line under the Bolin Creek top menu.
+.navbar {
+  border-bottom: 4px solid $unc-carolina-blue;
+}
+
+// Carolina Blue rule under section headings.
+#quarto-content h2,
+#quarto-content .h2 {
+  border-bottom-color: $unc-carolina-blue;
+}
+
+// Left Carolina Blue bar on block quotes.
+.blockquote,
+blockquote {
+  border-left-color: $unc-carolina-blue;
+}
+
+// Current sidebar page: bold, with a Carolina Blue marker.
+.sidebar-item .sidebar-link.active {
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 $unc-carolina-blue;
+  padding-left: 0.4rem;
+}
+
+::selection {
+  background: $unc-fordham-fountain;
+  color: $unc-navy;
+}

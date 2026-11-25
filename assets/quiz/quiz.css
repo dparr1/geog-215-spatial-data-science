@@ -1,7 +1,7 @@
 /* GEOG 215 chapter quizzes (assets/quiz/quiz.js). */
 .sds-quiz {
-  --q-accent: #2c5f8a;
-  --q-accent-dark: #1d4566;
+  --q-accent: #2C5080;
+  --q-accent-dark: #13294B;
   --q-right: #58a700;
   --q-right-bg: #d7ffb8;
   --q-right-border: #58cc02;
@@ -71,7 +71,7 @@
 }
 .sds-q-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2); }
 .sds-q-btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
-.sds-q-btn:focus-visible { outline: 3px solid #1cb0f6; outline-offset: 2px; }
+.sds-q-btn:focus-visible { outline: 3px solid #007FAE; outline-offset: 2px; }
 .sds-q-primary { background: var(--q-accent); color: #fff; }
 .sds-q-secondary {
   min-width: 0; padding: 8px 14px; background: var(--q-surface); color: var(--q-accent);
@@ -90,10 +90,10 @@
 }
 .sds-q-code code { background: none; color: inherit; padding: 0; white-space: pre; }
 .sds-q-code-fill input {
-  margin: 0 2px; padding: 1px 6px; border: 0; border-bottom: 2px solid #1cb0f6; border-radius: 4px;
+  margin: 0 2px; padding: 1px 6px; border: 0; border-bottom: 2px solid #007FAE; border-radius: 4px;
   background: #34414d; color: #fff; font: inherit;
 }
-.sds-q-code-fill input:focus { outline: 2px solid #1cb0f6; }
+.sds-q-code-fill input:focus { outline: 2px solid #007FAE; }
 
 .sds-q-choices { display: grid; gap: 10px; }
 .sds-q-choice {
@@ -138,7 +138,7 @@
   background: #1f2933; color: #f4f6f8; caret-color: #fff; border: 0; border-radius: 10px;
   font: 0.92rem/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
 }
-.sds-q-editor:focus { outline: 3px solid #1cb0f6; }
+.sds-q-editor:focus { outline: 3px solid #007FAE; }
 .sds-q-tools { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
 .sds-q-status { color: var(--q-muted); font-size: 0.9rem; }
 .sds-q-output {

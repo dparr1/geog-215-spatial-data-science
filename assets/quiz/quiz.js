@@ -756,7 +756,7 @@
     canvas.width = w * dpr; canvas.height = h * dpr;
     canvas.style.width = w + "px"; canvas.style.height = h + "px";
     ctx.scale(dpr, dpr);
-    const colors = ["#58cc02", "#1cb0f6", "#ffc800", "#ff4b4b", "#ce82ff", "#2c5f8a"];
+    const colors = ["#4B9CD3", "#13294B", "#FFD340", "#E95550", "#006D6A", "#2C5080"];
     const bits = Array.from({ length: 140 }, () => ({
       x: w / 2 + (Math.random() - 0.5) * 80, y: h * 0.32,
       vx: (Math.random() - 0.5) * 11, vy: -Math.random() * 11 - 4,

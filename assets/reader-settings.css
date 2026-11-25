@@ -69,7 +69,7 @@ html[data-reader-size="3"]  { font-size: 150%; }
 .navbar .sds-reader-toggle { color: var(--bs-navbar-color, rgba(255, 255, 255, 0.75)); }
 .sds-reader-toggle:hover,
 .sds-reader-toggle[aria-expanded="true"] { border-color: currentColor; }
-.sds-reader-toggle:focus-visible { outline: 3px solid #93c47d; outline-offset: 2px; }
+.sds-reader-toggle:focus-visible { outline: 3px solid #007FAE; outline-offset: 2px; }
 
 .sds-reader-panel {
   position: absolute; top: calc(100% + 8px); right: 0; z-index: 1100;
@@ -98,7 +98,7 @@ html[data-reader-size="3"]  { font-size: 150%; }
 .sds-reader-size-row output { flex: 1; text-align: center; font-size: 0.9rem; }
 .sds-reader-reset { width: 100%; font-weight: 400; }
 .sds-reader-panel button:focus-visible,
-.sds-reader-font input:focus-visible { outline: 3px solid #93c47d; outline-offset: 2px; }
+.sds-reader-font input:focus-visible { outline: 3px solid #007FAE; outline-offset: 2px; }
 
 /* Textbook-only build (daveparr.com, no top menu): the button sits under the
    sidebar search, and the menu opens in place because the sidebar clips
