@@ -1,0 +1,314 @@
+{
+  "id": "spatial-autocorrelation",
+  "title": "Spatial Clustering and Spatial Autocorrelation",
+  "perSession": 10,
+  "minR": 2,
+  "questions": [
+    {
+      "id": "tobler",
+      "type": "choice",
+      "prompt": "\"Everything is related to everything else, but near things are more related than distant things\" is:",
+      "choices": [
+        "Tobler's first law of geography",
+        "The modifiable areal unit problem",
+        "Moran's I",
+        "Distance decay"
+      ],
+      "answer": 0,
+      "explain": "Waldo Tobler, 1970."
+    },
+    {
+      "id": "eyes",
+      "type": "truefalse",
+      "prompt": "If a map looks clustered, it is clustered.",
+      "answer": false,
+      "explain": "Seeing a pattern is subjective, and classification and colors change what we see. Test it."
+    },
+    {
+      "id": "global",
+      "type": "choice",
+      "prompt": "A statistic that gives one value for the whole study area is:",
+      "choices": [
+        "Global",
+        "Local",
+        "Contiguous",
+        "Dispersed"
+      ],
+      "answer": 0,
+      "explain": "It doesn't tell you where clusters are."
+    },
+    {
+      "id": "local",
+      "type": "choice",
+      "prompt": "Which kind of statistic can be mapped to show where clusters are?",
+      "choices": [
+        "Local",
+        "Global",
+        "Both equally",
+        "Neither"
+      ],
+      "answer": 0,
+      "explain": "Local statistics give a value for every observation."
+    },
+    {
+      "id": "patterns",
+      "type": "choice",
+      "prompt": "Points spread out in a regular, repeating way are:",
+      "choices": [
+        "Dispersed",
+        "Clustered",
+        "Random",
+        "Autocorrelated"
+      ],
+      "answer": 0,
+      "explain": "Also called ordered."
+    },
+    {
+      "id": "ann-057",
+      "type": "choice",
+      "prompt": "An Average Nearest Neighbor ratio of 0.57 means the points are:",
+      "choices": [
+        "Clustered",
+        "Random",
+        "Dispersed",
+        "Impossible to tell"
+      ],
+      "answer": 0,
+      "explain": "Below 1: closer together than random."
+    },
+    {
+      "id": "ann-values",
+      "type": "truefalse",
+      "prompt": "The ANN ratio takes the attribute values of the points into account.",
+      "answer": false,
+      "explain": "ANN uses locations only. For values, use spatial autocorrelation."
+    },
+    {
+      "id": "ann-area",
+      "type": "choice",
+      "prompt": "Drawing a larger study area around the same points makes their ANN ratio:",
+      "choices": [
+        "Smaller, so they look more clustered",
+        "Larger, so they look more dispersed",
+        "Exactly the same",
+        "Negative"
+      ],
+      "answer": 0,
+      "explain": "The expected distance grows with the area. Always report the study area."
+    },
+    {
+      "id": "pattern-vs-sa",
+      "type": "choice",
+      "prompt": "You have hospital locations with no attributes. Which method can you use?",
+      "choices": [
+        "Average Nearest Neighbor",
+        "Moran's I",
+        "Getis-Ord Gi*",
+        "Local Moran's I"
+      ],
+      "answer": 0,
+      "explain": "Moran's I and Gi* need values."
+    },
+    {
+      "id": "auto",
+      "type": "choice",
+      "prompt": "The \"auto\" in spatial autocorrelation means:",
+      "choices": [
+        "One variable compared with itself at nearby locations",
+        "It is calculated automatically",
+        "Two different variables",
+        "Cars and traffic"
+      ],
+      "answer": 0,
+      "explain": "Correlation between two variables is a different question."
+    },
+    {
+      "id": "rates",
+      "type": "choice",
+      "prompt": "Why use rates instead of raw counts for spatial autocorrelation?",
+      "choices": [
+        "Places with more people have more cases just because of their size",
+        "Counts can't be mapped",
+        "Moran's I only works on percentages",
+        "Rates are always normal"
+      ],
+      "answer": 0,
+      "explain": "Use rates or densities, such as cases per 1,000 residents."
+    },
+    {
+      "id": "checker",
+      "type": "choice",
+      "prompt": "A perfect checkerboard of two values has a Moran's I of:",
+      "choices": [
+        "−1",
+        "0",
+        "0.5",
+        "1"
+      ],
+      "answer": 0,
+      "explain": "Every neighbor is the opposite value: perfectly dispersed."
+    },
+    {
+      "id": "zero",
+      "type": "choice",
+      "prompt": "A Moran's I near 0 means the values are:",
+      "choices": [
+        "Randomly arranged",
+        "Highly clustered",
+        "Highly dispersed",
+        "All the same"
+      ],
+      "answer": 0,
+      "explain": "The expected value under randomness is −1/(N − 1), close to 0."
+    },
+    {
+      "id": "products",
+      "type": "choice",
+      "prompt": "When two neighbors are both above the mean, their product in the Moran's I formula is:",
+      "choices": [
+        "Positive, pushing I up",
+        "Negative, pushing I down",
+        "Zero",
+        "Ignored"
+      ],
+      "answer": 0,
+      "explain": "Alike neighbors give positive products; unlike neighbors, negative."
+    },
+    {
+      "id": "interp",
+      "type": "choice",
+      "prompt": "Moran's I = 0.158 with *p* = 0.028 describes a pattern that is:",
+      "choices": [
+        "Slightly clustered and statistically significant",
+        "Highly clustered and not significant",
+        "Dispersed and significant",
+        "Random"
+      ],
+      "answer": 0,
+      "explain": "0.1 to 0.3 is slightly clustered, and *p* < 0.05."
+    },
+    {
+      "id": "importance",
+      "type": "choice",
+      "prompt": "*I* = 0.04 with *p* < 0.001, from thousands of observations. Best description:",
+      "choices": [
+        "Statistically significant but essentially random in practice",
+        "Highly clustered",
+        "Not significant",
+        "Dispersed"
+      ],
+      "answer": 0,
+      "explain": "With many observations, tiny deviations become significant. Interpret both I and p."
+    },
+    {
+      "id": "montecarlo",
+      "type": "choice",
+      "prompt": "A Monte Carlo (permutation) test for Moran's I:",
+      "choices": [
+        "Shuffles the values across locations many times and compares the observed I with the shuffled ones",
+        "Adds random noise to the coordinates",
+        "Removes outliers",
+        "Changes the neighbor definition"
+      ],
+      "answer": 0,
+      "explain": "`moran.mc()` in spdep."
+    },
+    {
+      "id": "hot",
+      "type": "choice",
+      "prompt": "A county with a large positive Gi* z-score is a:",
+      "choices": [
+        "Hot spot",
+        "Cold spot",
+        "Outlier",
+        "Random value"
+      ],
+      "answer": 0,
+      "explain": "High values surrounded by high values."
+    },
+    {
+      "id": "cold",
+      "type": "choice",
+      "prompt": "An area of low values surrounded by low values is a:",
+      "choices": [
+        "Cold spot",
+        "Hot spot",
+        "Dispersed pattern",
+        "Checkerboard"
+      ],
+      "answer": 0,
+      "explain": "It has a large negative z-score."
+    },
+    {
+      "id": "z-sig",
+      "type": "truefalse",
+      "prompt": "A Gi* z-score of 2.3 is significant at the 0.05 level.",
+      "answer": true,
+      "explain": "|z| above 1.96 is significant at 0.05."
+    },
+    {
+      "id": "gi-star",
+      "type": "choice",
+      "prompt": "How does Gi* differ from Gi?",
+      "choices": [
+        "Gi* includes the observation itself along with its neighbors",
+        "Gi* is a global statistic",
+        "Gi* uses only locations",
+        "Gi* can't be mapped"
+      ],
+      "answer": 0,
+      "explain": "In spdep, `include.self()` turns Gi into Gi*."
+    },
+    {
+      "id": "wake",
+      "type": "choice",
+      "prompt": "Wake County had a high birth density in the 1970s but was not a Gi* hot spot. Why?",
+      "choices": [
+        "Its neighbors had much lower values, so the neighborhood as a whole wasn't unusual",
+        "Gi* ignores high values",
+        "Wake has no neighbors",
+        "Its value was missing"
+      ],
+      "answer": 0,
+      "explain": "Gi* finds clusters of high values, not single high values."
+    },
+    {
+      "id": "fill-moran",
+      "type": "fill",
+      "prompt": "Complete the code for a Monte Carlo test of Moran's I with 499 simulations.",
+      "code": "___(nc$births_per_km2, lw, nsim = 499)",
+      "answers": [
+        "moran.mc"
+      ],
+      "explain": "`moran.test()` is the formula version."
+    },
+    {
+      "id": "fill-localg",
+      "type": "fill",
+      "prompt": "Which spdep function gives a Gi z-score for every observation?",
+      "code": "nc$gi <- as.numeric(___(nc$births_per_km2, lw_b))",
+      "answers": [
+        "localG"
+      ],
+      "explain": "Use binary weights with `include.self()` for Gi*."
+    },
+    {
+      "id": "code-moran",
+      "type": "code",
+      "prompt": "`moranI()` calculates Moran's I. Make `halves`, an 8 × 8 grid that is 0 in the left four columns and 1 in the right four (use `cells$col`), and store its Moran's I in `I`.",
+      "starter": "cells <- expand.grid(row = 1:8, col = 1:8)\nW <- (as.matrix(dist(cells)) == 1) * 1\nmoranI <- function(x, W) {\n  z <- x - mean(x)\n  (length(x) / sum(W)) * sum(W * outer(z, z)) / sum(z^2)\n}\n\n",
+      "check": "isTRUE(all.equal(I, 6/7))",
+      "solution": "cells <- expand.grid(row = 1:8, col = 1:8)\nW <- (as.matrix(dist(cells)) == 1) * 1\nmoranI <- function(x, W) {\n  z <- x - mean(x)\n  (length(x) / sum(W)) * sum(W * outer(z, z)) / sum(z^2)\n}\n\nhalves <- as.integer(cells$col > 4)\nI <- moranI(halves, W)",
+      "explain": "Two solid halves give I = 0.857: strongly clustered."
+    },
+    {
+      "id": "code-ann",
+      "type": "code",
+      "prompt": "Store in `Do` the mean distance from each point to its nearest neighbor.",
+      "starter": "x <- c(1, 2, 1, 8, 9)\ny <- c(1, 1, 2, 8, 8)\nd <- as.matrix(dist(cbind(x, y)))\ndiag(d) <- Inf\n",
+      "check": "isTRUE(all.equal(Do, 1))",
+      "solution": "x <- c(1, 2, 1, 8, 9)\ny <- c(1, 1, 2, 8, 8)\nd <- as.matrix(dist(cbind(x, y)))\ndiag(d) <- Inf\nDo <- mean(apply(d, 1, min))",
+      "explain": "Every point's nearest neighbor is 1 unit away, so the mean is 1."
+    }
+  ]
+}

@@ -33,12 +33,12 @@ Free peer tutoring is also available from the [UNC Learning Center](https://lear
 | | Project 1: Map contest with tmap | [Thematic Maps with tmap](chapters/thematic-maps-tmap.qmd) |
 | 2. Working with spatial data | Module 4: Overlaying two spatial layers | [What Is Geographic Data?](chapters/geographic-information.qmd), [Location and Coordinate Systems](chapters/location-coordinate-systems.qmd) |
 | | Module 5: Joining tables | [Joins: Attribute and Spatial](chapters/joins.qmd) |
-| | Module 6: Spatial statistics | [Exploratory Spatial Data Analysis](chapters/esda.qmd), [Spatial Descriptive Statistics](chapters/spatial-statistics.qmd) |
-| | Project 2: Map contest with online data | [Census Data and APIs](chapters/census-data-apis.qmd) |
-| 3. Spatial data science | Module 7: ANOVA | |
-| | Module 8: Regression | |
-| | Module 9: Clustering | |
-| | Project 3: Spatial data science project | |
+| | Module 6: Spatial statistics | [Exploratory Spatial Data Analysis](chapters/esda.qmd), [Spatial Descriptive Statistics](chapters/spatial-statistics.qmd), [Blocks, Loops, and Functions](chapters/blocks-loops-functions.qmd) |
+| | Project 2: Map contest with online data | [Census Data and APIs](chapters/census-data-apis.qmd), [ArcGIS Data with arcpullr](chapters/arcpullr.qmd) |
+| 3. Spatial data science | Module 7: ANOVA | [Comparing Groups: p-values and ANOVA](chapters/anova.qmd) |
+| | Module 8: Regression | [Linear Regression](chapters/regression.qmd) |
+| | Module 9: Clustering | [Distance and Neighborhoods](chapters/distance-neighborhoods.qmd), [Spatial Clustering and Spatial Autocorrelation](chapters/spatial-autocorrelation.qmd) |
+| | Project 3: Spatial data science project | [Writing a Spatial Data Science Project](chapters/writing-spatial-data-science.qmd) |
 
 ## Class schedule
 

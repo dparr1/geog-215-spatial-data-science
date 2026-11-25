@@ -1,0 +1,270 @@
+{
+  "id": "regression",
+  "title": "Linear Regression",
+  "perSession": 10,
+  "minR": 3,
+  "questions": [
+    {
+      "id": "dik",
+      "type": "choice",
+      "prompt": "A regression showing that counties with more remote workers have higher house values is an example of:",
+      "choices": [
+        "Knowledge: information explained and tested",
+        "Data: raw values",
+        "Information: data organized and summarized",
+        "None of these"
+      ],
+      "answer": 0,
+      "explain": "Data → information → knowledge, each step adding context."
+    },
+    {
+      "id": "special",
+      "type": "choice",
+      "prompt": "Which property of spatial data breaks the independence assumption of standard statistics?",
+      "choices": [
+        "Spatial autocorrelation",
+        "Projections",
+        "Geocoding errors",
+        "Changing boundaries"
+      ],
+      "answer": 0,
+      "explain": "Nearby things are more alike, so observations aren't independent."
+    },
+    {
+      "id": "dep-var",
+      "type": "choice",
+      "r": true,
+      "prompt": "In `lm(house_value ~ income, data = d)`, the dependent variable is:",
+      "choices": [
+        "`house_value`",
+        "`income`",
+        "`d`",
+        "`lm`"
+      ],
+      "answer": 0,
+      "explain": "The dependent variable goes left of the `~`."
+    },
+    {
+      "id": "fill-tilde",
+      "type": "fill",
+      "prompt": "Complete the formula: house value explained by percent working from home.",
+      "code": "lm(median.house.value ___ works.from.home.percent, data = ncCounties)",
+      "answers": [
+        "~"
+      ],
+      "explain": "The tilde separates the dependent variable from the independent variables."
+    },
+    {
+      "id": "fill-lm",
+      "type": "fill",
+      "prompt": "Which R function fits a linear regression?",
+      "code": "model <- ___(cones ~ temp)",
+      "answers": [
+        "lm"
+      ],
+      "explain": "`lm()` stands for linear model."
+    },
+    {
+      "id": "corr-vs-reg",
+      "type": "truefalse",
+      "prompt": "Correlation tells you how much *y* changes for each one-unit change in *x*.",
+      "answer": false,
+      "explain": "Correlation says whether they move together; regression estimates by how much."
+    },
+    {
+      "id": "r-range",
+      "type": "choice",
+      "prompt": "A correlation coefficient of −0.95 means:",
+      "choices": [
+        "A strong negative straight-line relationship",
+        "No relationship",
+        "A weak positive relationship",
+        "An error: *r* can't be negative"
+      ],
+      "answer": 0,
+      "explain": "*r* runs from −1 to 1."
+    },
+    {
+      "id": "phone",
+      "type": "choice",
+      "prompt": "Why is `weight ~ height + phone_number` a poor model?",
+      "choices": [
+        "A phone number has no plausible link to weight",
+        "Phone numbers can't be numeric",
+        "`lm()` allows only one variable",
+        "Height doesn't affect weight"
+      ],
+      "answer": 0,
+      "explain": "Every variable needs a reason to be in the model."
+    },
+    {
+      "id": "slope-meaning",
+      "type": "choice",
+      "prompt": "A slope of 36,564 for `works.from.home.percent` means each extra percentage point working from home goes with a median house value:",
+      "choices": [
+        "$36,564 higher",
+        "$36,564 lower",
+        "36,564% higher",
+        "36,564 times higher"
+      ],
+      "answer": 0,
+      "explain": "The slope is the change in *y* for one unit of *x*."
+    },
+    {
+      "id": "intercept",
+      "type": "choice",
+      "prompt": "The intercept of a regression is:",
+      "choices": [
+        "The predicted *y* when *x* is 0",
+        "The change in *y* for each unit of *x*",
+        "The share of variation explained",
+        "The largest residual"
+      ],
+      "answer": 0,
+      "explain": "It places the line, but often means nothing on its own."
+    },
+    {
+      "id": "r2",
+      "type": "fill",
+      "r": false,
+      "prompt": "An adjusted R² of 0.74 means the model explains about what percent of the variation in *y*? (Enter a number.)",
+      "answers": [
+        "74"
+      ],
+      "numeric": true,
+      "explain": "0.74 is 74%."
+    },
+    {
+      "id": "adj-r2",
+      "type": "choice",
+      "prompt": "To compare models with different numbers of independent variables, use:",
+      "choices": [
+        "Adjusted R-squared",
+        "Multiple R-squared",
+        "The intercept",
+        "The number of stars"
+      ],
+      "answer": 0,
+      "explain": "Adjusted R² penalizes extra variables."
+    },
+    {
+      "id": "stars",
+      "type": "choice",
+      "prompt": "In R's summary, three stars (`***`) next to a coefficient mean:",
+      "choices": [
+        "*p* < 0.001",
+        "The coefficient is very large",
+        "The variable is the most important",
+        "*p* > 0.05"
+      ],
+      "answer": 0,
+      "explain": "The stars flag small p-values."
+    },
+    {
+      "id": "sci",
+      "type": "choice",
+      "prompt": "R prints a coefficient as `2.434e+04`. That is:",
+      "choices": [
+        "24,340",
+        "2.434",
+        "0.0002434",
+        "243.4"
+      ],
+      "answer": 0,
+      "explain": "2.434 × 10⁴."
+    },
+    {
+      "id": "age-ns",
+      "type": "choice",
+      "prompt": "In the multivariate model, median age has *p* = 0.70. This means:",
+      "choices": [
+        "Median age adds little once the other variables are in the model",
+        "Median age explains 70% of house value",
+        "Median age is the most important variable",
+        "The model is wrong"
+      ],
+      "answer": 0,
+      "explain": "It isn't significant, holding the other variables constant."
+    },
+    {
+      "id": "coef-shrink",
+      "type": "choice",
+      "prompt": "Adding median income shrank the work-from-home coefficient from about $36,564 to $24,340. Why?",
+      "choices": [
+        "Counties with more remote work also have higher incomes, so part of the first estimate really went with income",
+        "Income has no effect",
+        "The data changed",
+        "Adjusted R² went down"
+      ],
+      "answer": 0,
+      "explain": "A multivariate coefficient is the change in *y* with the other variables held constant."
+    },
+    {
+      "id": "causation",
+      "type": "truefalse",
+      "prompt": "A strong, significant regression coefficient shows that *x* causes *y*.",
+      "answer": false,
+      "explain": "Regression shows association. The relationship could run the other way, or both could depend on something else."
+    },
+    {
+      "id": "extrap",
+      "type": "choice",
+      "prompt": "The ice cream data cover 62 to 91 °F. Predicting sales at 100 °F is:",
+      "choices": [
+        "Extrapolation, which may not hold",
+        "Interpolation, which is always safe",
+        "Impossible in R",
+        "A residual"
+      ],
+      "answer": 0,
+      "explain": "The straight line may not hold outside the range of the data."
+    },
+    {
+      "id": "resid-def",
+      "type": "choice",
+      "prompt": "A residual is:",
+      "choices": [
+        "The observed value minus the predicted value",
+        "The predicted value minus the mean",
+        "The slope",
+        "A coefficient's p-value"
+      ],
+      "answer": 0,
+      "explain": "Positive residuals are under-predicted; negative ones over-predicted."
+    },
+    {
+      "id": "resid-cluster",
+      "type": "truefalse",
+      "prompt": "Clusters of similar residuals on a map suggest the model is missing something spatial.",
+      "answer": true,
+      "explain": "Test them with Moran's I, then add variables or fit a spatial lag or spatial error model."
+    },
+    {
+      "id": "code-lm",
+      "type": "code",
+      "prompt": "Fit a regression of `cones` on `temp` and store it in `model`.",
+      "starter": "temp  <- c(62, 65, 68, 70, 73, 75, 78, 80, 83, 85, 88, 91)\ncones <- c(180, 205, 190, 230, 260, 245, 290, 300, 310, 345, 330, 380)\n",
+      "check": "inherits(model, 'lm') && isTRUE(all.equal(unname(coef(model)[2]), 6.768293, tolerance = 1e-4))",
+      "solution": "temp  <- c(62, 65, 68, 70, 73, 75, 78, 80, 83, 85, 88, 91)\ncones <- c(180, 205, 190, 230, 260, 245, 290, 300, 310, 345, 330, 380)\nmodel <- lm(cones ~ temp)",
+      "explain": "The slope is about 6.77 cones per degree."
+    },
+    {
+      "id": "code-cor",
+      "type": "code",
+      "prompt": "Store the correlation between `temp` and `cones` in `r`.",
+      "starter": "temp  <- c(62, 65, 68, 70, 73, 75, 78, 80, 83, 85, 88, 91)\ncones <- c(180, 205, 190, 230, 260, 245, 290, 300, 310, 345, 330, 380)\n",
+      "check": "isTRUE(all.equal(r, cor(c(62, 65, 68, 70, 73, 75, 78, 80, 83, 85, 88, 91), c(180, 205, 190, 230, 260, 245, 290, 300, 310, 345, 330, 380))))",
+      "solution": "temp  <- c(62, 65, 68, 70, 73, 75, 78, 80, 83, 85, 88, 91)\ncones <- c(180, 205, 190, 230, 260, 245, 290, 300, 310, 345, 330, 380)\nr <- cor(temp, cones)",
+      "explain": "`cor()` gives *r* = 0.98."
+    },
+    {
+      "id": "code-predict",
+      "type": "code",
+      "prompt": "Fit `lm(cones ~ temp)` and store its prediction for 77 °F in `pred`.",
+      "starter": "temp  <- c(62, 65, 68, 70, 73, 75, 78, 80, 83, 85, 88, 91)\ncones <- c(180, 205, 190, 230, 260, 245, 290, 300, 310, 345, 330, 380)\n",
+      "check": "isTRUE(all.equal(unname(pred), 275.4675, tolerance = 1e-4))",
+      "solution": "temp  <- c(62, 65, 68, 70, 73, 75, 78, 80, 83, 85, 88, 91)\ncones <- c(180, 205, 190, 230, 260, 245, 290, 300, 310, 345, 330, 380)\nmodel <- lm(cones ~ temp)\npred <- predict(model, data.frame(temp = 77))",
+      "explain": "About 275 cones."
+    }
+  ]
+}

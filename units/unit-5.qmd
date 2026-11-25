@@ -2,10 +2,16 @@
 title: "Unit 5: Data"
 ---
 
-This unit is about getting data from the places that publish it. It focuses on the US Census Bureau, the largest source of data about people and places in the United States, and on APIs, the way code asks a server for data directly.
+This unit is about getting data from the places that publish it. It starts with the US Census Bureau, the largest source of data about people and places in the United States, and with APIs, the way code asks a server for data directly. It then uses the same idea to pull layers from the ArcGIS servers that publish much of the world's GIS data.
 
-## Chapter 15: [Census Data and APIs](../chapters/census-data-apis.qmd)
+## Chapter 16: [Census Data and APIs](../chapters/census-data-apis.qmd)
 
 US Census data come from the decennial census, a full count every ten years, and the American Community Survey, a continuous sample with a margin of error on every estimate. This chapter explains how Census geography nests from states down to tracts and blocks, how APIs work, and how the tidycensus package downloads tidy, map-ready Census data. It also shows how to carry margins of error through calculations and compare data across years.
 
-[Chapter 15 quiz](../chapters/census-data-apis-quiz.qmd)
+[Chapter 16 quiz](../chapters/census-data-apis-quiz.qmd)
+
+## Chapter 17: [ArcGIS Data with arcpullr](../chapters/arcpullr.qmd)
+
+Governments publish many of their GIS layers on ArcGIS REST services. This chapter shows how to find a layer's URL and read its REST page, then download it into R as an sf object with arcpullr's `get_spatial_layer()`. It covers SQL `where` clauses that download only the features you need, the server's record limit, and the other ways arcpullr can query a layer.
+
+[Chapter 17 quiz](../chapters/arcpullr-quiz.qmd)

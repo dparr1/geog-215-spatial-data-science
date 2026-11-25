@@ -1,0 +1,288 @@
+{
+  "id": "arcpullr",
+  "title": "ArcGIS Data with arcpullr",
+  "perSession": 10,
+  "minR": 2,
+  "questions": [
+    {
+      "id": "api-pattern",
+      "type": "choice",
+      "prompt": "Every API call follows the same pattern:",
+      "choices": [
+        "Request, then response",
+        "Download, then unzip",
+        "Search, then click",
+        "Map, then filter"
+      ],
+      "answer": 0,
+      "explain": "Your code sends a request to an endpoint, and the server sends data back."
+    },
+    {
+      "id": "why-api",
+      "type": "choice",
+      "prompt": "Which is a reason to get data with code instead of a Download button?",
+      "choices": [
+        "Your script records exactly where the data came from, so anyone can rerun it",
+        "Downloads are always faster",
+        "APIs never change",
+        "Code doesn't need the internet"
+      ],
+      "answer": 0,
+      "explain": "Reproducibility, and downloading only what you need."
+    },
+    {
+      "id": "onemap",
+      "type": "choice",
+      "prompt": "NC OneMap is:",
+      "choices": [
+        "North Carolina's statewide GIS data portal",
+        "An R package",
+        "A map projection",
+        "A Census Bureau survey"
+      ],
+      "answer": 0,
+      "explain": "It gathers layers from state agencies, counties, and cities."
+    },
+    {
+      "id": "returns-sf",
+      "type": "choice",
+      "prompt": "`get_spatial_layer()` returns:",
+      "choices": [
+        "An sf object",
+        "A CSV file",
+        "A web map",
+        "A raster"
+      ],
+      "answer": 0,
+      "explain": "So it drops straight into dplyr, sf, and tmap."
+    },
+    {
+      "id": "feature-service",
+      "type": "choice",
+      "prompt": "When searching a portal, which item type can arcpullr read with `get_spatial_layer()`?",
+      "choices": [
+        "Feature Service",
+        "Document",
+        "Web app",
+        "StoryMap"
+      ],
+      "answer": 0,
+      "explain": "Each feature service layer has a REST endpoint that returns its features."
+    },
+    {
+      "id": "view-source",
+      "type": "choice",
+      "prompt": "On NC OneMap, which option opens a layer's REST service page?",
+      "choices": [
+        "View Data Source",
+        "Create a Map",
+        "View API Resources",
+        "Open in ArcGIS Online"
+      ],
+      "answer": 0,
+      "explain": "Click \"I want to use this\", then \"View Data Source\"."
+    },
+    {
+      "id": "layer-id",
+      "type": "choice",
+      "prompt": "In `.../NC1Map_Health/MapServer/2`, the `2` is:",
+      "choices": [
+        "The layer ID",
+        "The version",
+        "The number of fields",
+        "The page of results"
+      ],
+      "answer": 0,
+      "explain": "A service can hold several layers; the number picks one."
+    },
+    {
+      "id": "no-id",
+      "type": "truefalse",
+      "prompt": "If you copy a URL that ends at `/MapServer` with no number, you have one specific layer.",
+      "answer": false,
+      "explain": "Without the layer ID you have the whole service, not one layer."
+    },
+    {
+      "id": "maxrecord",
+      "type": "choice",
+      "prompt": "MaxRecordCount on the REST page tells you:",
+      "choices": [
+        "The most features the server returns for one request",
+        "How many layers the service has",
+        "How many fields the layer has",
+        "How often the layer is updated"
+      ],
+      "answer": 0,
+      "explain": "arcpullr asks for bigger layers in batches."
+    },
+    {
+      "id": "geom-type",
+      "type": "choice",
+      "prompt": "A REST page says `Geometry Type: esriGeometryPoint`. Each feature is:",
+      "choices": [
+        "A point",
+        "A line",
+        "A polygon",
+        "A raster cell"
+      ],
+      "answer": 0,
+      "explain": "Others are polylines and polygons."
+    },
+    {
+      "id": "fill-fn",
+      "type": "fill",
+      "prompt": "Complete the code to download the layer at `url`.",
+      "code": "medical.centers <- ___(url)",
+      "answers": [
+        "get_spatial_layer"
+      ],
+      "explain": "`get_spatial_layer()` is arcpullr's main function."
+    },
+    {
+      "id": "fill-where",
+      "type": "fill",
+      "prompt": "Complete the argument so the server returns only Orange County facilities.",
+      "code": "get_spatial_layer(url, ___ = \"fcounty = 'Orange'\")",
+      "answers": [
+        "where"
+      ],
+      "explain": "`where` holds an SQL filter that runs on the server."
+    },
+    {
+      "id": "where-server",
+      "type": "truefalse",
+      "prompt": "A `where` clause is applied by the server, before any data are sent to R.",
+      "answer": true,
+      "explain": "So less data crosses the internet."
+    },
+    {
+      "id": "where-durham",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which `where` clause returns only facilities in Durham County?",
+      "choices": [
+        "`\"fcounty = 'Durham'\"`",
+        "`\"fcounty == Durham\"`",
+        "`fcounty = Durham`",
+        "`\"fcounty & 'Durham'\"`"
+      ],
+      "answer": 0,
+      "explain": "SQL uses a single `=`, and text values go in single quotes inside the R string."
+    },
+    {
+      "id": "where-in",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which clause returns facilities in Orange, Durham, and Wake counties?",
+      "choices": [
+        "`\"fcounty IN ('Orange', 'Durham', 'Wake')\"`",
+        "`\"fcounty = c('Orange', 'Durham', 'Wake')\"`",
+        "`\"fcounty %in% ('Orange', 'Durham', 'Wake')\"`",
+        "`\"fcounty == 'Orange' | 'Durham' | 'Wake'\"`"
+      ],
+      "answer": 0,
+      "explain": "SQL's `IN` lists several values. `c()` and `%in%` are R, not SQL."
+    },
+    {
+      "id": "sql-and",
+      "type": "choice",
+      "prompt": "In an SQL `where` clause, two conditions are joined with:",
+      "choices": [
+        "`AND`",
+        "`&`",
+        "`&&`",
+        "`+`"
+      ],
+      "answer": 0,
+      "explain": "SQL uses `AND` and `OR`, not R's `&` and `|`."
+    },
+    {
+      "id": "why-server-filter",
+      "type": "choice",
+      "prompt": "Why filter on the server instead of downloading everything and using `filter()`?",
+      "choices": [
+        "Less data is sent, requests are faster, and you avoid the server's limits",
+        "`filter()` doesn't work on sf objects",
+        "Servers can't send whole layers",
+        "It changes the coordinate system"
+      ],
+      "answer": 0,
+      "explain": "It matters most for very large layers such as parcels or buildings."
+    },
+    {
+      "id": "field-names",
+      "type": "choice",
+      "prompt": "Where do you find the field names to use in a `where` clause?",
+      "choices": [
+        "On the layer's REST Services Directory page",
+        "In the R help for arcpullr",
+        "In the URL",
+        "They are always the same for every layer"
+      ],
+      "answer": 0,
+      "explain": "The fields are listed further down the REST page."
+    },
+    {
+      "id": "dynamic",
+      "type": "truefalse",
+      "prompt": "A layer downloaded from a portal today will be identical next year.",
+      "answer": false,
+      "explain": "Portal layers are dynamic. Record the download date, and save a copy if you need exact reproducibility."
+    },
+    {
+      "id": "project-first",
+      "type": "choice",
+      "r": true,
+      "prompt": "Before measuring distances in a layer you downloaded, you should:",
+      "choices": [
+        "Check `st_crs()` and project, for example with `st_transform(32119)`",
+        "Convert it to a CSV",
+        "Delete the geometry column",
+        "Use a `where` clause"
+      ],
+      "answer": 0,
+      "explain": "Distances need a projected coordinate system."
+    },
+    {
+      "id": "by-poly",
+      "type": "choice",
+      "prompt": "Which arcpullr function downloads only the features inside a polygon you give it?",
+      "choices": [
+        "`get_layer_by_poly()`",
+        "`get_table_layer()`",
+        "`get_image_layer()`",
+        "`st_join()`"
+      ],
+      "answer": 0,
+      "explain": "It filters on the server by location instead of by attribute."
+    },
+    {
+      "id": "table-layer",
+      "type": "choice",
+      "prompt": "To download a table with no geometry from an ArcGIS server, use:",
+      "choices": [
+        "`get_table_layer()`",
+        "`get_spatial_layer()`",
+        "`get_map_layer()`",
+        "`read_csv()`"
+      ],
+      "answer": 0,
+      "explain": "It returns an ordinary data frame."
+    },
+    {
+      "id": "order-request",
+      "type": "order",
+      "prompt": "Put the steps for getting a layer into R in order.",
+      "answer": [
+        "Search the portal",
+        "Open the item page",
+        "I want to use this",
+        "View Data Source",
+        "Copy the URL",
+        "get_spatial_layer(url)"
+      ],
+      "r": false,
+      "explain": "Find the layer, open its REST page, copy the URL, and pass it to arcpullr."
+    }
+  ]
+}

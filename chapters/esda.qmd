@@ -63,7 +63,7 @@ Spatial data let us ask one more: **what type of *geographic* variation occurs w
 - **Spatial autocorrelation**: are similar values located near each other? This is Tobler's first law in action.
 - **Clustering**: are there hot spots or cold spots?
 
-This chapter covers maps and descriptive statistics. Chapter 14 covers spatial descriptive statistics, and spatial autocorrelation comes later in the course.
+This chapter covers maps and descriptive statistics. Chapter 14 covers spatial descriptive statistics, and Chapter 22 covers spatial autocorrelation.
 
 ## Step one: get to know the data table {#sec-step-one}
 
@@ -365,7 +365,7 @@ The statistics in this chapter describe *values*. **Spatial descriptive statisti
 - The **weighted mean center** does the same, but weights each feature by an attribute, such as births or population.
 - The **standard distance** is how far features typically sit from the mean center: the spatial version of the standard deviation.
 
-And the question of whether nearby values are similar is measured with **spatial autocorrelation** statistics, such as Moran's I. Chapter 14 covers the spatial descriptive statistics.
+And the question of whether nearby values are similar is measured with **spatial autocorrelation** statistics, such as Moran's I (Chapter 22). Chapter 14 covers the spatial descriptive statistics.
 
 ## Check your understanding
 

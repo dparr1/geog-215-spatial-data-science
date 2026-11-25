@@ -1,0 +1,303 @@
+{
+  "id": "blocks-loops-functions",
+  "title": "Blocks, Loops, and Functions",
+  "perSession": 10,
+  "minR": 4,
+  "questions": [
+    {
+      "id": "block-braces",
+      "type": "choice",
+      "prompt": "In R, a block of code is the code between:",
+      "choices": [
+        "Curly braces `{ }`",
+        "Parentheses `( )`",
+        "Square brackets `[ ]`",
+        "Quotation marks"
+      ],
+      "answer": 0,
+      "explain": "R runs the lines between `{` and the matching `}` as one unit."
+    },
+    {
+      "id": "block-all-or-none",
+      "type": "truefalse",
+      "prompt": "When an `if` test is `FALSE`, R skips the whole block, not just its first line.",
+      "answer": true,
+      "explain": "A block runs completely or is skipped completely."
+    },
+    {
+      "id": "plus-prompt",
+      "type": "choice",
+      "prompt": "The Console shows a `+` prompt after you run some code. What is the most likely cause?",
+      "choices": [
+        "A missing closing brace or parenthesis",
+        "An infinite loop",
+        "A package isn't installed",
+        "The code ran successfully"
+      ],
+      "answer": 0,
+      "explain": "R is waiting for the rest of the block. Press Esc to start again."
+    },
+    {
+      "id": "if-predict",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does this code print?",
+      "code": "x <- 10\nif (x < 100) {\n  x <- x + 1\n}\nif (x < 5) {\n  x <- x - 1\n}\nx",
+      "choices": [
+        "`[1] 11`",
+        "`[1] 10`",
+        "`[1] 9`",
+        "`[1] 100`"
+      ],
+      "answer": 0,
+      "explain": "10 < 100, so x becomes 11. 11 < 5 is FALSE, so the second block is skipped."
+    },
+    {
+      "id": "if-else",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does this code return?",
+      "code": "x <- 8\nif (x < 5) {\n  \"small\"\n} else {\n  \"big\"\n}",
+      "choices": [
+        "`\"big\"`",
+        "`\"small\"`",
+        "Both",
+        "An error"
+      ],
+      "answer": 0,
+      "explain": "8 < 5 is FALSE, so the `else` block runs."
+    },
+    {
+      "id": "fill-equals",
+      "type": "fill",
+      "prompt": "Complete the test so the block runs only when `x` equals 5.",
+      "code": "if (x ___ 5) {\n  print(\"five\")\n}",
+      "answers": [
+        "=="
+      ],
+      "explain": "`==` compares; a single `=` assigns."
+    },
+    {
+      "id": "if-vector",
+      "type": "truefalse",
+      "r": true,
+      "prompt": "`if (c(1, 8) > 5) { ... }` works fine and runs the block for 8 only.",
+      "answer": false,
+      "explain": "The test must be one TRUE or FALSE. For a whole vector, use the vectorized `ifelse()`."
+    },
+    {
+      "id": "ifelse-out",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does this return?",
+      "code": "ifelse(c(480, 2500) < 1000, \"few\", \"many\")",
+      "choices": [
+        "`\"few\" \"many\"`",
+        "`\"few\"`",
+        "`\"many\" \"few\"`",
+        "An error"
+      ],
+      "answer": 0,
+      "explain": "`ifelse()` tests every element: 480 < 1000 but 2500 isn't."
+    },
+    {
+      "id": "while-predict",
+      "type": "fill",
+      "prompt": "What is `x` after this loop?",
+      "code": "x <- 11\nwhile (x < 100) {\n  x <- x + 1\n}\nx",
+      "answers": [
+        "100"
+      ],
+      "numeric": true,
+      "explain": "The loop stops as soon as x < 100 is FALSE, at 100."
+    },
+    {
+      "id": "while-infinite",
+      "type": "choice",
+      "prompt": "Why does `x <- 1; while (x > 0) { print(x) }` never stop?",
+      "choices": [
+        "Nothing in the block changes `x`, so the test stays TRUE",
+        "`print()` can't be used in a loop",
+        "`while` loops always run forever",
+        "`x` is too small"
+      ],
+      "answer": 0,
+      "explain": "The block must move the test toward FALSE. Press Esc to stop a runaway loop."
+    },
+    {
+      "id": "for-stops",
+      "type": "truefalse",
+      "prompt": "A `for` loop stops on its own after the last item of its vector.",
+      "answer": true,
+      "explain": "That makes it safer than a `while` loop."
+    },
+    {
+      "id": "for-count",
+      "type": "fill",
+      "prompt": "How many times does `print(county)` run?",
+      "code": "for (county in c(\"Orange\", \"Durham\", \"Wake\")) {\n  print(county)\n}",
+      "answers": [
+        "3"
+      ],
+      "numeric": true,
+      "explain": "Once for each item in the vector."
+    },
+    {
+      "id": "loop-var",
+      "type": "choice",
+      "prompt": "In `for (f in files) { ... }`, `f` is the:",
+      "choices": [
+        "Loop variable, which takes the next item on each pass",
+        "Function",
+        "Test",
+        "Return value"
+      ],
+      "answer": 0,
+      "explain": "On the first pass `f` is the first file, on the second pass the second, and so on."
+    },
+    {
+      "id": "vectorized",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which is the simplest way to convert `miles <- c(5, 12, 26.2)` to kilometers?",
+      "choices": [
+        "`miles * 1.609`",
+        "A `for` loop",
+        "A `while` loop",
+        "An `if` statement"
+      ],
+      "answer": 0,
+      "explain": "Arithmetic is vectorized, so it works on every element at once."
+    },
+    {
+      "id": "fn-parts",
+      "type": "choice",
+      "prompt": "In `toKm <- function(distance, factor = 1.609) { distance * factor }`, what is `factor = 1.609`?",
+      "choices": [
+        "An argument with a default value",
+        "The function's name",
+        "The return value",
+        "A loop"
+      ],
+      "answer": 0,
+      "explain": "The function uses 1.609 unless you pass another value."
+    },
+    {
+      "id": "fn-default",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does `toKm(10)` return?",
+      "code": "toKm <- function(distance, factor = 1.609) {\n  distance * factor\n}",
+      "choices": [
+        "`[1] 16.09`",
+        "`[1] 10`",
+        "`[1] 1.609`",
+        "An error: `factor` is missing"
+      ],
+      "answer": 0,
+      "explain": "`factor` takes its default, 1.609."
+    },
+    {
+      "id": "fn-return",
+      "type": "truefalse",
+      "prompt": "Without `return()`, a function returns the value of the last line in its body.",
+      "answer": true,
+      "explain": "`return()` makes it explicit, or ends the function early."
+    },
+    {
+      "id": "scope",
+      "type": "choice",
+      "r": true,
+      "prompt": "What does the last line print?",
+      "code": "numbers <- 10\naddSeven <- function(numbers) {\n  numbers + 7\n}\naddSeven(1)\nnumbers",
+      "choices": [
+        "`[1] 10`",
+        "`[1] 8`",
+        "`[1] 17`",
+        "`[1] 1`"
+      ],
+      "answer": 0,
+      "explain": "The function's `numbers` lives in its own local environment. The global `numbers` is untouched."
+    },
+    {
+      "id": "scope-keep",
+      "type": "choice",
+      "prompt": "How do you keep the result of `addSeven(numbers)` in `numbers`?",
+      "choices": [
+        "`numbers <- addSeven(numbers)`",
+        "`addSeven(numbers)`",
+        "`return(numbers)`",
+        "`numbers == addSeven(numbers)`"
+      ],
+      "answer": 0,
+      "explain": "A function never changes your variables unless you assign its result."
+    },
+    {
+      "id": "stop",
+      "type": "choice",
+      "prompt": "Inside a function, `stop(\"needs numbers\")`:",
+      "choices": [
+        "Ends the function with an error message",
+        "Pauses the function until you press Enter",
+        "Skips one line",
+        "Ends a loop but keeps the function running"
+      ],
+      "answer": 0,
+      "explain": "Use it with `if` to check inputs."
+    },
+    {
+      "id": "code-timestwo-vec",
+      "type": "code",
+      "prompt": "Write a function `timesTwo()` that doubles its input. It should work on a whole vector.",
+      "starter": "timesTwo <- function(x) {\n  \n}\n",
+      "check": "is.function(timesTwo) && isTRUE(all.equal(timesTwo(c(1, 2, 3)), c(2, 4, 6)))",
+      "solution": "timesTwo <- function(x) {\n  x * 2\n}",
+      "explain": "`x * 2` is the last line, so it's the return value."
+    },
+    {
+      "id": "code-addthis",
+      "type": "code",
+      "prompt": "Write `addThis(numbers, amount)`, which adds `amount` to `numbers`.",
+      "starter": "addThis <- function(numbers, amount) {\n  \n}\n",
+      "check": "is.function(addThis) && isTRUE(all.equal(addThis(c(1, 2, 3), 10), c(11, 12, 13)))",
+      "solution": "addThis <- function(numbers, amount) {\n  numbers + amount\n}",
+      "explain": "Separate several arguments with commas."
+    },
+    {
+      "id": "code-for-fill",
+      "type": "code",
+      "prompt": "Use a `for` loop to fill `km` with each value of `miles` times 1.609.",
+      "starter": "miles <- c(5, 12, 26.2)\nkm <- numeric(length(miles))\n\nfor (i in seq_along(miles)) {\n  \n}\n",
+      "check": "isTRUE(all.equal(km, c(5, 12, 26.2) * 1.609)) && grepl('for', .sds_code)",
+      "solution": "miles <- c(5, 12, 26.2)\nkm <- numeric(length(miles))\n\nfor (i in seq_along(miles)) {\n  km[i] <- miles[i] * 1.609\n}",
+      "explain": "On each pass, `km[i]` gets the converted `miles[i]`."
+    },
+    {
+      "id": "code-countabove",
+      "type": "code",
+      "prompt": "Write `countAbove(values, cutoff = 0)`, which returns how many values are above `cutoff`.",
+      "starter": "countAbove <- function(values, cutoff = 0) {\n  \n}\n",
+      "check": "is.function(countAbove) && countAbove(c(-2, 5, 0, 8)) == 2 && countAbove(c(-2, 5, 0, 8), 6) == 1",
+      "solution": "countAbove <- function(values, cutoff = 0) {\n  sum(values > cutoff)\n}",
+      "explain": "`values > cutoff` is a logical vector, and `sum()` counts the TRUEs."
+    },
+    {
+      "id": "order-function",
+      "type": "order",
+      "prompt": "Build a function that adds 7 to its input.",
+      "answer": [
+        "addSeven",
+        "<-",
+        "function(numbers)",
+        "{",
+        "numbers + 7",
+        "}"
+      ],
+      "extra": [
+        "return",
+        "for"
+      ],
+      "explain": "Name, assignment arrow, `function` with its arguments, then the body in braces."
+    }
+  ]
+}

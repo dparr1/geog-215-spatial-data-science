@@ -55,6 +55,21 @@ terms:
       functions such as `scale_fill_manual()` or `tm_scale_intervals()`
       change it.
 
+  - term: block (of code)
+    aliases: [block, blocks]
+    chapters: [blocks-loops-functions]
+    definition: >-
+      Lines of code inside curly braces, `{ }`, that R runs as one unit.
+      `if` statements, loops, and functions each control a block.
+
+  - term: neighborhood (in spatial analysis)
+    aliases: [neighborhood, neighborhoods]
+    chapters: [distance-neighborhoods, spatial-autocorrelation]
+    definition: >-
+      The zone of influence around a feature. Features inside it are its
+      neighbors, defined by a distance, the nearest features, or shared
+      borders.
+
   # --- What is Spatial Data Science? -----------------------------------------
 
   - term: spatial data science
@@ -90,7 +105,7 @@ terms:
       behind spatial autocorrelation.
 
   - term: hotspot
-    aliases: [hotspots, hot spot, hot spots]
+    aliases: [hotspots, hot spot, hot spots, hot-spot]
     definition: >-
       A cluster of places with unusually high values, such as a group of
       neighborhoods with many burglaries. Finding hotspots is a common goal of
@@ -151,7 +166,8 @@ terms:
     case_sensitive: true
     definition: >-
       Analysis of variance: a statistical test of whether the averages of
-      several groups are different, such as average incomes in two cities.
+      three or more groups differ, such as median age in three regions. It
+      compares variation between groups with variation within them.
 
   - term: regression
     definition: >-
@@ -996,7 +1012,7 @@ terms:
 
   - term: layer
     aliases: [layers]
-    chapters: [tidyverse-ggplot, thematic-maps-tmap, geographic-information]
+    chapters: [tidyverse-ggplot, thematic-maps-tmap, geographic-information, arcpullr]
     definition: >-
       One piece of a plot or map, added with `+` and drawn on top of the
       layers before it. In GIS, a layer holds one theme of features,
@@ -1010,8 +1026,8 @@ terms:
       point per observation. In ggplot2, `geom_point()`.
 
   - term: confidence interval
-    aliases: [confidence band]
-    chapters: [tidyverse-ggplot]
+    aliases: [confidence band, confidence intervals]
+    chapters: [tidyverse-ggplot, anova, regression]
     definition: >-
       A range that is likely to contain the true value of something
       estimated from data. `geom_smooth()` shades a 95% confidence
@@ -1087,7 +1103,7 @@ terms:
 
   - term: feature
     aliases: [features]
-    chapters: [thematic-maps-tmap, geographic-information]
+    chapters: [thematic-maps-tmap, geographic-information, arcpullr, distance-neighborhoods]
     definition: >-
       One spatial object in a layer of data, such as one tree, one
       sidewalk segment, or one building. In an sf object, each row is a
@@ -1805,3 +1821,610 @@ terms:
     definition: >-
       A symmetric, bell-shaped distribution. About 68% of values fall
       within one standard deviation of the mean, and 95% within two.
+
+  # --- Chapter 15: Blocks, Loops, and Functions -------------------------------
+
+  - term: if statement
+    aliases: [if statements]
+    definition: >-
+      Code that runs a block only when a test is `TRUE`:
+      `if (x < 5) { ... }`. Add `else { ... }` for when it is `FALSE`.
+
+  - term: while loop
+    aliases: [while loops]
+    definition: >-
+      A loop that repeats its block for as long as a test stays `TRUE`.
+      Something in the block must change the test, or it never stops.
+
+  - term: for loop
+    aliases: [for loops]
+    definition: >-
+      A loop that runs its block once for each item in a vector, such as
+      `for (f in files) { ... }`, then stops.
+
+  - term: loop variable
+    definition: >-
+      The variable in a `for` loop that takes the next item of the vector
+      on each pass, such as `f` in `for (f in files)`.
+
+  - term: infinite loop
+    aliases: [infinite loops]
+    definition: >-
+      A loop that never ends because its test never becomes `FALSE`. Stop
+      it with Esc or RStudio's red stop sign.
+
+  - term: default value
+    aliases: [default values]
+    definition: >-
+      The value an argument takes when you don't supply one, set with `=`
+      in the function definition: `function(x, factor = 1.609)`.
+
+  - term: local environment
+    definition: >-
+      The private workspace R makes each time a function runs. Its
+      arguments and variables live there and vanish when it finishes.
+
+  - term: global environment
+    definition: >-
+      Your main R workspace, where the variables you create at the Console
+      or in a script live. Functions don't change it unless you assign
+      their result.
+
+  - term: scope
+    chapters: [blocks-loops-functions]
+    definition: >-
+      Which variables a piece of code can see. A function's arguments are
+      in its own scope, separate from variables outside it.
+
+  # --- Chapter 17: ArcGIS Data with arcpullr -----------------------------------
+
+  - term: arcpullr
+    definition: >-
+      An R package that downloads layers from ArcGIS REST services as sf
+      objects, with `get_spatial_layer()`.
+
+  - term: ArcGIS Online
+    case_sensitive: true
+    aliases: [ArcGIS Enterprise]
+    definition: >-
+      Esri's systems for publishing and sharing maps and GIS layers on the
+      web. Many agencies' data portals run on them.
+
+  - term: portal
+    aliases: [portals, data portal]
+    chapters: [arcpullr]
+    definition: >-
+      A website where an organization publishes GIS data for people to
+      search, preview, and download, such as NC OneMap.
+
+  - term: NC OneMap
+    case_sensitive: true
+    definition: >-
+      North Carolina's statewide GIS data portal,
+      <https://www.nconemap.gov/>, with layers from state and local
+      agencies.
+
+  - term: feature service
+    aliases: [feature services, feature layer, feature layers]
+    definition: >-
+      A layer published on an ArcGIS server whose features and attributes
+      can be requested through its REST endpoint.
+
+  - term: REST Services Directory
+    case_sensitive: true
+    aliases: [ArcGIS REST Services Directory]
+    definition: >-
+      The plain web page an ArcGIS server shows for each service and layer,
+      listing its layer ID, geometry type, MaxRecordCount, and fields.
+
+  - term: layer ID
+    definition: >-
+      The number at the end of an ArcGIS layer's URL, such as the `2` in
+      `.../MapServer/2`, that picks one layer out of a service.
+
+  - term: MaxRecordCount
+    case_sensitive: true
+    definition: >-
+      The most features an ArcGIS server returns for one request.
+      arcpullr asks for larger layers in batches.
+
+  - term: SQL
+    case_sensitive: true
+    definition: >-
+      Structured Query Language, the language of databases. ArcGIS `where`
+      clauses use it: `fcounty = 'Orange'`.
+
+  - term: where clause
+    aliases: [where clauses]
+    definition: >-
+      An SQL filter, such as `"fcounty = 'Orange'"`, that the server
+      applies before sending data back, so you download only what you
+      need.
+
+  - term: dynamic data
+    aliases: [dynamic]
+    chapters: [arcpullr, writing-spatial-data-science]
+    definition: >-
+      Data that are continually updated, so the same request may return
+      different data later. Static data are a fixed snapshot.
+
+  # --- Chapter 18: Comparing Groups: p-values and ANOVA -----------------------
+
+  - term: statistic
+    aliases: [statistics]
+    chapters: [anova]
+    definition: >-
+      A number calculated from a sample that summarizes the data, such as
+      a mean. It would change if you drew a different sample.
+
+  - term: test statistic
+    aliases: [test statistics]
+    definition: >-
+      A statistic that weighs evidence in a hypothesis test, such as *t*
+      or *F*: how large a pattern is compared with random variation.
+
+  - term: null hypothesis
+    aliases: [null hypotheses, H₀]
+    definition: >-
+      The claim a test starts from: that there is no difference or no
+      relationship. A small p-value is evidence against it.
+
+  - term: alternative hypothesis
+    aliases: [H₁]
+    definition: >-
+      The claim that there is a difference or relationship, such as "at
+      least one group mean differs".
+
+  - term: p-value
+    aliases: [p-values, p value, p values]
+    definition: >-
+      The probability of a result at least as extreme as yours if the
+      null hypothesis were true. It is not the chance the null hypothesis
+      is true.
+
+  - term: statistically significant
+    aliases: [statistical significance, significant]
+    chapters: [anova, regression, spatial-autocorrelation]
+    definition: >-
+      By convention, a result with *p* < 0.05. Significant doesn't mean
+      large or important.
+
+  - term: p-hacking
+    definition: >-
+      Re-running an analysis in different ways until a p-value falls below
+      0.05, which produces false findings.
+
+  - term: replication crisis
+    definition: >-
+      The discovery, in the 2010s, that many published findings fail to
+      hold up when other researchers repeat the studies.
+
+  - term: F statistic
+    aliases: [F statistics, F-statistic]
+    definition: >-
+      ANOVA's test statistic: the variance between groups divided by the
+      variance within groups. Near 1 if the groups don't differ.
+
+  - term: sum of squares
+    aliases: [sums of squares]
+    definition: >-
+      The squared distances of values from a mean, added up. ANOVA splits
+      it into between-group and within-group parts.
+
+  - term: degrees of freedom
+    definition: >-
+      The number of values free to vary in a calculation. In ANOVA, *k* −
+      1 between groups and *N* − *k* within them.
+
+  - term: mean square
+    aliases: [mean squares]
+    definition: >-
+      A sum of squares divided by its degrees of freedom: a variance. *F*
+      is the ratio of two mean squares.
+
+  - term: F distribution
+    definition: >-
+      The values of *F* you'd expect if the null hypothesis were true. Its
+      shape depends on two degrees of freedom. `pf()` in R.
+
+  - term: t-test
+    aliases: [t-tests]
+    definition: >-
+      A test of whether the means of two groups differ. ANOVA extends it
+      to three or more groups.
+
+  - term: post-hoc test
+    aliases: [post-hoc tests]
+    definition: >-
+      A test run after an ANOVA to find which pairs of groups differ, such
+      as Tukey's HSD.
+
+  - term: Tukey's HSD
+    case_sensitive: true
+    aliases: [Tukey's honestly significant difference, TukeyHSD]
+    definition: >-
+      Tukey's honestly significant difference test: compares every pair of
+      groups after an ANOVA, with p-values adjusted for the number of
+      comparisons.
+
+  - term: Shapiro-Wilk test
+    case_sensitive: true
+    definition: >-
+      A test of whether values, such as a model's residuals, are normally
+      distributed. A large p-value means no evidence against normality.
+
+  - term: Welch's ANOVA
+    case_sensitive: true
+    definition: >-
+      A version of ANOVA that doesn't assume the groups have equal
+      variances. `oneway.test()` in R.
+
+  - term: Kruskal-Wallis test
+    case_sensitive: true
+    definition: >-
+      A test of whether three or more groups differ, using ranks instead
+      of values, so it doesn't need normal data. `kruskal.test()` in R.
+
+  # --- Chapter 19: Linear Regression --------------------------------------------
+
+  - term: dependent variable
+    aliases: [dependent variables]
+    definition: >-
+      The outcome a model explains, *y*. It goes on the left of the `~` in
+      an R formula.
+
+  - term: independent variable
+    aliases: [independent variables, explanatory variable, explanatory variables]
+    definition: >-
+      A variable used to explain the dependent variable, *x*. It goes on
+      the right of the `~`.
+
+  - term: correlation
+    chapters: [regression, spatial-autocorrelation]
+    definition: >-
+      Whether two variables move together. It doesn't say how much one
+      changes with the other, or which causes which.
+
+  - term: correlation coefficient
+    chapters: [regression]
+    definition: >-
+      *r*, from −1 to 1: how closely two variables follow a straight line,
+      and in which direction. `cor()` in R.
+
+  - term: line of best fit
+    definition: >-
+      The straight line that comes closest to the points in a scatterplot:
+      a regression's estimate of *y* for each *x*.
+
+  - term: ordinary least squares
+    aliases: [OLS]
+    definition: >-
+      The usual way to fit a regression line: choose the line that makes
+      the sum of squared residuals as small as possible.
+
+  - term: intercept
+    definition: >-
+      The predicted value of *y* when every *x* is 0: where the regression
+      line crosses the y axis.
+
+  - term: slope
+    chapters: [regression]
+    definition: >-
+      How much *y* changes when *x* goes up by one unit: the coefficient
+      of an independent variable.
+
+  - term: coefficient
+    aliases: [coefficients]
+    chapters: [regression, writing-spatial-data-science]
+    definition: >-
+      A number a regression estimates: the intercept, or the slope for
+      each independent variable.
+
+  - term: R-squared
+    aliases: [R², R squared, multiple R-squared]
+    definition: >-
+      The share of the variation in *y* that a model explains, from 0 to
+      1.
+
+  - term: adjusted R-squared
+    aliases: [adjusted R²]
+    definition: >-
+      R-squared lowered a little for each independent variable, so adding
+      useless variables can't make a model look better. Use it to compare
+      models.
+
+  - term: residual
+    aliases: [residuals]
+    definition: >-
+      An observation's actual value minus the value a model predicts for
+      it. Map them to see where a model fits poorly.
+
+  - term: extrapolation
+    definition: >-
+      Using a model to predict outside the range of the data it was
+      fitted to. The relationship may not hold there.
+
+  - term: multivariate regression
+    aliases: [multiple regression, multivariate model]
+    definition: >-
+      A regression with more than one independent variable. Each
+      coefficient is the change in *y* with the others held constant.
+
+  - term: linear model
+    aliases: [linear models]
+    definition: >-
+      A model in which *y* is a straight-line function of the *x*
+      variables. `lm()` in R.
+
+  - term: spatial lag model
+    aliases: [spatial lag models]
+    definition: >-
+      A spatial regression model that includes the neighbors' values of
+      *y* as an extra explanatory variable.
+
+  - term: spatial error model
+    aliases: [spatial error models]
+    definition: >-
+      A spatial regression model that allows the errors of neighboring
+      observations to be correlated.
+
+  # --- Chapter 20: Writing a Spatial Data Science Project ----------------------
+
+  - term: DIKW pyramid
+    case_sensitive: true
+    definition: >-
+      Data, information, knowledge, wisdom: four levels, each built on the
+      one below, from raw facts to judging what is true and right.
+
+  - term: big data
+    definition: >-
+      Data too large, fast, or varied for ordinary tools, often described
+      by three Vs: volume, velocity, and variety.
+
+  - term: replicability
+    aliases: [replicable]
+    definition: >-
+      When a new study, with new data, answering the same question gets
+      consistent results.
+
+  - term: open science
+    definition: >-
+      Doing research so others can check and reuse it: open access
+      papers, open data, open methods, and open-source software.
+
+  - term: research question
+    aliases: [research questions]
+    definition: >-
+      The specific, answerable question a project sets out to answer,
+      usually with a place and a time.
+
+  # --- Chapter 21: Distance and Neighborhoods ---------------------------------
+
+  - term: physical distance
+    definition: >-
+      Separation measured across the Earth's surface, in meters,
+      kilometers, or miles.
+
+  - term: social distance
+    definition: >-
+      Separation measured by connection, similarity, or interaction, which
+      a ruler can't measure.
+
+  - term: distance decay
+    definition: >-
+      Interaction between places falls as the distance between them grows,
+      because crossing distance costs time, money, or effort.
+
+  - term: isochrone
+    aliases: [isochrones]
+    definition: >-
+      A line, or area, of equal travel time from a place, such as
+      everywhere within a 15-minute drive of a hospital.
+
+  - term: Euclidean distance
+    case_sensitive: true
+    definition: >-
+      Straight-line distance, from the Pythagorean theorem. Use it only
+      with projected coordinates.
+
+  - term: great circle distance
+    aliases: [great circle distances]
+    definition: >-
+      The shortest distance between two points along the Earth's curved
+      surface. Use it for longitude and latitude.
+
+  - term: haversine formula
+    definition: >-
+      A formula for great circle distance that stays accurate for very
+      short distances.
+
+  - term: Manhattan distance
+    case_sensitive: true
+    aliases: [city-block distance]
+    definition: >-
+      Distance along a grid of streets: the horizontal plus the vertical
+      difference, never shorter than the straight line.
+
+  - term: network distance
+    definition: >-
+      Distance along the lines of a network, such as streets, adding up
+      the lengths of the segments on the route.
+
+  - term: travel time
+    chapters: [distance-neighborhoods]
+    definition: >-
+      Separation measured in minutes along a network, using speeds,
+      turns, and traffic, instead of meters.
+
+  - term: topology
+    chapters: [distance-neighborhoods]
+    definition: >-
+      How features connect, such as which polygons touch, regardless of
+      the distances between them.
+
+  - term: binary weights
+    aliases: [binary weight, binary neighbors]
+    definition: >-
+      Neighbor weights of 1 for a neighbor and 0 for everything else.
+
+  - term: continuous weights
+    aliases: [continuous neighbors]
+    definition: >-
+      Neighbor weights that vary, usually falling with distance, so closer
+      neighbors count more.
+
+  - term: distance band
+    aliases: [distance bands]
+    definition: >-
+      A neighbor definition: every feature within a set threshold distance
+      is a neighbor. `dnearneigh()` in spdep.
+
+  - term: inverse distance weights
+    aliases: [inverse distance weight, inverse-distance weights]
+    definition: >-
+      Neighbor weights of 1 / *d*^*x*, so a neighbor's weight falls as its
+      distance grows.
+
+  - term: distance-decay parameter
+    definition: >-
+      The power *x* in inverse distance weights, 1 / *d*^*x*. Larger values
+      make weights fall off faster.
+
+  - term: edge effect
+    definition: >-
+      Features near the edge of a study area get too few neighbors because
+      the data stop at the boundary.
+
+  - term: k nearest neighbors
+    aliases: [nearest neighbors, nearest-neighbor]
+    chapters: [distance-neighborhoods, spatial-autocorrelation]
+    definition: >-
+      A neighbor definition: each feature's neighbors are the *k* features
+      closest to it. Every feature gets exactly *k*.
+
+  - term: contiguity
+    aliases: [contiguity-based]
+    definition: >-
+      Sharing a border. Contiguity neighbors are polygons that touch, by
+      the rook or queen rule.
+
+  - term: rook contiguity
+    aliases: [rook neighbors, rook rule]
+    definition: >-
+      Polygons are neighbors only if they share an edge. On a grid, each
+      cell has four.
+
+  - term: queen contiguity
+    aliases: [queen neighbors, queen rule]
+    definition: >-
+      Polygons are neighbors if they share an edge or just a corner. On a
+      grid, each cell has eight. spdep's default.
+
+  - term: Thiessen polygons
+    case_sensitive: true
+    aliases: [Voronoi polygons]
+    definition: >-
+      Polygons drawn around a set of points so each holds the area closer
+      to its point than to any other.
+
+  - term: second-order neighbors
+    definition: >-
+      The neighbors of a feature's neighbors.
+
+  - term: neighborhood weight matrix
+    aliases: [weight matrix, weight matrices, spatial weights matrix, spatial weights]
+    definition: >-
+      An *n* × *n* table, **W**, whose entry *w*~*ij*~ records the
+      neighbor relationship between observations *i* and *j*.
+
+  - term: row standardization
+    aliases: [row-standardized, row-standardize]
+    definition: >-
+      Dividing each weight by its row's total so every row sums to 1. Then
+      **W** times a variable gives the neighbors' average.
+
+  - term: spatial lag
+    definition: >-
+      The weighted average of an observation's neighbors' values,
+      calculated with row-standardized weights. `lag.listw()` in spdep.
+
+  - term: neighbor list
+    aliases: [neighbor lists]
+    definition: >-
+      spdep's compact way of storing neighbors (class `nb`): each
+      observation's neighbors, without all the zeros of a matrix.
+
+  # --- Chapter 22: Spatial Clustering and Spatial Autocorrelation -------------
+
+  - term: geographic variation
+    definition: >-
+      The change in a phenomenon from place to place, such as income from
+      county to county.
+
+  - term: global statistic
+    aliases: [global statistics]
+    definition: >-
+      A statistic that gives one value for a whole study area, such as
+      Moran's I. It doesn't say where clusters are.
+
+  - term: local statistic
+    aliases: [local statistics]
+    definition: >-
+      A statistic calculated for each observation from its neighbors, such
+      as Gi*, so its results can be mapped.
+
+  - term: spatial pattern
+    aliases: [spatial patterns]
+    definition: >-
+      The arrangement of objects in space: clustered, random, or
+      dispersed.
+
+  - term: Average Nearest Neighbor ratio
+    case_sensitive: true
+    aliases: [Average Nearest Neighbor, ANN, ANN ratio]
+    definition: >-
+      The observed mean distance from each point to its nearest neighbor
+      divided by the mean expected at random. Below 1 is clustered.
+
+  - term: complete spatial randomness
+    definition: >-
+      Points or values placed entirely at random, the baseline that
+      spatial pattern and autocorrelation statistics compare against.
+
+  - term: Moran's I
+    case_sensitive: true
+    definition: >-
+      A global measure of spatial autocorrelation, from −1 (dispersed)
+      through 0 (random) to +1 (clustered), with a p-value.
+
+  - term: Monte Carlo test
+    aliases: [permutation test, permutation tests, Monte Carlo]
+    definition: >-
+      A test that shuffles values across locations many times and asks how
+      often the shuffles beat the observed statistic.
+
+  - term: Getis-Ord Gi*
+    case_sensitive: true
+    aliases: [Gi*, Gi, Getis-Ord G, Getis G, Getis-Ord Gi]
+    definition: >-
+      A local statistic that gives each observation a z-score: large
+      positive for hot spots, large negative for cold spots.
+
+  - term: cold spot
+    aliases: [cold spots]
+    definition: >-
+      An area of low values surrounded by low values: a large negative
+      Gi* z-score.
+
+  - term: z-score
+    aliases: [z-scores]
+    definition: >-
+      How many standard deviations a value is from what's expected. Beyond
+      ±1.96 is significant at the 0.05 level.
+
+  - term: local Moran's I
+    case_sensitive: true
+    aliases: [Local Moran's I]
+    definition: >-
+      Moran's I calculated for each observation, to find clusters and
+      outliers. `localmoran()` in spdep.
