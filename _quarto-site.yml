@@ -90,6 +90,7 @@ book:
         - chapters/spatial-autocorrelation-quiz.qmd
     - part: units/unit-8.qmd
       chapters:
+        - chapters/dashboards.qmd
         - chapters/whats-next.qmd
   appendices:
     - glossary.qmd

@@ -1190,14 +1190,14 @@ terms:
 
   - term: basemap
     aliases: [basemaps, basemap tiles]
-    chapters: [thematic-maps-tmap]
+    chapters: [thematic-maps-tmap, dashboards]
     definition: >-
       A background map of streets, places, or imagery, loaded from the
       web as tiles, that your own data are drawn on top of.
 
   - term: interactive map
     aliases: [interactive maps, interactive web map]
-    chapters: [thematic-maps-tmap]
+    chapters: [thematic-maps-tmap, dashboards]
     definition: >-
       A web map you can pan, zoom, and click to see each feature's
       attributes. tmap makes one in view mode.
@@ -2436,7 +2436,108 @@ terms:
       Moran's I calculated for each observation, to find clusters and
       outliers. `localmoran()` in spdep.
 
-  # --- Chapter 23: What's Next in Spatial Data Science ------------------------
+  # --- Chapter 23: Interactive Map Dashboards ----------------------------------
+
+  - term: dashboard
+    aliases: [dashboards]
+    definition: >-
+      A web page that shows key information on one screen, usually as
+      several linked, interactive views such as a map, charts, a table,
+      and headline numbers.
+
+  - term: linked views
+    aliases: [linked view]
+    definition: >-
+      Maps, charts, and tables that respond to each other, so filtering or
+      selecting in one updates the others.
+
+  - term: htmlwidgets
+    aliases: [htmlwidget]
+    definition: >-
+      R functions, such as those in leaflet, DT, and plotly, that produce
+      JavaScript, so their interactivity runs in the browser with no R.
+
+  - term: leaflet
+    definition: >-
+      An R package (and JavaScript library) for interactive web maps,
+      built in layers joined with the pipe.
+
+  - term: palette function
+    aliases: [palette functions]
+    definition: >-
+      In leaflet, a function, made by `colorBin()`, `colorNumeric()`,
+      `colorQuantile()`, or `colorFactor()`, that turns data values into
+      colors. Use the same one for the map and its legend.
+
+  - term: label (in leaflet)
+    aliases: [label, labels]
+    chapters: [dashboards]
+    definition: >-
+      Text that appears when the reader hovers over a feature on a leaflet
+      map.
+
+  - term: popup
+    aliases: [popups]
+    definition: >-
+      A box of text that appears when the reader clicks a feature on an
+      interactive map.
+
+  - term: flexdashboard
+    definition: >-
+      An R package that lays out an R Markdown file as a dashboard of
+      columns or rows of panels, with an optional sidebar.
+
+  - term: panel
+    aliases: [panels]
+    chapters: [dashboards]
+    definition: >-
+      One box in a flexdashboard, started by a `###` heading, that holds one
+      map, chart, table, or value box.
+
+  - term: value box
+    aliases: [value boxes]
+    definition: >-
+      A dashboard panel that shows one headline number, with a caption and
+      an icon.
+
+  - term: crosstalk
+    definition: >-
+      An R package that links htmlwidgets in one HTML file, so a filter or
+      selection in one updates the others, with no Shiny.
+
+  - term: SharedData
+    case_sensitive: true
+    definition: >-
+      The crosstalk object that wraps a data frame. Widgets built from
+      SharedData objects with the same group are linked, row by row, through
+      their key.
+
+  - term: Shiny
+    case_sensitive: true
+    definition: >-
+      An R package for web apps that run R code on a server whenever the
+      reader changes an input.
+
+  - term: input (in Shiny)
+    aliases: [input, inputs]
+    chapters: [dashboards]
+    definition: >-
+      A control, such as a drop-down menu or checkboxes, that collects a
+      reader's choice. Its value is read as `input$id`.
+
+  - term: reactive expression
+    aliases: [reactive expressions]
+    definition: >-
+      Shiny code, made with `reactive()`, that reruns automatically when the
+      inputs it uses change. Call it like a function.
+
+  - term: render function
+    aliases: [render functions]
+    definition: >-
+      A Shiny function, such as `renderLeaflet()` or `renderDT()`, that draws
+      an output and redraws it when the inputs or reactives it uses change.
+
+  # --- Chapter 24: What's Next in Spatial Data Science ------------------------
 
   - term: spatial epidemiology
     definition: >-

@@ -26,4 +26,4 @@ The chapters are grouped into eight units. Each unit opens with a page that summ
 
 **[Unit 7: Spatial Dependence](units/unit-7.qmd)** (Chapters 21–22) asks whether near things are more related than distant things. You measure distance, define neighbors and weight matrices, and test for clustering and hot spots with the Average Nearest Neighbor ratio, Moran's I, and Getis-Ord Gi\*.
 
-**[Unit 8: Next Steps](units/unit-8.qmd)** (Chapter 23) looks beyond the course: where spatial data science is used, the advanced topics that build on this book, such as remote sensing, space-time modeling, and GeoAI, and the UNC courses and careers that come next.
+**[Unit 8: Next Steps](units/unit-8.qmd)** (Chapters 23–24) looks beyond the course. You turn your maps into interactive dashboards with leaflet, flexdashboard, crosstalk, and Shiny, and then look at where spatial data science is used, the advanced topics that build on this book, such as remote sensing, space-time modeling, and GeoAI, and the UNC courses and careers that come next.

@@ -21,7 +21,7 @@ This chapter looks forward instead of teaching a new method. You can now do a fu
 - **Wrangle it:** the tidyverse, the pipe, and table and spatial joins (Chapters 5–8 and 12).
 - **Map it:** ggplot2 and tmap, with sensible coordinate systems (Chapters 8, 9, and 11).
 - **Analyze it:** exploratory data analysis, ANOVA, regression, distance, neighbors, and spatial autocorrelation (Chapters 13, 18, 19, 21, and 22).
-- **Communicate it:** reproducible R Markdown reports (Chapters 2 and 20).
+- **Communicate it:** reproducible R Markdown reports and interactive dashboards (Chapters 2, 20, and 23).
 
 That is the core workflow of spatial data science. This chapter shows where it is used, previews three advanced topics that build on it, and maps out what to take next at UNC and where spatial skills can take you. As you read, notice which application excites you most. That is a good clue to which course to take next.
 
