@@ -1,0 +1,305 @@
+{
+  "id": "distance-neighborhoods",
+  "title": "Distance and Neighborhoods",
+  "perSession": 10,
+  "minR": 3,
+  "questions": [
+    {
+      "id": "social",
+      "type": "choice",
+      "prompt": "Two neighborhoods side by side on a map, but with residents who rarely interact, are close in physical distance but far apart in:",
+      "choices": [
+        "Social distance",
+        "Euclidean distance",
+        "Network distance",
+        "Great circle distance"
+      ],
+      "answer": 0,
+      "explain": "Social distance is separation by connection, similarity, or interaction."
+    },
+    {
+      "id": "decay",
+      "type": "choice",
+      "prompt": "Fewer customers visit a store the farther away they live. This is:",
+      "choices": [
+        "Distance decay",
+        "The edge effect",
+        "Row standardization",
+        "Spatial heterogeneity"
+      ],
+      "answer": 0,
+      "explain": "Interaction falls as distance grows, because distance has friction."
+    },
+    {
+      "id": "isochrone",
+      "type": "choice",
+      "prompt": "The area within a 15-minute drive of a hospital is bounded by an:",
+      "choices": [
+        "Isochrone",
+        "Isotherm",
+        "Equator",
+        "Edge effect"
+      ],
+      "answer": 0,
+      "explain": "An isochrone is a line of equal travel time."
+    },
+    {
+      "id": "buffer",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which sf function makes a 500 m zone around each transit stop?",
+      "choices": [
+        "`st_buffer()`",
+        "`st_is_within_distance()`",
+        "`poly2nb()`",
+        "`st_centroid()`"
+      ],
+      "answer": 0,
+      "explain": "A buffer turns a distance into an area."
+    },
+    {
+      "id": "euclid-fill",
+      "type": "fill",
+      "r": false,
+      "prompt": "What is the Euclidean distance from (1, 2) to (4, 6)?",
+      "answers": [
+        "5"
+      ],
+      "numeric": true,
+      "explain": "√(3² + 4²) = 5."
+    },
+    {
+      "id": "manhattan-fill",
+      "type": "fill",
+      "r": false,
+      "prompt": "What is the Manhattan distance from (1, 2) to (4, 6)?",
+      "answers": [
+        "7"
+      ],
+      "numeric": true,
+      "explain": "|4 − 1| + |6 − 2| = 3 + 4 = 7."
+    },
+    {
+      "id": "euclid-latlon",
+      "type": "truefalse",
+      "prompt": "Euclidean distance is fine to calculate directly on longitude and latitude.",
+      "answer": false,
+      "explain": "A degree of longitude shrinks toward the poles. Project first, or use great circle distance."
+    },
+    {
+      "id": "great-circle",
+      "type": "choice",
+      "prompt": "For two cities stored in longitude and latitude, thousands of kilometers apart, use:",
+      "choices": [
+        "Great circle distance",
+        "Euclidean distance",
+        "Manhattan distance",
+        "A distance band"
+      ],
+      "answer": 0,
+      "explain": "It follows the Earth's curved surface. `st_distance()` does it automatically for longitude and latitude."
+    },
+    {
+      "id": "manhattan-long",
+      "type": "truefalse",
+      "prompt": "Manhattan distance is never shorter than the Euclidean distance between the same two points.",
+      "answer": true,
+      "explain": "For a purely diagonal trip it is about 1.41 times longer."
+    },
+    {
+      "id": "network",
+      "type": "choice",
+      "prompt": "Which measure restricts travel to streets and can include one-way streets and turn restrictions?",
+      "choices": [
+        "Network distance",
+        "Euclidean distance",
+        "Great circle distance",
+        "Manhattan distance"
+      ],
+      "answer": 0,
+      "explain": "Travel time adds speeds and traffic on top."
+    },
+    {
+      "id": "why-neighbors",
+      "type": "choice",
+      "prompt": "Why do spatial statistics such as Moran's I need a definition of neighbors?",
+      "choices": [
+        "They compare each value with the values of nearby places",
+        "They only work on points",
+        "They need a projected coordinate system",
+        "They count the number of features"
+      ],
+      "answer": 0,
+      "explain": "To measure similarity between near things, you must first say what 'near' means."
+    },
+    {
+      "id": "band-edge",
+      "type": "choice",
+      "prompt": "With a fixed distance band, features at the edge of a study area often:",
+      "choices": [
+        "Have few or no neighbors",
+        "Have the most neighbors",
+        "Get exactly k neighbors",
+        "Get negative weights"
+      ],
+      "answer": 0,
+      "explain": "That's the edge effect."
+    },
+    {
+      "id": "knn-exact",
+      "type": "truefalse",
+      "prompt": "With k nearest neighbors, every feature gets exactly k neighbors.",
+      "answer": true,
+      "explain": "A constant count and a variable distance."
+    },
+    {
+      "id": "knn-sym",
+      "type": "truefalse",
+      "prompt": "With nearest neighbors, if A is B's neighbor, then B is always A's neighbor.",
+      "answer": false,
+      "explain": "A's nearest neighbor may have someone else even closer. Nearest-neighbor relationships can be asymmetric."
+    },
+    {
+      "id": "queen-corner",
+      "type": "choice",
+      "prompt": "Two counties touch only at a single corner. They are neighbors under:",
+      "choices": [
+        "Queen contiguity only",
+        "Rook contiguity only",
+        "Both rook and queen",
+        "Neither"
+      ],
+      "answer": 0,
+      "explain": "Rook needs a shared edge; queen accepts a corner."
+    },
+    {
+      "id": "grid-queen",
+      "type": "fill",
+      "r": false,
+      "prompt": "On a regular grid, how many queen neighbors does an interior cell have?",
+      "answers": [
+        "8"
+      ],
+      "numeric": true,
+      "explain": "Four sharing an edge, plus four sharing a corner. Rook gives four."
+    },
+    {
+      "id": "points-contig",
+      "type": "choice",
+      "prompt": "How can you use contiguity neighbors for points?",
+      "choices": [
+        "Build Thiessen (Voronoi) polygons around them first",
+        "Use queen = TRUE",
+        "You can't use any neighbors for points",
+        "Project them first"
+      ],
+      "answer": 0,
+      "explain": "Points can't share a border, but their Thiessen polygons can."
+    },
+    {
+      "id": "idw",
+      "type": "choice",
+      "prompt": "With inverse distance weights and *x* = 2, a neighbor twice as far away gets:",
+      "choices": [
+        "A quarter of the weight",
+        "Half the weight",
+        "Twice the weight",
+        "The same weight"
+      ],
+      "answer": 0,
+      "explain": "1 / 2² = 1/4."
+    },
+    {
+      "id": "diag",
+      "type": "truefalse",
+      "prompt": "In a neighborhood weight matrix, the diagonal is 0, because no observation is its own neighbor.",
+      "answer": true,
+      "explain": "Entry wᵢⱼ describes the relationship between i and j."
+    },
+    {
+      "id": "rowstd",
+      "type": "fill",
+      "r": false,
+      "prompt": "In a row-standardized weight matrix, each row sums to what number?",
+      "answers": [
+        "1"
+      ],
+      "numeric": true,
+      "explain": "Each weight is divided by its row's total."
+    },
+    {
+      "id": "rowstd-B",
+      "type": "choice",
+      "prompt": "Tract B has two neighbors, A and C. After row standardization, each of their weights in B's row is:",
+      "choices": [
+        "0.5",
+        "1",
+        "2",
+        "0.25"
+      ],
+      "answer": 0,
+      "explain": "1 ÷ 2 = 0.5."
+    },
+    {
+      "id": "poly2nb",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which spdep function builds contiguity neighbors from polygons?",
+      "choices": [
+        "`poly2nb()`",
+        "`knearneigh()`",
+        "`dnearneigh()`",
+        "`nb2listw()`"
+      ],
+      "answer": 0,
+      "explain": "Set `queen = FALSE` for rook contiguity."
+    },
+    {
+      "id": "fill-knn",
+      "type": "fill",
+      "prompt": "Complete the code to make 4-nearest-neighbor lists from centroid coordinates.",
+      "code": "nb_knn <- knn2nb(___(coords, k = 4))",
+      "answers": [
+        "knearneigh"
+      ],
+      "explain": "`knearneigh()` finds the neighbors; `knn2nb()` turns them into a neighbor list."
+    },
+    {
+      "id": "fill-style",
+      "type": "fill",
+      "prompt": "Complete the code to make row-standardized weights.",
+      "code": "lw <- nb2listw(nb_queen, style = \"___\")",
+      "answers": [
+        "W"
+      ],
+      "explain": "`style = \"W\"` row-standardizes; `\"B\"` keeps binary weights."
+    },
+    {
+      "id": "code-euclid",
+      "type": "code",
+      "prompt": "Write `euclid(x1, y1, x2, y2)`, which returns the Euclidean distance between two points.",
+      "starter": "euclid <- function(x1, y1, x2, y2) {\n  \n}\n",
+      "check": "is.function(euclid) && isTRUE(all.equal(euclid(1, 2, 4, 6), 5)) && isTRUE(all.equal(euclid(0, 0, 1, 1), sqrt(2)))",
+      "solution": "euclid <- function(x1, y1, x2, y2) {\n  sqrt((x2 - x1)^2 + (y2 - y1)^2)\n}",
+      "explain": "The Pythagorean theorem."
+    },
+    {
+      "id": "code-rowstd",
+      "type": "code",
+      "prompt": "Row-standardize `W` and store the result in `W_std`.",
+      "starter": "W <- matrix(c(0, 1, 0, 0,\n              1, 0, 1, 0,\n              0, 1, 0, 1,\n              0, 0, 1, 0), nrow = 4, byrow = TRUE)\n",
+      "check": "isTRUE(all.equal(unname(rowSums(W_std)), rep(1, 4))) && isTRUE(all.equal(unname(W_std[2, 1]), 0.5))",
+      "solution": "W <- matrix(c(0, 1, 0, 0,\n              1, 0, 1, 0,\n              0, 1, 0, 1,\n              0, 0, 1, 0), nrow = 4, byrow = TRUE)\nW_std <- W / rowSums(W)",
+      "explain": "Divide each row by its total."
+    },
+    {
+      "id": "code-lag",
+      "type": "code",
+      "prompt": "Store the spatial lag of `income` (the neighbors' average) in `lag`, using the row-standardized `W_std`.",
+      "starter": "W <- matrix(c(0, 1, 0, 0,\n              1, 0, 1, 0,\n              0, 1, 0, 1,\n              0, 0, 1, 0), nrow = 4, byrow = TRUE)\nW_std <- W / rowSums(W)\nincome <- c(10, 20, 30, 40)\n",
+      "check": "isTRUE(all.equal(as.numeric(lag), c(20, 20, 30, 30)))",
+      "solution": "W <- matrix(c(0, 1, 0, 0,\n              1, 0, 1, 0,\n              0, 1, 0, 1,\n              0, 0, 1, 0), nrow = 4, byrow = TRUE)\nW_std <- W / rowSums(W)\nincome <- c(10, 20, 30, 40)\nlag <- W_std %*% income",
+      "explain": "Matrix multiplication with `%*%` averages each tract's neighbors."
+    }
+  ]
+}

@@ -1,0 +1,297 @@
+{
+  "id": "anova",
+  "title": "Comparing Groups: p-values and ANOVA",
+  "perSession": 10,
+  "minR": 3,
+  "questions": [
+    {
+      "id": "cycle",
+      "type": "choice",
+      "prompt": "In the cycle of data analysis, which step checks whether a pattern could be due to chance?",
+      "choices": [
+        "Test",
+        "Describe",
+        "Collect",
+        "Communicate"
+      ],
+      "answer": 0,
+      "explain": "Ask, collect, describe, test, communicate."
+    },
+    {
+      "id": "statistic",
+      "type": "choice",
+      "prompt": "A statistic is:",
+      "choices": [
+        "A number calculated from a sample that summarizes the data",
+        "The true value for a whole population",
+        "Always a p-value",
+        "A map of the data"
+      ],
+      "answer": 0,
+      "explain": "It estimates a population value and changes from sample to sample."
+    },
+    {
+      "id": "test-stat",
+      "type": "choice",
+      "prompt": "Which of these is a test statistic?",
+      "choices": [
+        "*F*",
+        "The median",
+        "The mean",
+        "The range"
+      ],
+      "answer": 0,
+      "explain": "Test statistics such as *t*, *F*, and chi-square weigh evidence."
+    },
+    {
+      "id": "null",
+      "type": "choice",
+      "prompt": "The null hypothesis of an ANOVA comparing three regions is that:",
+      "choices": [
+        "All three regional means are equal",
+        "All three regional means differ",
+        "At least one regional mean differs",
+        "The regions have different variances"
+      ],
+      "answer": 0,
+      "explain": "H₀: μ₁ = μ₂ = μ₃."
+    },
+    {
+      "id": "p-meaning",
+      "type": "choice",
+      "prompt": "An ANOVA gives *p* = 0.03. This means:",
+      "choices": [
+        "If the groups truly didn't differ, a result this extreme would happen about 3% of the time",
+        "There is a 3% chance the null hypothesis is true",
+        "The difference between groups is large",
+        "97% of the data support the hypothesis"
+      ],
+      "answer": 0,
+      "explain": "A p-value assumes the null hypothesis is true; it isn't the probability that it is."
+    },
+    {
+      "id": "sig-important",
+      "type": "truefalse",
+      "prompt": "A statistically significant result is always large or important.",
+      "answer": false,
+      "explain": "With lots of data, tiny differences can be significant. Report the size of the difference too."
+    },
+    {
+      "id": "bright-line",
+      "type": "truefalse",
+      "prompt": "A result with *p* = 0.051 should be treated very differently from one with *p* = 0.049.",
+      "answer": false,
+      "explain": "They are almost exactly the same amount of evidence. 0.05 is a convention, not a bright line."
+    },
+    {
+      "id": "phacking",
+      "type": "choice",
+      "prompt": "Re-running an analysis in different ways until *p* falls below 0.05 is called:",
+      "choices": [
+        "p-hacking",
+        "Replication",
+        "The file drawer",
+        "Tukey's HSD"
+      ],
+      "answer": 0,
+      "explain": "It produces false findings, and is one cause of the replication crisis."
+    },
+    {
+      "id": "report",
+      "type": "choice",
+      "prompt": "Alongside a p-value, you should report:",
+      "choices": [
+        "The size of the effect and a confidence interval",
+        "Nothing else",
+        "Only the test statistic",
+        "The number of times you ran the test"
+      ],
+      "answer": 0,
+      "explain": "A p-value alone says nothing about how big a difference is."
+    },
+    {
+      "id": "variance-def",
+      "type": "choice",
+      "prompt": "Variance is:",
+      "choices": [
+        "The average squared distance of values from their mean",
+        "The square root of the standard deviation",
+        "The difference between the largest and smallest values",
+        "The middle value"
+      ],
+      "answer": 0,
+      "explain": "For a sample, divide the summed squares by *n* − 1."
+    },
+    {
+      "id": "f-ratio",
+      "type": "choice",
+      "prompt": "The *F* statistic is between-group variance divided by:",
+      "choices": [
+        "Within-group variance",
+        "The overall mean",
+        "The number of groups",
+        "The p-value"
+      ],
+      "answer": 0,
+      "explain": "A large *F* means the group means are far apart relative to the noise within groups."
+    },
+    {
+      "id": "f-near-1",
+      "type": "choice",
+      "prompt": "If the groups are really random draws from one population, *F* tends to be:",
+      "choices": [
+        "Near 1",
+        "Near 0",
+        "Very large",
+        "Negative"
+      ],
+      "answer": 0,
+      "explain": "Between- and within-group variance are then about the same."
+    },
+    {
+      "id": "df-between",
+      "type": "fill",
+      "r": false,
+      "prompt": "An ANOVA compares 4 groups with 40 observations. How many degrees of freedom does the between-groups row have?",
+      "answers": [
+        "3"
+      ],
+      "numeric": true,
+      "explain": "*k* − 1 = 4 − 1 = 3."
+    },
+    {
+      "id": "df-within",
+      "type": "fill",
+      "r": false,
+      "prompt": "An ANOVA compares 3 regions with 100 counties. How many degrees of freedom does the residuals (within-groups) row have?",
+      "answers": [
+        "97"
+      ],
+      "numeric": true,
+      "explain": "*N* − *k* = 100 − 3 = 97."
+    },
+    {
+      "id": "f-calc",
+      "type": "fill",
+      "r": false,
+      "prompt": "MS between is 210.4 and MS within is 24.9. What is *F*, to one decimal place?",
+      "answers": [
+        "8.4",
+        "8.5"
+      ],
+      "numeric": true,
+      "tolerance": 0.06,
+      "explain": "210.4 ÷ 24.9 ≈ 8.45."
+    },
+    {
+      "id": "nc-conclude",
+      "type": "choice",
+      "prompt": "For median male age in three NC regions, *F* = 8.44 and *p* = 0.0004. What can you conclude?",
+      "choices": [
+        "At least two regions differ in median male age",
+        "All three regions differ from each other",
+        "The West is older than the East",
+        "Region causes differences in age"
+      ],
+      "answer": 0,
+      "explain": "ANOVA says some means differ, not which ones, and not why."
+    },
+    {
+      "id": "tukey",
+      "type": "choice",
+      "prompt": "Which test finds which pairs of groups differ after an ANOVA?",
+      "choices": [
+        "Tukey's HSD",
+        "Shapiro-Wilk",
+        "Kruskal-Wallis",
+        "Moran's I"
+      ],
+      "answer": 0,
+      "explain": "`TukeyHSD(fit)` adjusts the p-values for making several comparisons."
+    },
+    {
+      "id": "shapiro",
+      "type": "choice",
+      "prompt": "A Shapiro-Wilk test on ANOVA residuals gives *p* = 0.18. This means:",
+      "choices": [
+        "No evidence that the residuals aren't normal",
+        "The residuals are definitely not normal",
+        "The groups differ",
+        "The groups have equal variances"
+      ],
+      "answer": 0,
+      "explain": "Its null hypothesis is normality, so a large p-value is good news."
+    },
+    {
+      "id": "fallbacks",
+      "type": "choice",
+      "r": true,
+      "prompt": "The groups have very unequal variances. Which test should you use instead of `aov()`?",
+      "choices": [
+        "`oneway.test()` (Welch's ANOVA)",
+        "`TukeyHSD()`",
+        "`shapiro.test()`",
+        "`lm()`"
+      ],
+      "answer": 0,
+      "explain": "Welch's ANOVA doesn't assume equal variances. `kruskal.test()` doesn't assume normality."
+    },
+    {
+      "id": "independence",
+      "type": "choice",
+      "prompt": "Neighboring counties having similar values breaks which ANOVA assumption?",
+      "choices": [
+        "Independence",
+        "Normality",
+        "Equal variances",
+        "Large samples"
+      ],
+      "answer": 0,
+      "explain": "Then the p-value tends to look smaller than it should."
+    },
+    {
+      "id": "maup",
+      "type": "truefalse",
+      "prompt": "Drawing the regions' boundaries differently could change the ANOVA result.",
+      "answer": true,
+      "explain": "That's the modifiable areal unit problem."
+    },
+    {
+      "id": "fill-aov",
+      "type": "fill",
+      "prompt": "Complete the code to fit an ANOVA of `estimate` by `region`.",
+      "code": "fit <- ___(estimate ~ region, data = nc_df)",
+      "answers": [
+        "aov"
+      ],
+      "explain": "`aov()` fits the model; `summary(fit)` prints the table."
+    },
+    {
+      "id": "code-var",
+      "type": "code",
+      "prompt": "Store the variance of `a` in `v`, *without* using `var()`: the summed squared distances from the mean, divided by *n* − 1.",
+      "starter": "a <- c(3, 4, 5, 5, 6, 7)\n",
+      "check": "isTRUE(all.equal(v, 2)) && !grepl('var(', .sds_code, fixed = TRUE)",
+      "solution": "a <- c(3, 4, 5, 5, 6, 7)\nv <- sum((a - mean(a))^2) / (length(a) - 1)",
+      "explain": "The squared distances add up to 10, and 10 ÷ 5 = 2."
+    },
+    {
+      "id": "code-aov",
+      "type": "code",
+      "prompt": "Fit an ANOVA of `value` by `group` and store it in `fit`.",
+      "starter": "d <- data.frame(\n  group = rep(c(\"A\", \"B\", \"C\"), each = 6),\n  value = c(3, 4, 5, 5, 6, 7,  6, 7, 8, 8, 9, 10,  4, 5, 6, 6, 7, 8)\n)\n",
+      "check": "inherits(fit, 'aov') && isTRUE(all.equal(summary(fit)[[1]][['F value']][1], 7))",
+      "solution": "d <- data.frame(\n  group = rep(c(\"A\", \"B\", \"C\"), each = 6),\n  value = c(3, 4, 5, 5, 6, 7,  6, 7, 8, 8, 9, 10,  4, 5, 6, 6, 7, 8)\n)\nfit <- aov(value ~ group, data = d)",
+      "explain": "`summary(fit)` shows *F* = 7 on 2 and 15 degrees of freedom."
+    },
+    {
+      "id": "code-pf",
+      "type": "code",
+      "prompt": "Store in `p` the p-value for *F* = 8.439 with 2 and 97 degrees of freedom, using `pf()`.",
+      "starter": "p <- \n",
+      "check": "isTRUE(all.equal(p, pf(8.439, 2, 97, lower.tail = FALSE)))",
+      "solution": "p <- pf(8.439, df1 = 2, df2 = 97, lower.tail = FALSE)",
+      "explain": "`lower.tail = FALSE` gives the share of the F distribution beyond 8.439: about 0.0004."
+    }
+  ]
+}

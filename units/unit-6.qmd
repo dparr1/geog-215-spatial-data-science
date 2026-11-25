@@ -1,0 +1,23 @@
+---
+title: "Unit 6: Statistics and Science"
+---
+
+This unit turns data into evidence. It tests whether groups of places differ, models how one variable changes with others, and then puts the pieces together into a reproducible spatial data science project, from the research question to the conclusion.
+
+## Chapter 18: [Comparing Groups: p-values and ANOVA](../chapters/anova.qmd)
+
+This chapter places statistical tests in the cycle of data analysis. It explains what a p-value does and doesn't tell you, and why the replication crisis changed how scientists report them. It then compares group means with analysis of variance, from a small worked example to median male age across North Carolina's regions, with follow-up tests and alternatives for when ANOVA's assumptions fail.
+
+[Chapter 18 quiz](../chapters/anova-quiz.qmd)
+
+## Chapter 19: [Linear Regression](../chapters/regression.qmd)
+
+Regression asks how one variable changes as another changes. This chapter covers correlation, fitting a line with `lm()`, slopes, intercepts, residuals, and predictions, and how to read R's model summary, including R² and adjusted R². It models median house value in North Carolina's counties, then maps the residuals to see where the model fails.
+
+[Chapter 19 quiz](../chapters/regression-quiz.qmd)
+
+## Chapter 20: [Writing a Spatial Data Science Project](../chapters/writing-spatial-data-science.qmd)
+
+This chapter steps back to ask how data become knowledge. It covers the data, information, knowledge, wisdom pyramid, big data, choosing sources, and why reproducibility and replicability matter. It then walks through the parts of a project, from the research question and background to methods, results, and conclusions, and ends with what makes a project spatial data science.
+
+[Chapter 20 quiz](../chapters/writing-spatial-data-science-quiz.qmd)

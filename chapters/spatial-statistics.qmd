@@ -297,7 +297,7 @@ Why project to State Plane first? The mean of latitudes and longitudes isn't a t
 3.  **Your own function.** Write a function, `centralFeature(x, y)`, that returns the number of the central feature. Test it on the six points in this chapter.
 4.  **Weighted standard distance.** Extend `standardDistance()` to take a third input, `w`, and return the weighted standard distance. (Replace each mean with `weighted.mean()`, and each division by *n* with a division by the sum of the weights.)
 5.  **Two periods.** Use `meanCenter()` to find the weighted mean center of births in North Carolina for `BIR74` and for `BIR79`. Did it move? How far, and in which direction?
-6.  **Population.** Once you have read Chapter 15, download the population of each North Carolina county from the American Community Survey with tidycensus, and find the population-weighted mean center. How does it compare with the center for 1970s births?
+6.  **Population.** Once you have read Chapter 16, download the population of each North Carolina county from the American Community Survey with tidycensus, and find the population-weighted mean center. How does it compare with the center for 1970s births?
 
 ## Further reading
 

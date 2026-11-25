@@ -1,0 +1,9 @@
+# Chapter quiz: Linear Regression {.unnumbered}
+
+Practice what you learned in [Linear Regression](regression.qmd). Questions come one at a time. Any you miss come back at the end until you've got them all right. Every quiz is a new random set from a bank of questions, so take it as many times as you like.
+
+```{=html}
+<link rel="stylesheet" href="../assets/quiz/quiz.css">
+<div class="sds-quiz" data-bank="../quizzes/regression.json"><p>Loading the quiz…</p></div>
+<script src="../assets/quiz/quiz.js" defer></script>
+```

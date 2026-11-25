@@ -1,0 +1,300 @@
+{
+  "id": "writing-spatial-data-science",
+  "title": "Writing a Spatial Data Science Project",
+  "perSession": 10,
+  "minR": 0,
+  "questions": [
+    {
+      "id": "data-info",
+      "type": "choice",
+      "prompt": "A list of every county's median house value, with no summary or map, is:",
+      "choices": [
+        "Data",
+        "Information",
+        "Knowledge",
+        "Wisdom"
+      ],
+      "answer": 0,
+      "explain": "Raw values without context are data."
+    },
+    {
+      "id": "info",
+      "type": "choice",
+      "prompt": "A map showing which counties have the highest house values is:",
+      "choices": [
+        "Information",
+        "Data",
+        "Wisdom",
+        "Big data"
+      ],
+      "answer": 0,
+      "explain": "Data organized and summarized become information."
+    },
+    {
+      "id": "no-info",
+      "type": "truefalse",
+      "prompt": "You can have information without data.",
+      "answer": false,
+      "explain": "You can have data without information, but not information without data."
+    },
+    {
+      "id": "dikw-top",
+      "type": "fill",
+      "r": false,
+      "prompt": "Which level sits at the top of the DIKW pyramid?",
+      "answers": [
+        "Wisdom"
+      ],
+      "ignoreCase": true,
+      "explain": "Data, information, knowledge, wisdom."
+    },
+    {
+      "id": "dikw-order",
+      "type": "order",
+      "r": false,
+      "prompt": "Put the levels of the DIKW pyramid in order, from bottom to top.",
+      "answer": [
+        "Data",
+        "Information",
+        "Knowledge",
+        "Wisdom"
+      ],
+      "extra": [
+        "Insight"
+      ],
+      "explain": "Each level builds on the one below."
+    },
+    {
+      "id": "workflow",
+      "type": "order",
+      "r": false,
+      "prompt": "Put the steps of the data science workflow in order.",
+      "answer": [
+        "Import",
+        "Tidy",
+        "Transform",
+        "Visualize",
+        "Model",
+        "Communicate"
+      ],
+      "explain": "Transform, visualize, and model repeat until you understand the data."
+    },
+    {
+      "id": "three-v",
+      "type": "choice",
+      "prompt": "The three Vs of big data are volume, velocity, and:",
+      "choices": [
+        "Variety",
+        "Validity",
+        "Value",
+        "Visualization"
+      ],
+      "answer": 0,
+      "explain": "Variety: structured, semi-structured, and unstructured data."
+    },
+    {
+      "id": "velocity",
+      "type": "choice",
+      "prompt": "Velocity, in big data, means:",
+      "choices": [
+        "How fast data arrive, from batches to live streams",
+        "How much data there is",
+        "How many kinds of data there are",
+        "How accurate the data are"
+      ],
+      "answer": 0,
+      "explain": "GPS traces and sensor feeds are high-velocity."
+    },
+    {
+      "id": "authoritative",
+      "type": "choice",
+      "prompt": "Which source is usually the most authoritative?",
+      "choices": [
+        "A government agency, such as the Census Bureau",
+        "Social media posts",
+        "A news website's comments",
+        "A random sensor feed"
+      ],
+      "answer": 0,
+      "explain": "Federal, state, county, and local government data are usually most authoritative."
+    },
+    {
+      "id": "static",
+      "type": "choice",
+      "prompt": "A dataset that is a fixed snapshot, never updated, is:",
+      "choices": [
+        "Static",
+        "Dynamic",
+        "Replicable",
+        "Big data"
+      ],
+      "answer": 0,
+      "explain": "Dynamic data keep updating, so results can change when you rerun your code."
+    },
+    {
+      "id": "reproducible",
+      "type": "choice",
+      "prompt": "Rerunning the same code on the same data and getting the same results is called:",
+      "choices": [
+        "Reproducibility",
+        "Replicability",
+        "Velocity",
+        "Spatial heterogeneity"
+      ],
+      "answer": 0,
+      "explain": "Replicability is a new study with new data getting consistent results."
+    },
+    {
+      "id": "replicable",
+      "type": "choice",
+      "prompt": "A new study, using different data to answer the same question, gets consistent results. The original finding is:",
+      "choices": [
+        "Replicable",
+        "Reproducible",
+        "Static",
+        "Significant"
+      ],
+      "answer": 0,
+      "explain": "Reproducible means the same data and code give the same results."
+    },
+    {
+      "id": "rmd",
+      "type": "choice",
+      "prompt": "How does R Markdown help reproducibility?",
+      "choices": [
+        "It keeps data loading, code, results, and write-up in one document anyone can rerun",
+        "It makes maps prettier",
+        "It removes the need to cite data",
+        "It runs faster than R scripts"
+      ],
+      "answer": 0,
+      "explain": "Knit the file with the data, and you get the same report."
+    },
+    {
+      "id": "heterogeneity",
+      "type": "choice",
+      "prompt": "Relationships that change from place to place are called:",
+      "choices": [
+        "Spatial heterogeneity",
+        "Spatial autocorrelation",
+        "Reproducibility",
+        "The first law of geography"
+      ],
+      "answer": 0,
+      "explain": "Remote work might matter more for house values near cities than in rural counties."
+    },
+    {
+      "id": "maup",
+      "type": "truefalse",
+      "prompt": "Analyzing census tracts instead of counties can change a project's results.",
+      "answer": true,
+      "explain": "That's the modifiable areal unit problem."
+    },
+    {
+      "id": "intro",
+      "type": "choice",
+      "prompt": "Which section of a project states the research question?",
+      "choices": [
+        "Introduction",
+        "Background",
+        "Results",
+        "References"
+      ],
+      "answer": 0,
+      "explain": "The research question drives everything else."
+    },
+    {
+      "id": "good-q",
+      "type": "choice",
+      "prompt": "Which is the best research question?",
+      "choices": [
+        "Is the share of residents who work from home related to median house value in NC counties in 2020?",
+        "What affects house prices?",
+        "Are houses expensive?",
+        "Why is everything so costly?"
+      ],
+      "answer": 0,
+      "explain": "It is specific, names a place and a time, and is answerable."
+    },
+    {
+      "id": "q-form",
+      "type": "truefalse",
+      "prompt": "A research question must be phrased as a question.",
+      "answer": false,
+      "explain": "It doesn't have to be, but that often helps."
+    },
+    {
+      "id": "background",
+      "type": "choice",
+      "prompt": "The background section should:",
+      "choices": [
+        "Show what earlier research found and how it shapes your question, data, or methods",
+        "List your R packages",
+        "Give your final answer",
+        "Show your residual map"
+      ],
+      "answer": 0,
+      "explain": "It shows you've read what came before."
+    },
+    {
+      "id": "methods",
+      "type": "choice",
+      "prompt": "Which belongs in data and methods?",
+      "choices": [
+        "The source of your data, the code that tidies it, and descriptive maps and statistics",
+        "Only your conclusions",
+        "Your references",
+        "Nothing about code"
+      ],
+      "answer": 0,
+      "explain": "Show your work."
+    },
+    {
+      "id": "conclusion",
+      "type": "choice",
+      "prompt": "In which section do you discuss limitations and what you'd do differently?",
+      "choices": [
+        "Conclusion",
+        "Data and methods",
+        "Results",
+        "Background"
+      ],
+      "answer": 0,
+      "explain": "The conclusion answers the question, or explains why you couldn't."
+    },
+    {
+      "id": "cite-pkg",
+      "type": "choice",
+      "r": true,
+      "prompt": "Which R function gives the citation for a package, such as tidycensus?",
+      "choices": [
+        "`citation(\"tidycensus\")`",
+        "`cite(\"tidycensus\")`",
+        "`library(tidycensus)`",
+        "`help(tidycensus)`"
+      ],
+      "answer": 0,
+      "explain": "Cite your data and your software."
+    },
+    {
+      "id": "what-sds",
+      "type": "truefalse",
+      "prompt": "Any project that uses spatial data is spatial data science.",
+      "answer": false,
+      "explain": "You also need spatial analysis: a question with spatial aspects, such as a residual map or a test for spatial autocorrelation."
+    },
+    {
+      "id": "three-parts",
+      "type": "choice",
+      "prompt": "Spatial data science combines spatial data, maps and visualizations, and:",
+      "choices": [
+        "Spatial analysis",
+        "Big data",
+        "Social media",
+        "Wisdom"
+      ],
+      "answer": 0,
+      "explain": "Done well, it is also open, reproducible, and replicable."
+    }
+  ]
+}

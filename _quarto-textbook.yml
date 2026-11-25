@@ -50,10 +50,28 @@ book:
         - chapters/esda-quiz.qmd
         - chapters/spatial-statistics.qmd
         - chapters/spatial-statistics-quiz.qmd
+        - chapters/blocks-loops-functions.qmd
+        - chapters/blocks-loops-functions-quiz.qmd
     - part: units/unit-5.qmd
       chapters:
         - chapters/census-data-apis.qmd
         - chapters/census-data-apis-quiz.qmd
+        - chapters/arcpullr.qmd
+        - chapters/arcpullr-quiz.qmd
+    - part: units/unit-6.qmd
+      chapters:
+        - chapters/anova.qmd
+        - chapters/anova-quiz.qmd
+        - chapters/regression.qmd
+        - chapters/regression-quiz.qmd
+        - chapters/writing-spatial-data-science.qmd
+        - chapters/writing-spatial-data-science-quiz.qmd
+    - part: units/unit-7.qmd
+      chapters:
+        - chapters/distance-neighborhoods.qmd
+        - chapters/distance-neighborhoods-quiz.qmd
+        - chapters/spatial-autocorrelation.qmd
+        - chapters/spatial-autocorrelation-quiz.qmd
   appendices:
     - glossary.qmd
     - about.qmd
