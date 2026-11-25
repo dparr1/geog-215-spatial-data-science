@@ -21,7 +21,7 @@ By the end of this chapter you should be able to:
 5.  Read a function that calculates a weighted mean center for a layer of polygons.
 :::
 
-Chapter 13 described the *values* of a variable: where its center is and how spread out it is. This chapter does the same for *locations*. Where is the middle of a set of features? Which feature is most central? And how spread out are they?
+Chapter 16 described the *values* of a variable: where its center is and how spread out it is. This chapter does the same for *locations*. Where is the middle of a set of features? Which feature is most central? And how spread out are they?
 
 The answers are **spatial descriptive statistics**. In the second half of the chapter, you will also write your own functions in R, and read one that calculates a weighted mean center.
 
@@ -165,7 +165,7 @@ So far we have calculated these statistics one line at a time. A **function** wr
 
 ### What is a function?
 
-You have used functions all along: `mean()`, `st_read()`, `ggplot()`. A function is a named, reusable block of code. Every function has:
+You have used functions all along: `mean()`, `st_read()`, `ggplot()`, and Chapter 5 showed how to write your own. Here is a quick review before we put them to work on spatial statistics. A function is a named, reusable block of code. Every function has:
 
 - a **name**;
 - **inputs**, called **arguments**;
@@ -297,7 +297,7 @@ Why project to State Plane first? The mean of latitudes and longitudes isn't a t
 3.  **Your own function.** Write a function, `centralFeature(x, y)`, that returns the number of the central feature. Test it on the six points in this chapter.
 4.  **Weighted standard distance.** Extend `standardDistance()` to take a third input, `w`, and return the weighted standard distance. (Replace each mean with `weighted.mean()`, and each division by *n* with a division by the sum of the weights.)
 5.  **Two periods.** Use `meanCenter()` to find the weighted mean center of births in North Carolina for `BIR74` and for `BIR79`. Did it move? How far, and in which direction?
-6.  **Population.** Once you have read Chapter 16, download the population of each North Carolina county from the American Community Survey with tidycensus, and find the population-weighted mean center. How does it compare with the center for 1970s births?
+6.  **Population.** Once you have read Chapter 13, download the population of each North Carolina county from the American Community Survey with tidycensus, and find the population-weighted mean center. How does it compare with the center for 1970s births?
 
 ## Further reading
 

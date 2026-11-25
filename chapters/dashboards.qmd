@@ -49,7 +49,7 @@ Your assignments have been reports: you guide the reader through an analysis ste
 
 - **Answer a few clear questions,** and leave out everything else. Write down two or three questions before you start, and cut anything that doesn't help answer them.
 - **Put the most important view, often the map, largest and first.**
-- **Use the map design rules you already know** (Chapter 9): sensible classification, a clear legend with units, and a data source.
+- **Use the map design rules you already know** (Chapter 10): sensible classification, a clear legend with units, and a data source.
 - **Link the views,** so a filter or selection updates them together.
 - **Design for everyone.** Never use color alone to carry meaning; add labels and a table. A table beside the map gives screen reader users and colorblind readers the same information. Check color contrast, and test with a keyboard and on a phone.
 
@@ -94,7 +94,7 @@ A static dashboard can be emailed, uploaded to Canvas, or hosted on GitHub Pages
 
 ![The finished static dashboard. The map's gray background is only because the basemap tiles didn't load when this screenshot was taken; on your computer you will see a light basemap.](../images/dashboards/dash-static.png){#fig-dash-static fig-alt="A dashboard titled US States: Income and Poverty, 2015. A left sidebar has Census region checkboxes and a median income slider. The center shows a choropleth map of the lower 48 states in shades of blue, with a red point on each state. On the right are a value box reading 49 States in the map, a scatter plot of poverty rate against median income, and a data table of states."}
 
-The data are `us_states` and `us_states_df` from the spData package, the same data you joined in Chapter 12, so everything loads with `library()` and nothing needs downloading. Preparing the data looks just like the joins chapter:
+The data are `us_states` and `us_states_df` from the spData package, the same data you joined in Chapter 15, so everything loads with `library()` and nothing needs downloading. Preparing the data looks just like the joins chapter:
 
 ``` r
 library(sf)
@@ -110,7 +110,7 @@ states <- us_states |>
   st_transform(4326)  # leaflet expects WGS84 longitude and latitude
 ```
 
-Three details. spData spells the Northeast region "Norteast", so `fct_recode()` from forcats fixes the label. `poverty_level_15` is a count of people, so dividing by population gives a rate. And leaflet works in longitude and latitude on WGS84, EPSG:4326 (Chapter 11), so we transform the data. Doing the data preparation once, at the top of the file, keeps the rest of the dashboard simple.
+Three details. spData spells the Northeast region "Norteast", so `fct_recode()` from forcats fixes the label. `poverty_level_15` is a count of people, so dividing by population gives a rate. And leaflet works in longitude and latitude on WGS84, EPSG:4326 (Chapter 12), so we transform the data. Doing the data preparation once, at the top of the file, keeps the rest of the dashboard simple.
 
 ## Interactive maps with leaflet {#sec-leaflet}
 
@@ -166,7 +166,7 @@ A **label** appears when the reader hovers over a state, and a **popup** when th
 
 ### A shortcut: tmap in view mode
 
-If you prefer tmap, you don't have to learn leaflet first. Chapter 9 showed that `tmap_mode("view")` turns tmap code into an interactive map, and that map *is* a leaflet map:
+If you prefer tmap, you don't have to learn leaflet first. Chapter 10 showed that `tmap_mode("view")` turns tmap code into an interactive map, and that map *is* a leaflet map:
 
 ``` r
 library(tmap)

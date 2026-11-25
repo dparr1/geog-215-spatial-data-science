@@ -197,7 +197,7 @@ Read @tbl-geoid from the top down. Because the parts always have the same number
 GEOIDs look like numbers, but treat them as text. Alabama's state FIPS code is `01`. Read it as a number and it becomes `1`, every Alabama GEOID loses a digit, and your joins quietly fail. When you read a CSV, set the column type explicitly, for example `read_csv(file, col_types = cols(GEOID = col_character()))`.
 :::
 
-The GEOID is also the key you will join on. Census tables and Census boundary files both carry a `GEOID` column, so attaching data to shapes is a single `left_join()` on that field.
+The GEOID is also the key you will join on. Census tables and Census boundary files both carry a `GEOID` column, so attaching data to shapes is a single `left_join()` on that field. (Chapter 15 covers joins in detail.)
 
 ### What data are available at each level
 

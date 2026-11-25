@@ -2,7 +2,7 @@
 title: "Unit 1: R and Spatial Data Science"
 ---
 
-This unit sets up everything else in the book. It starts with what spatial data science is and why location matters. It then gets you working in R and RStudio, writing reproducible R Markdown reports, and handling R's basic building blocks: vectors, data types, and data frames. By the end of the unit you can load data into R and pull out exactly the values you need.
+This unit sets up everything else in the book. It starts with what spatial data science is and why location matters. It then gets you working in R and RStudio, writing reproducible R Markdown reports, and handling R's basic building blocks: vectors, data types, and data frames. It ends with the R tools that save you from repeating yourself: making decisions with `if`, repeating work with loops, and writing your own functions. By the end of the unit you can load data into R, pull out exactly the values you need, and automate the steps you would otherwise do by hand.
 
 ## Chapter 1: [What is Spatial Data Science?](../chapters/intro-spatial-data-science.qmd)
 
@@ -27,3 +27,9 @@ R runs one line at a time, in the order you run it, so this chapter shows how to
 Indexing selects part of a vector or a table with square brackets: by position, by name, or by a condition built from comparison and logical operators. The chapter then introduces the data frame, R's table of variables and observations, and shows how to read a CSV file into one and select its rows and columns.
 
 [Chapter 4 quiz](../chapters/indexing-vectors-data-frames-quiz.qmd)
+
+## Chapter 5: [Blocks, Loops, and Functions](../chapters/blocks-loops-functions.qmd)
+
+Good programmers are productively lazy. This chapter shows how blocks group lines of code, how `if`, `else if`, and `else` decide whether a block runs, and how `while` and `for` loops repeat one. It compares loops with R's vectorized functions, such as `ifelse()`, then takes functions apart: arguments, defaults, return values, error checks with `stop()`, and variable scope.
+
+[Chapter 5 quiz](../chapters/blocks-loops-functions-quiz.qmd)

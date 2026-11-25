@@ -17,10 +17,10 @@ By the end of this chapter you should be able to:
 
 This chapter looks forward instead of teaching a new method. You can now do a full spatial data science workflow in R:
 
-- **Get data:** CSV files, shapefiles, the Census API, and ArcGIS REST services (Chapters 16 and 17).
-- **Wrangle it:** the tidyverse, the pipe, and table and spatial joins (Chapters 5–8 and 12).
-- **Map it:** ggplot2 and tmap, with sensible coordinate systems (Chapters 8, 9, and 11).
-- **Analyze it:** exploratory data analysis, ANOVA, regression, distance, neighbors, and spatial autocorrelation (Chapters 13, 18, 19, 21, and 22).
+- **Get data:** CSV files, shapefiles, the Census API, and ArcGIS REST services (Chapters 13 and 14).
+- **Wrangle it:** the tidyverse, the pipe, and table and spatial joins (Chapters 6–9 and 15).
+- **Map it:** ggplot2 and tmap, with sensible coordinate systems (Chapters 9, 10, and 12).
+- **Analyze it:** exploratory data analysis, ANOVA, regression, distance, neighbors, and spatial autocorrelation (Chapters 16, 18, 19, 21, and 22).
 - **Communicate it:** reproducible R Markdown reports and interactive dashboards (Chapters 2, 20, and 23).
 
 That is the core workflow of spatial data science. This chapter shows where it is used, previews three advanced topics that build on it, and maps out what to take next at UNC and where spatial skills can take you. As you read, notice which application excites you most. That is a good clue to which course to take next.
@@ -69,7 +69,7 @@ GIS is central to preparing for and responding to disasters: flood maps, evacuat
 - Sea-level rise and shoreline change along the Outer Banks.
 - Statewide lidar elevation data, collected for floodplain mapping.
 
-The key question, who is exposed, is an overlay of hazard zones with census data: exactly the kind of spatial join you did in Chapter 12.
+The key question, who is exposed, is an overlay of hazard zones with census data: exactly the kind of spatial join you did in Chapter 15.
 
 ### Cities, transportation, and planning
 
@@ -101,7 +101,7 @@ Pick the application in this section that interests you most. Which chapters of 
 
 The next three sections preview advanced areas: remote sensing, space-time modeling, and GeoAI. Each is a full course or career on its own, so the goal is vocabulary and a sense of what is possible, not mastery.
 
-**Remote sensing** is collecting information about Earth without touching it, and it produces most of the raster data in the world (Chapter 10). Sensors come in two kinds:
+**Remote sensing** is collecting information about Earth without touching it, and it produces most of the raster data in the world (Chapter 11). Sensors come in two kinds:
 
 - **Passive sensors** record reflected sunlight or the heat a surface gives off, like a camera or a multispectral scanner.
 - **Active sensors** send their own signal and measure what comes back. **Radar** can see through clouds and at night, and **lidar** measures distance with laser pulses to build 3D models of terrain and trees.

@@ -75,7 +75,7 @@ $$
 d = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}
 $$
 
-It is a simple calculation that doesn't need a GIS, but it assumes a flat surface with the same units in x and y. That means **projected coordinates**. Never use it on latitude and longitude: a degree of longitude is about 111 km at the Equator but shrinks to nothing at the poles (Chapter 11).
+It is a simple calculation that doesn't need a GIS, but it assumes a flat surface with the same units in x and y. That means **projected coordinates**. Never use it on latitude and longitude: a degree of longitude is about 111 km at the Equator but shrinks to nothing at the poles (Chapter 12).
 
 ```{webr-r}
 euclid <- function(x1, y1, x2, y2) {
