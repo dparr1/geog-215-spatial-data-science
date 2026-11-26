@@ -20,6 +20,7 @@ project:
     - "!units/*-quiz.qmd"
     - "!chapters/*-quiz.qmd"
     - glossary.qmd
+    - references.qmd
 
 book:
   chapters:
@@ -63,3 +64,4 @@ book:
   appendices:
     - glossary.qmd
     - about.qmd
+    - references.qmd
