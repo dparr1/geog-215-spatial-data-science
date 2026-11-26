@@ -95,9 +95,9 @@ Each chapter through Chapter 22 is followed by a chapter quiz you can take as ma
 
 ## Fonts and reading settings {#sec-fonts}
 
-::: {.content-visible when-format="html"}
 The text of this book is set in **Atkinson Hyperlegible Next**, and the code is set in **Atkinson Hyperlegible Mono**. Both were designed by the [Braille Institute of America](https://www.brailleinstitute.org/freefont/) for readers with low vision, and both are free to use. Many common letters and numbers look alike in ordinary fonts: a capital I, a lowercase l, and the number 1, or a capital O and a zero. Atkinson Hyperlegible gives each of these characters its own distinct shape, so they are hard to mistake for one another. That matters in a book about code, where `l1` and `I1` are different names and a single wrong character breaks a line of R. The zero in the code font has a slash through it, so you can always tell `0` from `O`.
 
+::: {.content-visible when-format="html"}
 A font that is easy for one reader can be hard for another, so you can change it. Press the **Aa** button beside the search box at the top of any page to choose a font and a text size. The fonts are:
 
 - **Atkinson Hyperlegible** (the default), described above.
@@ -110,9 +110,7 @@ Text size goes from one step smaller than normal to three steps larger. Your cho
 :::
 
 ::: {.content-visible when-format="pdf"}
-The text of this printed version is set in **Ubuntu**, a clear, open sans-serif typeface, and the code is set in a monospaced font, in which every character has the same width so code lines up.
-
-The online version of this book, at <https://daveparr.com/intro-spatial-data-science/>, is set in **Atkinson Hyperlegible Next**, with code in **Atkinson Hyperlegible Mono**. Both were designed by the Braille Institute of America for readers with low vision, and they give characters that are easy to confuse, such as a capital I, a lowercase l, and the number 1, each a distinct shape. Online, you can also change the font and text size with the **Aa** button beside the search box. The choices include Lexend, designed to reduce visual stress, and OpenDyslexic, which some readers with dyslexia find easier to read.
+A font that is easy for one reader can be hard for another. The online version of this book, at <https://daveparr.com/intro-spatial-data-science/>, lets you change the font and text size with the **Aa** button beside the search box. The choices include Lexend, designed to reduce visual stress, and OpenDyslexic, which some readers with dyslexia find easier to read.
 :::
 
 ## Acknowledgments

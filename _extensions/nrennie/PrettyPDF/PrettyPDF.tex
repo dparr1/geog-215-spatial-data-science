@@ -70,21 +70,36 @@
 }
 \makeatother
 
-%% Use some custom fonts
-\setsansfont{Ubuntu}[
-    Path=_extensions/nrennie/PrettyPDF/Ubuntu/,
+%% Fonts (GEOG 215 change): Atkinson Hyperlegible Next for text and headings
+%% and Atkinson Hyperlegible Mono for code, to match the website
+%% (assets/fonts.scss). Static TTFs from Google Fonts, SIL Open Font License,
+%% in assets/pdf-fonts/atkinson/. (PrettyPDF's own Ubuntu files are unused.)
+\setmainfont{AtkinsonHyperlegibleNext}[
+    Path=assets/pdf-fonts/atkinson/,
     Scale=0.9,
     Extension = .ttf,
     UprightFont=*-Regular,
     BoldFont=*-Bold,
     ItalicFont=*-Italic,
+    BoldItalicFont=*-BoldItalic,
     ]
 
-\setmainfont{Ubuntu}[
-    Path=_extensions/nrennie/PrettyPDF/Ubuntu/,
+\setsansfont{AtkinsonHyperlegibleNext}[
+    Path=assets/pdf-fonts/atkinson/,
     Scale=0.9,
     Extension = .ttf,
     UprightFont=*-Regular,
     BoldFont=*-Bold,
     ItalicFont=*-Italic,
+    BoldItalicFont=*-BoldItalic,
+    ]
+
+\setmonofont{AtkinsonHyperlegibleMono}[
+    Path=assets/pdf-fonts/atkinson/,
+    Scale=MatchLowercase,
+    Extension = .ttf,
+    UprightFont=*-Regular,
+    BoldFont=*-Bold,
+    ItalicFont=*-Italic,
+    BoldItalicFont=*-BoldItalic,
     ]
