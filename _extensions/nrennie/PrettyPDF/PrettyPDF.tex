@@ -1,11 +1,16 @@
+% PrettyPDF v0.0.5 (nrennie/PrettyPDF), changed for this book: the heading
+% styles use KOMA-Script's own font commands (Quarto books use the KOMA
+% class scrreprt) instead of the sectsty and titlesec packages. Those two
+% replace KOMA's heading code, and with recent LaTeX versions that printed
+% a "0" (the chapter number before Chapter 1) in front of unnumbered
+% chapters such as the Table of contents and the Preface, and broke unit
+% (part) pages. Don't load titlesec or sectsty again in another header file.
 % load packages
 \usepackage{geometry}
 \usepackage{xcolor}
 \usepackage{eso-pic}
 \usepackage{fancyhdr}
-\usepackage{sectsty}
 \usepackage{fontspec}
-\usepackage{titlesec}
 
 %% Set page size with a wider right margin
 \geometry{a4paper, total={170mm,257mm}, left=20mm, top=20mm, bottom=20mm, right=50mm}
@@ -39,13 +44,21 @@
 }
 \setlength{\footskip}{20pt}
 
-%% style the chapter/section fonts
-\chapterfont{\color{dark}\fontsize{20}{16.8}\selectfont}
-\sectionfont{\color{dark}\fontsize{20}{16.8}\selectfont}
-\subsectionfont{\color{dark}\fontsize{14}{16.8}\selectfont}
-\titleformat{\subsection}
-  {\sffamily\Large\bfseries}{\thesection}{1em}{}[{\titlerule[0.8pt]}]
-  
+%% style the chapter/section fonts (KOMA-Script; see the note at the top)
+\addtokomafont{disposition}{\color{dark}}
+\setkomafont{chapter}{\fontsize{20}{24}\selectfont}
+\setkomafont{section}{\fontsize{20}{24}\selectfont}
+\setkomafont{subsection}{\Large}
+%% a rule under subsection headings
+\makeatletter
+\renewcommand{\sectionlinesformat}[4]{%
+  \Ifstr{#1}{subsection}{%
+    \parbox[t]{\linewidth}{\raggedsection\@hangfrom{\hskip #2#3}{#4}\par
+      \kern 3pt\hrule height 0.8pt}%
+  }{\@hangfrom{\hskip #2#3}{#4}}%
+}
+\makeatother
+
 % left align title
 \makeatletter
 \renewcommand{\maketitle}{\bgroup\setlength{\parindent}{0pt}

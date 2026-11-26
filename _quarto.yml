@@ -67,14 +67,15 @@ format:
   #   quarto render --to PrettyPDF-pdf --profile textbook
   PrettyPDF-pdf:
     toc: false
+    # Heading styles are in _extensions/nrennie/PrettyPDF/PrettyPDF.tex.
+    # Don't add titlesec or sectsty: they print a "0" before unnumbered
+    # chapters such as the Table of contents and the Preface.
     include-in-header:
-      - preamble.tex
-      # Lets PrettyPDF's section styles work with unit (part) pages.
-      - assets/pdf-fixes.tex
       # Full-page cover (images/cover.jpg) before the title page.
       - assets/pdf-cover.tex
-    include-before-body: 
-      - front-pages.tex
+    # Copyright, dedication, and table of contents pages.
+    include-before-body:
+      - assets/pdf-front-pages.tex
     number-sections: true
     keep-tex: true
 
