@@ -2,8 +2,10 @@
   Announcements as push notifications (geog215.org only; added after the body by
   the `geog215` profile, _quarto-geog215.yml, after the sign-in gate).
 
-  A "Notifications" button in the bottom-right corner lets a signed-in
-  student turn notifications on or off for this course on this device. When
+  A signed-in student who hasn't decided yet sees a banner at the top of the
+  page ("Get course announcements on this device?" with Turn on / Not now;
+  Not now hides it for 30 days on that device). A "Notifications" button in
+  the bottom-right corner turns them on or off at any time. When
   they turn them on, the browser asks for permission and makes a push
   subscription, which is saved with save_push_subscription (supabase/setup.sql
   section 9). The instructor sends announcements from
@@ -21,6 +23,24 @@
     display: inline-block; width: 0.55em; height: 0.55em; margin-left: 5px; border-radius: 50%;
     background: #2C5080; vertical-align: middle;
   }
+  #sds-notify-banner {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+    margin: 0 0 18px; padding: 12px 14px; border-radius: 8px;
+    border: 1px solid #d9dee3; border-left: 5px solid #2C5080; background: #f7f9fa; color: #1f2933;
+    font-size: 0.95rem;
+  }
+  #sds-notify-banner .sds-nb-text { flex: 1 1 260px; }
+  #sds-notify-banner .sds-nb-text strong { display: block; font-size: 1rem; }
+  #sds-notify-banner .sds-nb-text span { color: #52606d; font-size: 0.88rem; }
+  #sds-notify-banner .sds-nb-buttons { display: flex; gap: 8px; align-items: center; }
+  #sds-notify-banner button {
+    padding: 7px 14px; font: inherit; font-size: 0.9rem; font-weight: 600; border-radius: 6px; cursor: pointer;
+    border: 1px solid #2C5080;
+  }
+  #sds-notify-banner .sds-nb-on { color: #fff; background: #2C5080; }
+  #sds-notify-banner .sds-nb-later { color: #2C5080; background: transparent; }
+  #sds-notify-banner button:focus-visible { outline: 3px solid #f2c94c; outline-offset: 2px; }
+  #sds-notify-banner button:disabled { opacity: 0.6; cursor: wait; }
   #sds-notify-dialog { width: min(480px, calc(100vw - 24px)); }
   #sds-notify-dialog .sds-state { margin: 0 0 12px; font-size: 0.95rem; }
   #sds-notify-dialog .sds-state strong { color: #2C5080; }
@@ -120,7 +140,7 @@
     const on = supported && Notification.permission === "granted" && !!(await currentSubscription());
     // A dot invites students using the installed app who haven't decided yet.
     const invite = supported && installed && Notification.permission === "default";
-    btn.innerHTML = "Notifications" + (on ? ": on" : "") + (invite ? '<span class="sds-dot" aria-hidden="true"></span>' : "");
+    btn.innerHTML = (on ? "Notifications: on" : "Turn on notifications") + (invite ? '<span class="sds-dot" aria-hidden="true"></span>' : "");
     btn.title = on ? "Announcements are on for this device" : "Get announcements from your instructor on this device";
   }
 
@@ -181,42 +201,108 @@
     $("sds-notify-dialog").showModal();
   }
 
+  // Turn notifications on for this device. Must be called straight from a tap
+  // (iPhone only lets a tap ask for permission). Throws with a message.
+  async function enable() {
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") {
+      throw new Error(perm === "denied" ? "Notifications are blocked. You can allow them in your settings."
+                                        : "Not turned on.");
+    }
+    const reg = await registration();
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(await vapidKey()) });
+    }
+    await save(sub);
+  }
+
+  async function disable() {
+    const sub = await currentSubscription();
+    if (sub) {
+      const endpoint = sub.endpoint;
+      await sub.unsubscribe().catch(() => {});
+      await auth.client.rpc("delete_push_subscription", { p_endpoint: endpoint });
+    }
+  }
+
   async function onAction() {
     const action = $("sds-notify-action");
     action.disabled = true;
     try {
       if (action.dataset.do === "on") {
-        // Ask first, straight from the tap (iPhone requires that).
-        const perm = await Notification.requestPermission();
-        if (perm !== "granted") {
-          say(perm === "denied" ? "Notifications are blocked. You can allow them in your settings." : "Not turned on.", "error");
-          action.disabled = false;
-          return;
-        }
         say("Turning on…");
-        const reg = await registration();
-        let sub = await reg.pushManager.getSubscription();
-        if (!sub) {
-          sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(await vapidKey()) });
-        }
-        await save(sub);
+        await enable();
         say("Done. You'll get " + COURSE_NAME + " announcements on this device.", "ok");
-        action.hidden = true;
       } else {
-        const sub = await currentSubscription();
-        if (sub) {
-          const endpoint = sub.endpoint;
-          await sub.unsubscribe().catch(() => {});
-          await auth.client.rpc("delete_push_subscription", { p_endpoint: endpoint });
-        }
+        await disable();
         say("Turned off for this device.", "ok");
-        action.hidden = true;
       }
+      action.hidden = true;
+      removeBanner();
     } catch (e) {
       say("Couldn't change notifications: " + (e && e.message ? e.message : e), "error");
       action.disabled = false;
     }
     renderButton();
+  }
+
+  // ---- Banner: "Get course announcements on this device?" -------------------
+  const later = {
+    key: "sds-notify-later:" + location.host,
+    has() {
+      try { return Number(localStorage.getItem(this.key) || 0) > Date.now(); } catch (_) { return false; }
+    },
+    set() {
+      try { localStorage.setItem(this.key, String(Date.now() + 30 * 86400000)); } catch (_) { /* fine */ }
+    },
+  };
+
+  function removeBanner() {
+    const b = $("sds-notify-banner");
+    if (b) b.remove();
+  }
+
+  function renderBanner() {
+    // Only for someone who hasn't said yes or no on this device yet.
+    const undecided = supported ? Notification.permission === "default" : (isIos && !installed);
+    if (!undecided || later.has() || $("sds-notify-banner")) return;
+    const banner = document.createElement("div");
+    banner.id = "sds-notify-banner";
+    banner.setAttribute("role", "region");
+    banner.setAttribute("aria-label", "Notifications");
+    banner.innerHTML = `
+      <div class="sds-nb-text">
+        <strong>Get ${COURSE_NAME} announcements on this device?</strong>
+        <span id="sds-nb-sub">${supported
+          ? "Your instructor can send a notification when a quiz opens or class plans change."
+          : "On iPhone and iPad, add this site to your Home Screen first."}</span>
+      </div>
+      <div class="sds-nb-buttons">
+        <button type="button" class="sds-nb-on">${supported ? "Turn on" : "Show me how"}</button>
+        <button type="button" class="sds-nb-later">Not now</button>
+      </div>`;
+    banner.querySelector(".sds-nb-later").addEventListener("click", () => { later.set(); removeBanner(); });
+    banner.querySelector(".sds-nb-on").addEventListener("click", async (e) => {
+      if (!supported) { openDialog(); return; }
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      try {
+        await enable();
+        $("sds-nb-sub").textContent = "Done. Turn them off any time from Notifications (bottom right).";
+        btn.remove();
+        banner.querySelector(".sds-nb-later").textContent = "Close";
+      } catch (err) {
+        $("sds-nb-sub").textContent = "Couldn't turn on: " + (err && err.message ? err.message : err);
+        btn.disabled = false;
+        if (Notification.permission === "denied") btn.remove();
+      }
+      renderButton();
+    });
+    // Below the poll banner, if there is one.
+    const root = document.getElementById("quarto-document-content") || document.querySelector("main") || document.body;
+    const poll = document.getElementById("sds-poll-banner");
+    root.insertBefore(banner, poll && poll.parentNode === root ? poll.nextSibling : root.firstChild);
   }
 
   // ---- Start (once the gate lets a student or instructor in) ----------------
@@ -225,6 +311,7 @@
     auth = detail;
     if (!supported && !(isIos && !installed)) return;
     buildUi();
+    renderBanner();
     await renderButton();
     // Already on: save it again, so the database has this device's current
     // address even if the browser renewed it or a send removed it.
