@@ -46,6 +46,8 @@ a new question or cell on the admin page.
 | `assets/auth-gate.html` | The sign-in screen on every geog215.org page. |
 | `assets/questions.html` | "Ask a question" on highlighted text, and the students' **My questions** list (see [Questions](#questions-on-highlighted-text)). |
 | `assets/polls.html` | Poll and survey banner, the poll itself, and the students' **Polls** list (see [Polls and surveys](#polls-and-surveys)). |
+| `assets/notifications.html` | The students' **Notifications** button: turns announcements on or off on that device (see [Push notifications](#push-notifications-announcements)). |
+| `supabase/functions/push/` | The `push` Edge Function that sends announcements. |
 | `admin/index.html` | Your admin page at https://geog215.org/admin/ (geog215.org only, never daveparr.com). |
 
 ## One-time setup
@@ -339,6 +341,76 @@ you're ready, or delete it. Re-running `setup.sql` never re-adds or changes it.
 
 A direct link opens a poll on any page: `https://geog215.org/preface.html?sds-poll=<poll id>`
 (the id is in `public.polls`), for example from a Canvas announcement.
+
+## Push notifications (announcements)
+
+Students who install the site on their home screen (or use a desktop or
+Android browser) can tap **Notifications** in the bottom-right corner and
+allow notifications. You send announcements, such as "Quiz 3 opens tonight",
+from the admin page's **Announcements** tab, one course at a time. Each one
+goes to that course's students who are active in the term picked in the
+header (or every term), and to your own devices.
+
+Where it works: Chrome, Edge and Firefox on Android, Windows, Mac and Linux,
+and Safari on a Mac. On **iPhone and iPad** (iOS 16.4 or later) it works only
+from the app on the Home Screen, so in Safari the button explains how to add
+it first. Students always have to allow notifications themselves.
+
+How it fits together (section 9 of `setup.sql`):
+
+- `push_subscriptions`: one row per device and course: the student's user
+  id, the course code, the device's push address (on Apple's, Google's or
+  Mozilla's push service) and its two encryption keys. No message content.
+  RLS is on with no policies; `save_push_subscription` and
+  `delete_push_subscription` only add or remove the caller's own rows. The
+  site saves the row again on every page load while notifications are on.
+- `push_announcements`: what you sent and how many devices got it.
+- The `push` Edge Function (`supabase/functions/push/`) checks you're an
+  instructor of the course (through `admin_push_targets`, with your
+  sign-in, so it needs no service-role key), encrypts the message for each
+  device, sends it, and removes devices the push service says are gone
+  (notifications turned off, or the app deleted). It uses only the Web
+  Crypto API, so there are no packages to keep up to date.
+- `pwa/sw.js` shows the notification; tapping it opens the page you picked.
+
+Because every row has a course code, GEOG 215 students never get GEOG 370
+announcements, and the other way round. A student can have notifications on
+for both sites; they're separate apps.
+
+### Setting it up (once, for every course)
+
+1. **Database:** run `setup.sql` again (or just its section 9) in the SQL
+   Editor. It only adds the two tables and their functions.
+2. **Edge Function:** deploy `supabase/functions/push` as `push` with
+   **Verify JWT off** (the function checks who you are through the database):
+   ```
+   supabase functions deploy push --no-verify-jwt --project-ref liihdtyoqneslfbfgqml
+   ```
+   Or in the dashboard: **Edge Functions > Deploy a new function > Via
+   Editor**, name it `push`, paste `index.ts` and `webpush.ts`, and turn off
+   **Enforce JWT verification** in its settings.
+3. **Keys (VAPID):** on the admin page's **Announcements** tab, click
+   **Make keys**. In the Supabase dashboard, open **Edge Functions >
+   Secrets** and add `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` with those
+   values. Optionally add `VAPID_SUBJECT` = `mailto:` plus your email (push
+   services use it to contact the sender if something goes wrong; it
+   defaults to https://geog215.org). The private key is a secret: never put
+   it in this repo. Make keys only once: new keys stop every existing
+   subscription, and students would have to turn notifications on again.
+4. **Test:** open the textbook (installed on your phone, or in Chrome on
+   your computer), sign in, tap **Notifications** > **Turn on**. Then on the
+   Announcements tab use **Send test to my devices**.
+
+### Troubleshooting
+
+- **"Notifications aren't set up for this course yet"** (students): the
+  function isn't deployed or has no `VAPID_PUBLIC_KEY`.
+- **A student doesn't get them:** check they turned them on (the button
+  says **Notifications: on**), that they're active on the roster for the
+  term you sent to, and on iPhone that they used the Home Screen app. Phone
+  focus modes and notification settings can also hide them.
+- **Removed** in the Sent table counts devices that turned notifications off
+  or deleted the app; that's normal.
 
 ## Adding another class
 

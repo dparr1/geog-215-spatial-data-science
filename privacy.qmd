@@ -26,6 +26,7 @@ This textbook site, geog215.org, asks students in GEOG 215 to sign in so it can 
 | Chapter practice quizzes | How many questions you answered right and wrong, practice points and streaks, and whether you finished the quiz. |
 | Questions you ask | If you highlight text in the textbook and click **Ask a question**: the highlighted text, your question, the page and section it is on, and when you asked. Your instructor's answer, if any, is stored with it. Each question is also emailed to your instructor (see "Who can see it"). |
 | Polls and surveys | If you answer a poll or survey on the site (for example, a start-of-semester survey): your answers, which poll they belong to, and when you submitted and last changed them. Answers are saved with your name, so they are not anonymous. Poll answers are not used in grading. |
+| Notifications | Only if you turn on **Notifications** on a device: the address your device's push service (Apple, Google or Mozilla) gives for delivering notifications to this site, two encryption keys for it, your browser type, and when you turned it on. It contains no messages, location, or contacts. Turning notifications off removes it; if you delete the app, it is removed the next time an announcement is sent. |
 
 ## What the site does not store
 
@@ -41,6 +42,7 @@ This textbook site, geog215.org, asks students in GEOG 215 to sign in so it can 
 - To help your instructor see which pages, questions, and code exercises students find difficult, so the course and textbook can be improved.
 - To let you ask your instructor about parts of the textbook you find confusing, and to show you the answers.
 - To let your instructor ask the class short polls and surveys, and to use the answers to get to know students and plan and improve the course.
+- If you turn them on, to send you course announcements as notifications (for example, that a quiz has opened).
 
 Your information is never sold, never used for advertising, and never used to calculate your grade. It will not be used for research or publication unless you agree in a separate, approved research consent form.
 
@@ -55,6 +57,7 @@ Your information is never sold, never used for advertising, and never used to ca
 |------------------------|------------------------|------------------------|
 | [Supabase](https://supabase.com/privacy) | Database and sign-in service. Servers are in the United States (US East). | Everything listed under "What the site stores". |
 | [Resend](https://resend.com/legal/privacy-policy) | Delivers the sign-in emails from mail.geog215.org, and emails each question you ask to your instructor. | Your email address and the sign-in email. For questions: the page, the highlighted text, and your question (not your name or email address). |
+| Apple, Google, or Mozilla push services | Deliver notifications to your device, only if you turn them on. Which one depends on your device and browser. | The notification, encrypted so that only your device can read it, and the device address. |
 | [Cloudflare](https://www.cloudflare.com/privacypolicy/) | Hosts the website and delivers its pages. | Standard web request data, such as IP address and browser type. |
 | [jsDelivr](https://www.jsdelivr.com/terms/privacy-policy-jsdelivr-net) | Delivers the sign-in software library to your browser. | Standard web request data. |
 | [Google Analytics](https://policies.google.com/privacy) | Measures overall site traffic (pages viewed, device type, approximate location) using cookies. | Usage data that is not linked to your name or email. |
