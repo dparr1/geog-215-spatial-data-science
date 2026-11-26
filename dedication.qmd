@@ -1,0 +1,14 @@
+# Dedication {.unnumbered .unlisted}
+
+```{=latex}
+\pagenumbering{roman}
+\thispagestyle{empty}
+\vspace*{\fill}
+```
+
+For my sweet Abigail, who loves cake, and also insisted that I remind everyone that I can't live without her.
+
+
+```{=latex}
+\clearpage
+```

@@ -1,12 +1,16 @@
 # Preface {.unnumbered}
 
-This is a working draft of the textbook for GEOG 215, Introduction to Spatial Data Science, built from the course lectures.
+```{=latex}
+\pagenumbering{arabic}
+```
+
+This book is an open-educational resource textbook for designed for my course, GEOG 215, Introduction to Spatial Data Science, built from the course lectures.
 
 Every chapter is a runnable Quarto document. The R code in each chapter runs when the book is built, so the tables and maps you see come from the code printed beside them.
 
 ## About this book
 
-This is an interactive textbook specifically designed and written for this class, GEOG 215. 
+This is an interactive textbook specifically designed and written for GEOG 215. It's designed for students new to R and new to spatial data. Students are expected to have some experience with math and/or statistics. 
 
 ## How this book is organized
 
@@ -27,3 +31,12 @@ Each chapter through Chapter 22 is followed by a chapter quiz you can take as ma
 **[Unit 5: Statistics and Science](units/unit-5.qmd)** (Chapters 18–22) turns data into evidence. You compare groups with p-values and ANOVA, model relationships with linear regression, and put it all together in a reproducible spatial data science project. It ends by asking whether near things are more related than distant things: you measure distance, define neighbors and weight matrices, and test for clustering and hot spots with the Average Nearest Neighbor ratio, Moran's I, and Getis-Ord Gi\*.
 
 **[Unit 6: Next Steps](units/unit-6.qmd)** (Chapters 23–24) looks beyond the course. You turn your maps into interactive dashboards with leaflet, flexdashboard, crosstalk, and Shiny, and then look at where spatial data science is used, the advanced topics that build on this book, such as remote sensing, space-time modeling, and GeoAI, and the UNC courses and careers that come next.
+
+
+## Acknowledgments
+
+I'd like to thank the work of Drs. Julia Cardwell, Paul Delamater, Paul Tailie, and Conghe Song for their support. I want to thank the Teaching Assistants Jacob Tafrate, Braulio Lahuatte, Najila Porno, Ngyuen Tien Anh Quach, Sophia Alhadeff, Andrew Robinson, and Cameron Brousse. I'd like to thank my Undergraduate Learning Assistants, Harvey Chen, Rachel Johnson, and Esther Zhu. Finally, I'd like to acknowledge the hard work of my students, without whom, this would not be possible.
+
+```{=latex}
+\clearpage
+```
