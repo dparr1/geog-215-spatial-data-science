@@ -10,27 +10,19 @@ name: Render and Publish Quarto Book
 # Builds, connected to this repo, renders and deploys it on the same push
 # (see wrangler.jsonc and scripts/cloudflare-build.sh).
 #
-# It also renders the PDF textbook (PrettyPDF, `textbook` profile) and
-# publishes it beside the book as
-# daveparr.com/intro-spatial-data-science/Introduction-to-Spatial-Data-Science.pdf.
-# geog215.org links to that same file (scripts/cloudflare-build.sh adds a
-# redirect). The PDF needs R (only knitr and rmarkdown: code results come from
-# _freeze/) and LaTeX (TinyTeX). If the PDF fails, the HTML is still published
-# without it.
+# Only HTML is rendered: the PDF format needs R even when results are frozen,
+# and R is not installed on the runner. Code results come from _freeze/.
 
 on:
   push:
     branches: [ main ]
-  # Pull requests only test the build: the HTML and PDF are rendered and the
-  # PDF is attached to the run (Summary > Artifacts), but nothing is published.
-  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: publish-book-${{ github.event_name == 'pull_request' && github.ref || 'main' }}
+  group: publish-book
   cancel-in-progress: false
 
 jobs:
@@ -40,28 +32,8 @@ jobs:
       - name: Check out book
         uses: actions/checkout@v4
 
-      - name: Set up Quarto and TinyTeX
+      - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
-        with:
-          tinytex: true
-
-      # R is only needed to read the frozen results, so knitr and rmarkdown
-      # are enough (no other packages).
-      - name: Install R for the PDF
-        continue-on-error: true
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends r-base-core r-cran-knitr r-cran-rmarkdown
-
-      # Rendered before the HTML because rendering the HTML book empties _book/.
-      # Quarto installs any missing LaTeX packages into TinyTeX as it goes.
-      - name: Render PDF textbook
-        id: pdf
-        continue-on-error: true
-        run: |
-          quarto render --to PrettyPDF-pdf --profile textbook
-          mkdir -p "${RUNNER_TEMP}/pdf"
-          mv _book/Introduction-to-Spatial-Data-Science.pdf "${RUNNER_TEMP}/pdf/"
 
       # daveparr.com/intro-spatial-data-science/ gets the textbook only (no Welcome, Syllabus,
       # Course materials, or About pages; those are on geog215.org). A book
@@ -71,30 +43,7 @@ jobs:
           cp preface.qmd index.qmd
           quarto render --to html --profile textbook
 
-      - name: Add the PDF to the book
-        run: |
-          if [ -f "${RUNNER_TEMP}/pdf/Introduction-to-Spatial-Data-Science.pdf" ]; then
-            cp "${RUNNER_TEMP}/pdf/Introduction-to-Spatial-Data-Science.pdf" _book/
-          else
-            # Keep the PDF already on daveparr.com rather than deleting it.
-            echo "::warning::PDF render failed; publishing the HTML with the previous PDF."
-          fi
-
-      - name: Attach the PDF to this run
-        if: github.event_name == 'pull_request' && steps.pdf.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: textbook-pdf
-          path: _book/Introduction-to-Spatial-Data-Science.pdf
-
-      - name: Fail a pull request whose PDF didn't build
-        if: github.event_name == 'pull_request' && steps.pdf.outcome != 'success'
-        run: |
-          echo "::error::The PDF textbook failed to render. See the 'Render PDF textbook' step."
-          exit 1
-
       - name: Check out daveparr.com
-        if: github.event_name != 'pull_request'
         uses: actions/checkout@v4
         with:
           repository: dparr1/daveparr.com
@@ -105,14 +54,8 @@ jobs:
           ssh-key: ${{ secrets.DAVEPARR_DEPLOY_KEY }}
 
       - name: Copy book into daveparr.com/intro-spatial-data-science
-        if: github.event_name != 'pull_request'
         run: |
-          # A failed PDF render keeps the previous PDF (excluded from --delete).
-          if [ -f _book/Introduction-to-Spatial-Data-Science.pdf ]; then
-            rsync -a --delete _book/ daveparr.com/intro-spatial-data-science/
-          else
-            rsync -a --delete --exclude Introduction-to-Spatial-Data-Science.pdf _book/ daveparr.com/intro-spatial-data-science/
-          fi
+          rsync -a --delete _book/ daveparr.com/intro-spatial-data-science/
           cd daveparr.com
           git add -A intro-spatial-data-science
           if git diff --cached --quiet; then

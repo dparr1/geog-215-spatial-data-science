@@ -33,11 +33,3 @@ cp -R admin _book/admin
 # the site root, where assets/pwa-head.html links to them. geog215.org only.
 cp pwa/site.webmanifest pwa/sw.js pwa/offline.html pwa/*.png _book/
 cp -R pwa/splash _book/splash
-
-# The PDF textbook is built by the GitHub Action and published on
-# daveparr.com. The "Download PDF" links on geog215.org point to
-# /Introduction-to-Spatial-Data-Science.pdf, which redirects there, so students
-# always get the latest PDF. (_redirects is read by Cloudflare, not served.)
-cat > _book/_redirects <<'REDIRECTS'
-/Introduction-to-Spatial-Data-Science.pdf https://daveparr.com/intro-spatial-data-science/Introduction-to-Spatial-Data-Science.pdf 302
-REDIRECTS
