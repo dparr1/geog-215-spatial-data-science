@@ -50,6 +50,8 @@ format:
       - assets/grade-table.css
       # Reader-chosen font and text size ("Aa" menu by search).
       - assets/reader-settings.css
+      # Book cover beside the Welcome text (index.qmd).
+      - assets/welcome.css
     # Applies the saved font and text size before the page draws.
     include-in-header:
       - assets/reader-settings-head.html
