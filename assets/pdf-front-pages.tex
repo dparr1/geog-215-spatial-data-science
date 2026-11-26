@@ -1,0 +1,29 @@
+% Front pages of the PDF textbook, after the title page (include-before-body
+% under PrettyPDF-pdf in _quarto.yml). The cover comes first, from
+% assets/pdf-cover.tex. `toc: false` is set because the table of contents is
+% made here, after the copyright and dedication pages.
+
+% --- 1. Copyright Page ---
+\newpage
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{flushleft}
+\small
+Copyright \copyright\ 2026 David Parr \\
+All rights reserved. \\[1em]
+First Edition
+\end{flushleft}
+\newpage
+
+% --- 2. Dedication Page ---
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+\textit{For Abigail, who is my best companion.}
+\end{center}
+\vspace*{\fill}
+\newpage
+
+% --- 3. Table of Contents ---
+\tableofcontents
+\newpage

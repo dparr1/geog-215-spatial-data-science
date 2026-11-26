@@ -3,10 +3,6 @@ title: "What is Spatial Data Science?"
 engine: knitr
 ---
 
-```{=latex}
-\renewcommand{\thesection}{\arabic{section}}
-```
-
 ```{r}
 #| label: setup-webex
 #| include: false

@@ -125,7 +125,10 @@ quarto render --to PrettyPDF-pdf --profile textbook   # the PDF textbook, no qui
 
 The PDF needs R and a LaTeX install (TinyTeX: `quarto install tinytex`). Its cover is
 `images/cover.jpg`, placed full-page by `assets/pdf-cover.tex`; to change the cover, replace that
-image. PrettyPDF's own LaTeX files are committed under `_extensions/nrennie/PrettyPDF/` (they used to
+image. The copyright, dedication, and table of contents pages are in `assets/pdf-front-pages.tex`.
+Heading styles use KOMA-Script's own commands (in `_extensions/nrennie/PrettyPDF/PrettyPDF.tex`, changed
+from upstream); don't load `titlesec` or `sectsty`, which put a "0" before unnumbered chapters such as the
+Preface. PrettyPDF's own LaTeX files are committed under `_extensions/nrennie/PrettyPDF/` (they used to
 be caught by the `*.tex` rule in `.gitignore`).
 
 Chapters use `tidyverse`, `sf`, `tigris`, `tidycensus`, `tmap`, `httr2` and `webexercises`. The
