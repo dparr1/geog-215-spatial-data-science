@@ -8,6 +8,10 @@ This book is an open-educational resource textbook for designed for my course, G
 
 Every chapter is a runnable Quarto document. The R code in each chapter runs when the book is built, so the tables and maps you see come from the code printed beside them.
 
+::: {.content-visible when-format="html"}
+You can also download the whole book as a PDF: [Introduction to Spatial Data Science (PDF)](Introduction-to-Spatial-Data-Science.pdf). The PDF leaves out the interactive parts, such as live code and quizzes, and is updated whenever the online book is.
+:::
+
 ## About this book
 
 This is an interactive textbook specifically designed and written for GEOG 215. It's designed for students new to R and new to spatial data. Students are expected to have some experience with math and/or statistics. 

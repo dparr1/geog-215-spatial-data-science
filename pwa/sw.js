@@ -8,7 +8,7 @@
     pinned supabase-js script, and Google Fonts.
   - Supabase (sign-in, quiz answers, polls, questions, progress) is never
     intercepted or cached: those requests go straight to the network.
-  - /admin/ is never cached.
+  - /admin/ and PDFs (the PDF textbook) are never cached.
   - Pages, CSS, scripts, and quiz banks are network first: online, students
     always get the latest version; the saved copy is only used offline.
   - Bump VERSION to drop every saved copy (for example after a big change).
@@ -49,6 +49,8 @@ function shouldHandle(request) {
   if (request.headers.has("authorization")) return false;
   const url = new URL(request.url);
   if (url.origin === self.location.origin) {
+    // The PDF textbook redirects to daveparr.com and is large: leave it alone.
+    if (url.pathname.endsWith(".pdf")) return false;
     return !url.pathname.startsWith("/admin");
   }
   return CDN_ALLOW.some((prefix) => request.url.startsWith(prefix));

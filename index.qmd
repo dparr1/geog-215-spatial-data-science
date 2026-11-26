@@ -30,7 +30,7 @@ I'm here to support you every step of the way. Please reach out with any questio
 | | |
 |:--|:--|
 | [**Syllabus**](syllabus.qmd) | How the course works: learning objectives, units and modules, grading, tokens, and course policies. |
-| [**Textbook**](preface.qmd) | The course textbook, with runnable R code, self-check questions, and a quiz for each chapter. Students sign in with the email on the class list. |
+| [**Textbook**](preface.qmd) | The course textbook, with runnable R code, self-check questions, and a quiz for each chapter. Students sign in with the email on the class list. Also available as a [PDF](Introduction-to-Spatial-Data-Science.pdf). |
 | [**Course materials**](materials.qmd) | Course staff and office hours, the class schedule, and assignment deadlines. Students sign in with the email on the class list. |
 | [**About**](about.qmd) | About the instructor and author. |
 
