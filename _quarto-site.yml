@@ -95,4 +95,5 @@ book:
         - chapters/whats-next.qmd
   appendices:
     - glossary.qmd
+    - references.qmd
 

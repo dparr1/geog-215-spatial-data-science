@@ -12,6 +12,66 @@ Every chapter is a runnable Quarto document. The R code in each chapter runs whe
 
 This is an interactive textbook specifically designed and written for GEOG 215. It's designed for students new to R and new to spatial data. Students are expected to have some experience with math and/or statistics. 
 
+## How to use this book {#sec-how-to-use}
+
+Read the book in order if you can. Each chapter builds on the ones before it, and the R code in later chapters assumes you have met the functions and ideas introduced earlier. Each unit opens with a short page that says what its chapters cover, so you can see where you are going before you start.
+
+### What's in each chapter
+
+Most chapters follow the same pattern, so you know where to look:
+
+- **Learning objectives** at the top list what you should be able to do by the end of the chapter. They are a good checklist when you review for an exam.
+- **Numbered sections** teach the material, with tables, figures, and R code. Cross-references such as "Section 3.2" or "Figure 5.1" are links you can follow.
+- **Think about it** boxes pose a question to stop and consider before reading on. There is no grade attached: they are there to help the idea stick.
+- **Check your understanding** questions near the end let you test yourself. You can answer them as many times as you like, and they are not graded.
+- A **Summary** recaps the chapter's main points, **Exercises** give you practice to do in RStudio, and **Further reading** points you to sources that go deeper.
+
+### Running the code
+
+::: {.content-visible when-format="html"}
+Many code boxes in this book are live: they run real R in your web browser, with nothing to install. Press **Run Code** to run one, or edit the code first and run your own version. Breaking the code on purpose and reading the error message is a good way to learn. The first live box on a page can take a few seconds to start, because your browser has to load R.
+
+Every code box has a copy button in its top-right corner. Use it to paste code into RStudio, where you will do the course assignments.
+:::
+
+::: {.content-visible when-format="pdf"}
+The code in this printed version is not interactive. To run it, type or paste it into RStudio, which Chapter 2 helps you set up. An online version, where many code boxes run R right in your web browser, is at <https://daveparr.com/intro-spatial-data-science/>.
+:::
+
+In the code, `code` and the names of functions such as `filter()` are printed in a monospaced font. Lines beginning with `#` are comments that explain the code; R skips them.
+
+### Key terms and the glossary
+
+Important terms are printed in **bold** where they are first explained.
+
+::: {.content-visible when-format="html"}
+In the chapters, a key term has a dotted underline the first time it appears in a section. Hover over it, tap it, or reach it with the Tab key to see a short definition. All of the terms and their definitions are collected in the [Glossary](glossary.qmd) at the end of the book.
+:::
+
+::: {.content-visible when-format="pdf"}
+All of the key terms and their definitions are collected in the Glossary at the end of the book.
+:::
+
+The sources the chapters cite are listed together on the [References](references.qmd) page at the end of the book.
+
+::: {.content-visible when-format="html"}
+### Finding your way around
+
+The sidebar on the left lists every unit and chapter, and the outline on the right lists the sections of the page you are reading. Use the search box at the top to find any word or function in the book. The **Aa** button beside the search box changes the font and text size (see [Fonts and reading settings](#sec-fonts)).
+:::
+
+::: {.content-hidden when-profile="textbook"}
+### Quizzes
+
+The chapter quizzes and unit quizzes are practice. Take one after you finish a chapter or a unit, and take it again later to see what has stuck.
+:::
+
+::: {.content-visible when-profile="geog215"}
+### Asking questions
+
+If something in a chapter doesn't make sense, highlight the text and choose **Ask a question**. Your question goes to the course staff, and you can see your questions and their answers under **My questions**. You can also add this site to your phone's home screen (see the [Welcome](index.qmd) page), so pages you've already read work without internet.
+:::
+
 ## How this book is organized
 
 The chapters are grouped into six units. Each unit opens with a page that summarizes its chapters.
@@ -32,6 +92,26 @@ Each chapter through Chapter 22 is followed by a chapter quiz you can take as ma
 
 **[Unit 6: Next Steps](units/unit-6.qmd)** (Chapters 23–24) looks beyond the course. You turn your maps into interactive dashboards with leaflet, flexdashboard, crosstalk, and Shiny, and then look at where spatial data science is used, the advanced topics that build on this book, such as remote sensing, space-time modeling, and GeoAI, and the UNC courses and careers that come next.
 
+
+## Fonts and reading settings {#sec-fonts}
+
+The text of this book is set in **Atkinson Hyperlegible Next**, and the code is set in **Atkinson Hyperlegible Mono**. Both were designed by the [Braille Institute of America](https://www.brailleinstitute.org/freefont/) for readers with low vision, and both are free to use. Many common letters and numbers look alike in ordinary fonts: a capital I, a lowercase l, and the number 1, or a capital O and a zero. Atkinson Hyperlegible gives each of these characters its own distinct shape, so they are hard to mistake for one another. That matters in a book about code, where `l1` and `I1` are different names and a single wrong character breaks a line of R. The zero in the code font has a slash through it, so you can always tell `0` from `O`.
+
+::: {.content-visible when-format="html"}
+A font that is easy for one reader can be hard for another, so you can change it. Press the **Aa** button beside the search box at the top of any page to choose a font and a text size. The fonts are:
+
+- **Atkinson Hyperlegible** (the default), described above.
+- **Lexend**, a font designed to reduce visual stress and make reading easier and faster.
+- **Cardo**, a traditional book serif.
+- **Standard sans-serif** and **Serif**, which use the fonts already on your device.
+- **OpenDyslexic**, which gives each letter a heavier bottom so letters are harder to flip or rotate. Some readers with dyslexia find it easier to read.
+
+Text size goes from one step smaller than normal to three steps larger. Your choices are saved in your web browser, so the book keeps your settings from page to page and the next time you visit. Code boxes keep Atkinson Hyperlegible Mono whichever font you choose for the text, so code always lines up.
+:::
+
+::: {.content-visible when-format="pdf"}
+A font that is easy for one reader can be hard for another. The online version of this book, at <https://daveparr.com/intro-spatial-data-science/>, lets you change the font and text size with the **Aa** button beside the search box. The choices include Lexend, designed to reduce visual stress, and OpenDyslexic, which some readers with dyslexia find easier to read.
+:::
 
 ## Acknowledgments
 
