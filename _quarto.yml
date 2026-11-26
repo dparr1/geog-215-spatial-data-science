@@ -21,6 +21,9 @@ book:
   subtitle: "The textbook for GEOG 215"
   author: "David Parr"
   date: last-modified
+  # Download button (sidebar) for the PDF textbook, which the GitHub Action
+  # builds and publishes (.github/workflows/publish.yml).
+  downloads: [pdf]
   # The top menu and chapter list are in _quarto-site.yml (the full
   # geog215.org site, the default) and _quarto-textbook.yml (textbook only,
   # for daveparr.com/intro-spatial-data-science/).
