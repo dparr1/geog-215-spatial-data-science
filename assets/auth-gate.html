@@ -78,6 +78,11 @@
     border-radius: 6px; cursor: pointer; max-width: 100%;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
+  /* Shown instead of Sign out when a saved page is read offline. */
+  #sds-offline {
+    padding: 6px 10px; font-size: 0.8rem; color: #13294B;
+    background: #EDF5FB; border: 1px solid #4B9CD3; border-radius: 6px;
+  }
 </style>
 
 <!--
@@ -416,6 +421,48 @@
     return name || user.email || "";
   }
 
+  // ---- Offline reading (home-screen app, assets/pwa-head.html) ------------
+  // Pages a student opened before are saved on their device by /sw.js. With
+  // no connection, Supabase can't confirm their access, so a student who is
+  // already signed in on this device can read the saved page. Nothing is
+  // recorded, and questions and polls stay off until they're back online.
+  const SESSION_KEY = "sb-" + new URL(SUPABASE_URL).hostname.split(".")[0] + "-auth-token";
+
+  function storedUser() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+      return saved && saved.user ? saved.user : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function looksOffline(e) {
+    return !navigator.onLine || e instanceof TypeError ||
+      /failed to fetch|network|load failed/i.test((e && e.message) || "");
+  }
+
+  // True if the page was opened offline by a student signed in here.
+  function unlockOffline() {
+    const user = storedUser();
+    if (!user) return false;
+    $("sds-gate").hidden = true;
+    document.documentElement.classList.remove("sds-locked");
+    if (!$("sds-corner")) {
+      const corner = document.createElement("div");
+      corner.id = "sds-corner";
+      corner.innerHTML = '<span id="sds-offline">Offline: answers aren\u2019t saved</span>';
+      document.body.appendChild(corner);
+    }
+    // Back online: reload once so the page signs in and records as usual.
+    window.addEventListener("online", function onOnline() {
+      if (!navigator.onLine) return;
+      window.removeEventListener("online", onOnline);
+      setTimeout(() => { if (navigator.onLine) location.reload(); }, 1000);
+    });
+    return true;
+  }
+
   function unlock(user) {
     $("sds-gate").hidden = true;
     document.documentElement.classList.remove("sds-locked");
@@ -481,9 +528,15 @@
       return;
     }
     pendingEmail = email;
+    // In the home-screen app the email link opens the web browser, which
+    // signs in there instead of here, so ask for the code.
+    const inApp = window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true;
     $("sds-code-intro").textContent =
       "If " + email + " is on the class list, we've emailed it a sign-in code. " +
-      "Enter the code below, or open the link in the email.";
+      (inApp
+        ? "Type the code below. (The link in the email opens your web browser, not this app.)"
+        : "Enter the code below, or open the link in the email.");
     $("sds-code").value = "";
     showStep("code");
     say("No email after a few minutes? Check your junk folder, and that this is the email your instructor has on file.");
@@ -543,7 +596,9 @@
     if (window.SDS_PUBLIC_PAGE) return;
     const link = takeLinkToken();
     buildGate();
+    if (!navigator.onLine && !link && unlockOffline()) return;
     if (!window.supabase || !window.supabase.createClient) {
+      if (unlockOffline()) return;
       showStep("email");
       busy(true);
       say("Sign-in is unavailable right now (couldn't load Supabase). Try reloading.", true);
@@ -564,6 +619,7 @@
         showStep("email");
       }
     } catch (e) {
+      if (looksOffline(e) && unlockOffline()) return;
       showStep("email");
       say("Couldn't check your sign-in: " + e.message, true);
     }

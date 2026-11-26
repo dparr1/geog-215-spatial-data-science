@@ -32,6 +32,18 @@ I'm here to support you every step of the way. Please reach out with any questio
 | [**Course materials**](materials.qmd) | Course staff and office hours, the class schedule, and assignment deadlines. Students sign in with the email on the class list. |
 | [**About**](about.qmd) | About the instructor and author. |
 
+<!-- Home-screen app instructions: geog215.org only (assets/pwa-head.html). -->
+::: {.content-visible when-profile="geog215"}
+## Put this site on your phone
+
+You can add this site to your phone's home screen. It then opens full screen with its own GEOG 215 icon, like an app, and pages you've already read work without internet.
+
+- **iPhone or iPad (Safari):** tap **Share**, then **Add to Home Screen**.
+- **Android (Chrome):** tap the **⋮** menu, then **Add to Home screen** or **Install app**.
+
+Sign in inside the app by typing the 6-digit code from the sign-in email (the link in the email opens your web browser instead). Quizzes, polls, and running R code still need an internet connection.
+:::
+
 ## Course at a glance
 
 - **Meets:** Mondays, Wednesdays, and Fridays, 12:20–1:10 pm, Genome Sciences Building G200

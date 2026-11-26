@@ -1,0 +1,52 @@
+<!--
+  Home-screen app (geog215.org only, added by the `geog215` profile).
+  "Add to Home Screen" (iPhone: Share menu; Android: Chrome menu > Install app)
+  opens the site full screen with its own icon. The manifest, icons, offline
+  page, and service worker are in pwa/ and copied to the site root by
+  scripts/cloudflare-build.sh.
+-->
+<link rel="manifest" href="/site.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#2C5080">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="GEOG 215">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<!-- Loading screen on iPhone and iPad: the book cover, one image per screen
+     size (Android uses the icon on the manifest's background_color instead).
+     Made by scripts/make-splash.py; rerun it after changing images/cover.jpg. -->
+<!-- splash:start -->
+<link rel="apple-touch-startup-image" href="/splash/splash-1320x2868.jpg" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">  <!-- iPhone 16/17 Pro Max -->
+<link rel="apple-touch-startup-image" href="/splash/splash-1206x2622.jpg" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">  <!-- iPhone 16/17 Pro, 17 -->
+<link rel="apple-touch-startup-image" href="/splash/splash-1260x2736.jpg" media="(device-width: 420px) and (device-height: 912px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">  <!-- iPhone Air -->
+<link rel="apple-touch-startup-image" href="/splash/splash-1290x2796.jpg" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">  <!-- iPhone 14 Pro Max, 15 Plus/Pro Max, 16 Plus -->
+<link rel="apple-touch-startup-image" href="/splash/splash-1179x2556.jpg" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">  <!-- iPhone 14 Pro, 15, 15 Pro, 16, 16e -->
+<link rel="apple-touch-startup-image" href="/splash/splash-1284x2778.jpg" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">  <!-- iPhone 12/13 Pro Max, 14 Plus -->
+<link rel="apple-touch-startup-image" href="/splash/splash-1170x2532.jpg" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">  <!-- iPhone 12, 13, 14, 12/13 Pro -->
+<link rel="apple-touch-startup-image" href="/splash/splash-1125x2436.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">  <!-- iPhone X, XS, 11 Pro, 12/13 mini -->
+<link rel="apple-touch-startup-image" href="/splash/splash-1242x2688.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">  <!-- iPhone XS Max, 11 Pro Max -->
+<link rel="apple-touch-startup-image" href="/splash/splash-828x1792.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">  <!-- iPhone XR, 11 -->
+<link rel="apple-touch-startup-image" href="/splash/splash-750x1334.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">  <!-- iPhone SE (2nd/3rd gen), 8 -->
+<link rel="apple-touch-startup-image" href="/splash/splash-2064x2752.jpg" media="(device-width: 1032px) and (device-height: 1376px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">  <!-- iPad Pro 13-inch (M4) -->
+<link rel="apple-touch-startup-image" href="/splash/splash-2752x2064.jpg" media="(device-width: 1032px) and (device-height: 1376px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">  <!-- iPad Pro 13-inch (M4) -->
+<link rel="apple-touch-startup-image" href="/splash/splash-2048x2732.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">  <!-- iPad Pro 12.9-inch, iPad Air 13-inch -->
+<link rel="apple-touch-startup-image" href="/splash/splash-2732x2048.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">  <!-- iPad Pro 12.9-inch, iPad Air 13-inch -->
+<link rel="apple-touch-startup-image" href="/splash/splash-1668x2420.jpg" media="(device-width: 834px) and (device-height: 1210px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">  <!-- iPad Pro 11-inch (M4) -->
+<link rel="apple-touch-startup-image" href="/splash/splash-2420x1668.jpg" media="(device-width: 834px) and (device-height: 1210px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">  <!-- iPad Pro 11-inch (M4) -->
+<link rel="apple-touch-startup-image" href="/splash/splash-1668x2388.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">  <!-- iPad Pro 11-inch, iPad Air 11-inch -->
+<link rel="apple-touch-startup-image" href="/splash/splash-2388x1668.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">  <!-- iPad Pro 11-inch, iPad Air 11-inch -->
+<link rel="apple-touch-startup-image" href="/splash/splash-1640x2360.jpg" media="(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">  <!-- iPad Air (4th/5th gen), iPad (10th gen+) -->
+<link rel="apple-touch-startup-image" href="/splash/splash-2360x1640.jpg" media="(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">  <!-- iPad Air (4th/5th gen), iPad (10th gen+) -->
+<link rel="apple-touch-startup-image" href="/splash/splash-1620x2160.jpg" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">  <!-- iPad (7th-9th gen) -->
+<link rel="apple-touch-startup-image" href="/splash/splash-2160x1620.jpg" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">  <!-- iPad (7th-9th gen) -->
+<link rel="apple-touch-startup-image" href="/splash/splash-1488x2266.jpg" media="(device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">  <!-- iPad mini (6th gen+) -->
+<link rel="apple-touch-startup-image" href="/splash/splash-2266x1488.jpg" media="(device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">  <!-- iPad mini (6th gen+) -->
+<!-- splash:end -->
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function () { /* site works without it */ });
+    });
+  }
+</script>
