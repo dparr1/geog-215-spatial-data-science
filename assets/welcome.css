@@ -1,0 +1,27 @@
+/* Welcome page (index.qmd): the book cover sits beside the welcome text on
+   wide screens and above it, centered, on phones. images/cover-web.jpg is a
+   720px-wide copy of images/cover.jpg (the PDF cover), so the page stays light. */
+img.welcome-cover {
+  float: right;
+  width: 230px;
+  max-width: 40%;
+  height: auto;
+  margin: 0.25rem 0 1rem 1.5rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Start "On this site" and later sections below the cover. */
+main:has(img.welcome-cover) h2 {
+  clear: both;
+}
+
+@media (max-width: 575.98px) {
+  img.welcome-cover {
+    float: none;
+    display: block;
+    width: 60%;
+    max-width: 240px;
+    margin: 1rem auto 1.25rem;
+  }
+}

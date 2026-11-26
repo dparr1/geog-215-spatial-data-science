@@ -13,6 +13,8 @@ file before rendering, so the sidebar there says "Preface".)
 **GEOG 215: Introduction to Spatial Data Science**\
 University of North Carolina at Chapel Hill · Fall 2026 · Dr. David Parr
 
+![](images/cover-web.jpg){.welcome-cover fig-alt="Cover of the course textbook, Introduction to Spatial Data Science, Built for GEOG 215, by David Parr: a cartoon green dragon typing on a laptop marked R, surrounded by code, maps, and charts on a blue background."}
+
 Hello and welcome to **Spatial Data Science**! I'm thrilled to have you in this class. Whether you're new to programming or already have some experience, this course is your gateway to understanding and working with **spatial data** using the **R programming language**. We'll go beyond traditional maps and dive into how data science principles can be applied to geographic information to reveal patterns, solve problems, and tell compelling stories.
 
 Throughout the semester, we'll build your skills from the ground up. We'll start with the fundamentals of R and the **tidyverse**, which will become your go-to toolkit for processing and exploring data. You'll quickly see how these skills apply to real-world projects, starting with our first **Map Contest**. As we progress, we'll move into the core of spatial data science: handling different types of spatial data, overlaying layers and joining tables, and more advanced topics like spatial statistics, ANOVA, regression, and clustering. The course is hands-on, with projects that challenge you to create something tangible, like our second **Map Contest** and the final **Spatial Data Science Project**.
