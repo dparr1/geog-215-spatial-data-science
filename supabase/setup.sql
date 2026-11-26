@@ -36,6 +36,10 @@
 --      course when that is empty (null).
 --   8. Polls and surveys (section 8) are written and opened on the admin
 --      page; students answer them on the site and see only their own answers.
+--   9. Push notifications (section 9): students who turn them on are saved
+--      as push subscriptions (one row per device and course); the admin
+--      page's Announcements tab sends to them through the `push` Edge
+--      Function (supabase/functions/push/).
 --
 -- Upgrading from the one-class version: running this file adds course and
 -- term to the roster and every progress table, and fills them in for the
@@ -2495,6 +2499,265 @@ begin
             coalesce((q ->> 'allow_other')::boolean, false), coalesce((q ->> 'required')::boolean, false),
             coalesce((q ->> 'scale_min')::integer, 1), coalesce((q ->> 'scale_max')::integer, 5),
             q ->> 'min_label', q ->> 'max_label');
+  end loop;
+end;
+$$;
+
+-- 9. Push notifications (announcements) ------------------------------------------
+-- A student who installs a course site on their home screen can tap
+-- "Notifications" (bottom right, assets/notifications.html) and allow them.
+-- Their browser then makes a push subscription: an address on Apple's,
+-- Google's or Mozilla's push service plus two encryption keys. It is saved
+-- here as one row, with the student's user id and the course code. It holds
+-- no message content, only where to deliver.
+--
+-- The instructor writes an announcement on the admin page's Announcements
+-- tab. The Supabase Edge Function `push` (supabase/functions/push/) checks
+-- that the caller is an instructor of the course, reads the course's
+-- subscriptions through admin_push_targets, sends the message to each one,
+-- and removes the ones the push service says are gone (the student turned
+-- notifications off or deleted the app) through admin_push_finish.
+--
+-- Students never read this table: RLS is on with no policies, and the
+-- functions below only add or remove the caller's own rows.
+create table if not exists public.push_subscriptions (
+  endpoint   text primary key
+             check (endpoint ~ '^https://' and length(endpoint) <= 1024),
+  user_id    uuid not null references auth.users (id) on delete cascade,
+  course     text not null references public.courses (course) on update cascade on delete cascade,
+  p256dh     text not null check (length(p256dh) between 40 and 200),
+  auth       text not null check (length(auth) between 8 and 100),
+  user_agent text check (length(user_agent) <= 300),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  last_ok_at timestamptz                       -- last successful delivery
+);
+
+create index if not exists push_subscriptions_course_idx on public.push_subscriptions (course);
+create index if not exists push_subscriptions_user_idx on public.push_subscriptions (user_id);
+
+alter table public.push_subscriptions enable row level security;
+revoke all on table public.push_subscriptions from anon, authenticated;
+
+-- What was sent, for the admin page's list (no student data).
+create table if not exists public.push_announcements (
+  id         uuid primary key default gen_random_uuid(),
+  course     text not null references public.courses (course) on update cascade on delete cascade,
+  term       text,                             -- null = every active student
+  title      text not null check (length(title) between 1 and 120),
+  body       text not null default '' check (length(body) <= 400),
+  url        text check (url is null or (url ~ '^/' and length(url) <= 500)),
+  test       boolean not null default false,   -- sent only to the sender's own devices
+  sent_by    text,
+  sent_at    timestamptz not null default now(),
+  devices    integer not null default 0,
+  delivered  integer not null default 0,
+  removed    integer not null default 0,
+  failed     integer not null default 0
+);
+
+create index if not exists push_announcements_course_idx on public.push_announcements (course, sent_at desc);
+
+alter table public.push_announcements enable row level security;
+revoke all on table public.push_announcements from anon, authenticated;
+
+-- Student (or instructor): save this browser's subscription for a course.
+-- Only someone who may read that course can. Re-saving the same endpoint
+-- (it's sent again on every page load) just refreshes it. Keeps at most 10
+-- devices per person per course.
+create or replace function public.save_push_subscription(
+  p_course text, p_endpoint text, p_p256dh text, p_auth text, p_user_agent text default null
+)
+returns boolean
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_course text := lower(btrim(coalesce(p_course, '')));
+begin
+  if auth.uid() is null or not public.is_current_user_approved(v_course) then
+    raise exception 'Not signed in to this course.' using errcode = '42501';
+  end if;
+  insert into public.push_subscriptions (endpoint, user_id, course, p256dh, auth, user_agent)
+  values (btrim(p_endpoint), auth.uid(), v_course, btrim(p_p256dh), btrim(p_auth), left(p_user_agent, 300))
+  on conflict (endpoint) do update
+    set user_id = excluded.user_id, course = excluded.course, p256dh = excluded.p256dh,
+        auth = excluded.auth, user_agent = excluded.user_agent, updated_at = now();
+
+  delete from public.push_subscriptions s
+  where s.user_id = auth.uid() and s.course = v_course
+    and s.endpoint not in (select s2.endpoint from public.push_subscriptions s2
+                           where s2.user_id = auth.uid() and s2.course = v_course
+                           order by s2.updated_at desc limit 10);
+  return true;
+end;
+$$;
+
+-- Student: forget this browser's subscription (they turned notifications off).
+create or replace function public.delete_push_subscription(p_endpoint text)
+returns boolean
+language sql
+volatile
+security definer
+set search_path = ''
+as $$
+  with d as (
+    delete from public.push_subscriptions s
+    where s.endpoint = btrim(p_endpoint) and s.user_id = auth.uid()
+    returning 1
+  )
+  select exists (select 1 from d);
+$$;
+
+-- Admin: how many students and devices have notifications on.
+create or replace function public.admin_push_summary(p_course text default null, p_term text default null)
+returns table (course text, students bigint, devices bigint, instructor_devices bigint)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_courses text[] := public.require_instructor(p_course);
+begin
+  return query
+    select c.course,
+           (select count(distinct s.user_id) from public.push_subscriptions s
+            where s.course = c.course and exists (
+              select 1 from public.roster r
+              where r.user_id = s.user_id and r.course = c.course and r.active
+                and (p_term is null or r.term = p_term))),
+           (select count(*) from public.push_subscriptions s
+            where s.course = c.course and exists (
+              select 1 from public.roster r
+              where r.user_id = s.user_id and r.course = c.course and r.active
+                and (p_term is null or r.term = p_term))),
+           (select count(*) from public.push_subscriptions s
+            where s.course = c.course and s.user_id = auth.uid())
+    from public.courses c
+    where c.course = any (v_courses)
+    order by c.course;
+end;
+$$;
+
+-- Admin: the announcements sent for a course (newest first).
+create or replace function public.admin_push_announcements(p_course text default null, p_limit integer default 50)
+returns setof public.push_announcements
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_courses text[] := public.require_instructor(p_course);
+begin
+  return query
+    select a.* from public.push_announcements a
+    where a.course = any (v_courses)
+    order by a.sent_at desc
+    limit greatest(1, least(coalesce(p_limit, 50), 500));
+end;
+$$;
+
+-- Admin (called by the `push` Edge Function with the instructor's sign-in):
+-- log an announcement and return it with the devices to send it to. One
+-- course at a time. Students must be active on that course's roster (in
+-- p_term, when given); with p_test, only the caller's own devices.
+create or replace function public.admin_push_targets(
+  p_course text, p_term text, p_title text, p_body text, p_url text, p_test boolean default false
+)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_course  text := nullif(lower(btrim(coalesce(p_course, ''))), '');
+  v_term    text := nullif(btrim(coalesce(p_term, '')), '');
+  v_title   text := btrim(coalesce(p_title, ''));
+  v_body    text := btrim(coalesce(p_body, ''));
+  v_url     text := nullif(btrim(coalesce(p_url, '')), '');
+  v_id      uuid;
+  v_targets jsonb;
+begin
+  if v_course is null then
+    raise exception 'Pick a course.';
+  end if;
+  perform public.require_instructor(v_course);
+  if v_title = '' then raise exception 'The announcement needs a title.'; end if;
+  if length(v_title) > 120 then raise exception 'Keep the title to 120 characters.'; end if;
+  if length(v_body) > 400 then raise exception 'Keep the message to 400 characters.'; end if;
+  if v_url is not null and v_url !~ '^/' then
+    raise exception 'The link must be a page on the site, starting with / (for example /syllabus.html).';
+  end if;
+
+  select coalesce(jsonb_agg(jsonb_build_object('endpoint', s.endpoint, 'p256dh', s.p256dh, 'auth', s.auth)), '[]')
+  into v_targets
+  from public.push_subscriptions s
+  where s.course = v_course
+    and (case when coalesce(p_test, false) then s.user_id = auth.uid()
+         else s.user_id = auth.uid()
+           or exists (select 1 from public.roster r
+                      where r.user_id = s.user_id and r.course = v_course and r.active
+                        and (v_term is null or r.term = v_term))
+         end);
+
+  insert into public.push_announcements (course, term, title, body, url, test, sent_by, devices)
+  values (v_course, v_term, v_title, v_body, v_url, coalesce(p_test, false),
+          lower(btrim(auth.jwt() ->> 'email')), jsonb_array_length(v_targets))
+  returning id into v_id;
+
+  return jsonb_build_object('id', v_id, 'targets', v_targets);
+end;
+$$;
+
+-- Admin (the `push` Edge Function): record how sending went, and remove the
+-- subscriptions the push service said no longer exist.
+create or replace function public.admin_push_finish(
+  p_id uuid, p_ok text[], p_gone text[], p_failed integer default 0
+)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_course  text;
+  v_removed integer;
+begin
+  select a.course into v_course from public.push_announcements a where a.id = p_id;
+  if v_course is null then raise exception 'No such announcement.'; end if;
+  perform public.require_instructor(v_course);
+
+  update public.push_subscriptions s set last_ok_at = now()
+  where s.course = v_course and s.endpoint = any (coalesce(p_ok, '{}'));
+
+  delete from public.push_subscriptions s
+  where s.course = v_course and s.endpoint = any (coalesce(p_gone, '{}'));
+  get diagnostics v_removed = row_count;
+
+  update public.push_announcements a
+  set delivered = coalesce(array_length(p_ok, 1), 0), removed = v_removed,
+      failed = greatest(coalesce(p_failed, 0), 0)
+  where a.id = p_id;
+end;
+$$;
+
+do $$
+declare f text;
+begin
+  foreach f in array array[
+    'save_push_subscription(text, text, text, text, text)', 'delete_push_subscription(text)',
+    'admin_push_summary(text, text)', 'admin_push_announcements(text, integer)',
+    'admin_push_targets(text, text, text, text, text, boolean)', 'admin_push_finish(uuid, text[], text[], integer)'
+  ] loop
+    execute format('revoke all on function public.%s from public, anon', f);
+    execute format('grant execute on function public.%s to authenticated', f);
   end loop;
 end;
 $$;

@@ -1,0 +1,240 @@
+<!--
+  Announcements as push notifications (geog215.org only; added after the body by
+  the `geog215` profile, _quarto-geog215.yml, after the sign-in gate).
+
+  A "Notifications" button in the bottom-right corner lets a signed-in
+  student turn notifications on or off for this course on this device. When
+  they turn them on, the browser asks for permission and makes a push
+  subscription, which is saved with save_push_subscription (supabase/setup.sql
+  section 9). The instructor sends announcements from
+  the admin page's Announcements tab; pwa/sw.js shows them.
+
+  Where it works: Android and desktop browsers (Chrome, Edge, Firefox,
+  Safari on a Mac). iPhone and iPad (iOS 16.4 or later) only from the app on
+  the Home Screen, so there the button explains how to add it first.
+
+  Everything waits for the gate's "sds:unlocked" event, so nothing here runs
+  for signed-out readers or on daveparr.com (no gate).
+-->
+<style>
+  #sds-notify-btn .sds-dot {
+    display: inline-block; width: 0.55em; height: 0.55em; margin-left: 5px; border-radius: 50%;
+    background: #2C5080; vertical-align: middle;
+  }
+  #sds-notify-dialog { width: min(480px, calc(100vw - 24px)); }
+  #sds-notify-dialog .sds-state { margin: 0 0 12px; font-size: 0.95rem; }
+  #sds-notify-dialog .sds-state strong { color: #2C5080; }
+  #sds-notify-dialog ol { margin: 0 0 8px; padding-left: 1.3em; font-size: 0.92rem; }
+  #sds-notify-dialog ol li { margin: 0 0 4px; }
+</style>
+
+<script>
+(function () {
+  "use strict";
+
+  const COURSE_NAME = "GEOG 215";
+
+  let auth = null;   // { client, course, user } from the gate
+  const $ = (id) => document.getElementById(id);
+
+  const ua = navigator.userAgent || "";
+  const isIos = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  const installed = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) ||
+    navigator.standalone === true;
+  const supported = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+
+  function b64uToBytes(s) {
+    s = s.replace(/-/g, "+").replace(/_/g, "/");
+    while (s.length % 4) s += "=";
+    const bin = atob(s);
+    return Uint8Array.from(bin, (c) => c.charCodeAt(0));
+  }
+
+  async function registration() {
+    // pwa-head.html registers the service worker on load; wait for it (briefly).
+    return Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise((_, reject) => setTimeout(() => reject(new Error("The app's service worker didn't start. Reload and try again.")), 8000)),
+    ]);
+  }
+
+  async function currentSubscription() {
+    if (!supported) return null;
+    try { return await (await registration()).pushManager.getSubscription(); } catch (_) { return null; }
+  }
+
+  async function save(sub) {
+    const j = sub.toJSON();
+    const { error } = await auth.client.rpc("save_push_subscription", {
+      p_course: auth.course, p_endpoint: j.endpoint,
+      p_p256dh: j.keys && j.keys.p256dh, p_auth: j.keys && j.keys.auth,
+      p_user_agent: ua.slice(0, 300),
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  async function vapidKey() {
+    const { data, error } = await auth.client.functions.invoke("push", { body: { action: "key" } });
+    if (error || !data || !data.publicKey) {
+      throw new Error("Notifications aren't set up for this course yet. Try again later.");
+    }
+    return data.publicKey;
+  }
+
+  // ---- The corner button and dialog -----------------------------------------
+  function buildUi() {
+    const dlg = document.createElement("dialog");
+    dlg.id = "sds-notify-dialog";
+    dlg.className = "sds-dialog";
+    dlg.setAttribute("aria-labelledby", "sds-notify-title");
+    dlg.innerHTML = `
+      <div class="sds-body">
+        <h2 id="sds-notify-title">Notifications</h2>
+        <div id="sds-notify-content"></div>
+        <p class="sds-msg" id="sds-notify-msg" role="status"></p>
+        <div class="sds-buttons">
+          <button type="button" class="sds-secondary" id="sds-notify-close">Close</button>
+          <button type="button" class="sds-primary" id="sds-notify-action" hidden></button>
+        </div>
+      </div>`;
+    document.body.appendChild(dlg);
+    $("sds-notify-close").addEventListener("click", () => dlg.close());
+    $("sds-notify-action").addEventListener("click", onAction);
+    dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+  }
+
+  async function renderButton() {
+    const corner = $("sds-corner");
+    if (!corner) return;
+    // iPhone/iPad in Safari: offer the "add to Home Screen" steps. Other
+    // browsers without push: no button.
+    if (!supported && !(isIos && !installed)) return;
+    let btn = $("sds-notify-btn");
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.id = "sds-notify-btn";
+      btn.type = "button";
+      btn.addEventListener("click", openDialog);
+      corner.insertBefore(btn, corner.firstChild);
+    }
+    const on = supported && Notification.permission === "granted" && !!(await currentSubscription());
+    // A dot invites students using the installed app who haven't decided yet.
+    const invite = supported && installed && Notification.permission === "default";
+    btn.innerHTML = "Notifications" + (on ? ": on" : "") + (invite ? '<span class="sds-dot" aria-hidden="true"></span>' : "");
+    btn.title = on ? "Announcements are on for this device" : "Get announcements from your instructor on this device";
+  }
+
+  function say(text, kind) {
+    const msg = $("sds-notify-msg");
+    msg.textContent = text || "";
+    msg.className = "sds-msg" + (kind ? " sds-" + kind : "");
+  }
+
+  async function openDialog() {
+    say("");
+    const content = $("sds-notify-content");
+    const action = $("sds-notify-action");
+    action.hidden = true;
+    action.disabled = false;
+
+    if (!supported) {
+      content.innerHTML = `
+        <p class="sds-state">On iPhone and iPad, announcements come only to the ${COURSE_NAME} app on your Home Screen.</p>
+        <ol>
+          <li>In Safari, tap the <strong>Share</strong> button.</li>
+          <li>Tap <strong>Add to Home Screen</strong>, then <strong>Add</strong>.</li>
+          <li>Open ${COURSE_NAME} from your Home Screen, sign in, and tap <strong>Notifications</strong> again.</li>
+        </ol>
+        <p class="sds-note">Needs iOS or iPadOS 16.4 or later.</p>`;
+      $("sds-notify-dialog").showModal();
+      return;
+    }
+
+    const sub = await currentSubscription();
+    const perm = Notification.permission;
+    if (perm === "denied") {
+      content.innerHTML = `
+        <p class="sds-state">Notifications are <strong>blocked</strong> for this site on this device.</p>
+        <p class="sds-note">To get announcements, allow notifications for ${location.host} in your
+          ${isIos ? "iPhone's Settings &gt; Notifications &gt; " + COURSE_NAME : "browser's or phone's site settings"},
+          then come back here.</p>`;
+    } else if (perm === "granted" && sub) {
+      content.innerHTML = `
+        <p class="sds-state">Announcements for ${COURSE_NAME} are <strong>on</strong> for this device.</p>
+        <p class="sds-note">Your instructor sends these for things like quizzes opening or class changes.
+          Only where to deliver them is saved (no messages or location). See the
+          <a href="/privacy.html" target="_blank" rel="noopener">privacy policy</a>.</p>`;
+      action.textContent = "Turn off";
+      action.dataset.do = "off";
+      action.hidden = false;
+    } else {
+      content.innerHTML = `
+        <p class="sds-state">Get announcements from your instructor on this device, for things like
+          quizzes opening or class changes.</p>
+        <p class="sds-note">Your device will ask you to allow notifications. Only where to deliver them
+          is saved, with your sign-in; you can turn them off here at any time. See the
+          <a href="/privacy.html" target="_blank" rel="noopener">privacy policy</a>.</p>`;
+      action.textContent = "Turn on";
+      action.dataset.do = "on";
+      action.hidden = false;
+    }
+    $("sds-notify-dialog").showModal();
+  }
+
+  async function onAction() {
+    const action = $("sds-notify-action");
+    action.disabled = true;
+    try {
+      if (action.dataset.do === "on") {
+        // Ask first, straight from the tap (iPhone requires that).
+        const perm = await Notification.requestPermission();
+        if (perm !== "granted") {
+          say(perm === "denied" ? "Notifications are blocked. You can allow them in your settings." : "Not turned on.", "error");
+          action.disabled = false;
+          return;
+        }
+        say("Turning on…");
+        const reg = await registration();
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+          sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(await vapidKey()) });
+        }
+        await save(sub);
+        say("Done. You'll get " + COURSE_NAME + " announcements on this device.", "ok");
+        action.hidden = true;
+      } else {
+        const sub = await currentSubscription();
+        if (sub) {
+          const endpoint = sub.endpoint;
+          await sub.unsubscribe().catch(() => {});
+          await auth.client.rpc("delete_push_subscription", { p_endpoint: endpoint });
+        }
+        say("Turned off for this device.", "ok");
+        action.hidden = true;
+      }
+    } catch (e) {
+      say("Couldn't change notifications: " + (e && e.message ? e.message : e), "error");
+      action.disabled = false;
+    }
+    renderButton();
+  }
+
+  // ---- Start (once the gate lets a student or instructor in) ----------------
+  async function start(detail) {
+    if (auth || !detail || !detail.client) return;
+    auth = detail;
+    if (!supported && !(isIos && !installed)) return;
+    buildUi();
+    await renderButton();
+    // Already on: save it again, so the database has this device's current
+    // address even if the browser renewed it or a send removed it.
+    if (supported && Notification.permission === "granted") {
+      const sub = await currentSubscription();
+      if (sub) save(sub).catch((e) => console.warn("Notifications:", e.message));
+    }
+  }
+
+  document.addEventListener("sds:unlocked", (e) => start(e.detail));
+  if (window.sdsAuth) start(window.sdsAuth);
+})();
+</script>

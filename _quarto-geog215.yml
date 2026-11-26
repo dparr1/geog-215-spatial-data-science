@@ -8,10 +8,12 @@ format:
       # Home-screen app: manifest, icons, iPhone tags, offline service worker.
       - assets/pwa-head.html
     # "Ask a question" on highlighted text, and "My questions" (needs the gate).
-    # Then polls and surveys (banner + "Polls"; uses the dialog styles above).
+    # Then polls and surveys (banner + "Polls"; uses the dialog styles above),
+    # and "Notifications" (announcements as push notifications).
     include-after-body:
       - assets/questions.html
       - assets/polls.html
+      - assets/notifications.html
 
 # GA4 for geog215.org only. daveparr.com/intro-spatial-data-science/ gets daveparr.com's own tag
 # from that site's build, so this stays out of the default _quarto.yml.

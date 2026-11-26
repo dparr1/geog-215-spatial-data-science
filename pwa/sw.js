@@ -12,6 +12,9 @@
   - Pages, CSS, scripts, and quiz banks are network first: online, students
     always get the latest version; the saved copy is only used offline.
   - Bump VERSION to drop every saved copy (for example after a big change).
+  - Push notifications (announcements from the admin page, sent by the
+    Supabase `push` Edge Function) are shown by the "push" handler at the
+    bottom. Students turn them on with "Notifications" (assets/notifications.html).
 */
 const VERSION = "v1";
 const CACHE = "geog215-" + VERSION;
@@ -79,5 +82,45 @@ self.addEventListener("fetch", (event) => {
       }
       throw err;
     }
+  })());
+});
+
+// ---- Announcements (push notifications) --------------------------------------
+// The message is JSON: { title, body, url, tag }. iPhone and iPad require
+// every push to show a notification, so this always shows one.
+self.addEventListener("push", (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (_) {
+    data = { body: event.data ? event.data.text() : "" };
+  }
+  const title = data.title || "GEOG 215";
+  event.waitUntil(self.registration.showNotification(title, {
+    body: data.body || "",
+    icon: "/icon-192.png",
+    tag: data.tag || undefined,
+    data: { url: data.url || "/" },
+  }));
+});
+
+// Tapping the notification opens its page (on this site only), reusing an
+// open window when there is one.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  let target = new URL("/", self.location.origin);
+  try {
+    const u = new URL((event.notification.data && event.notification.data.url) || "/", self.location.origin);
+    if (u.origin === self.location.origin) target = u;
+  } catch (_) { /* use the home page */ }
+  event.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const w of wins) {
+      if (new URL(w.url).origin !== self.location.origin) continue;
+      await w.focus();
+      if (w.url !== target.href && "navigate" in w) {
+        try { await w.navigate(target.href); } catch (_) { /* stays where it is */ }
+      }
+      return;
+    }
+    await self.clients.openWindow(target.href);
   })());
 });

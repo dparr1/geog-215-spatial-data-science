@@ -155,6 +155,12 @@
     font: 0.82rem ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap;
   }
   .row-gap { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .push-setup { border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 8px;
+    padding: 12px 14px; margin: 0 0 14px; }
+  .push-setup h3 { margin: 0 0 6px; font-size: 1rem; }
+  .push-setup ol { margin: 0 0 8px; padding-left: 1.3em; }
+  .push-setup li { margin: 0 0 8px; }
+  .push-setup input { margin: 2px 0 8px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.8rem; }
 
   /* Questions tab */
   .tabs .count {
@@ -286,6 +292,7 @@
       <button role="tab" data-tab="students" aria-selected="true">Students</button>
       <button role="tab" data-tab="questions" aria-selected="false">Questions<span class="count" id="questions-count" hidden></span></button>
       <button role="tab" data-tab="polls" aria-selected="false">Polls<span class="count info" id="polls-count" hidden></span></button>
+      <button role="tab" data-tab="announce" aria-selected="false">Announcements</button>
       <button role="tab" data-tab="add" aria-selected="false">Add students</button>
       <button role="tab" data-tab="activity" aria-selected="false">Activity</button>
       <button role="tab" data-tab="pages" aria-selected="false">Pages</button>
@@ -569,6 +576,69 @@
     </div>
 
     <!-- Self-checks (webexercises questions in the chapters) -->
+    <!-- Announcements as push notifications (assets/notifications.html; setup.sql section 9) -->
+    <div class="panel" data-panel="announce" hidden>
+      <p class="hint">Sends a notification to the phones and computers of <strong id="push-course-name">this course's</strong>
+        students who turned on <strong>Notifications</strong> in the textbook (bottom right), and to your own devices.
+        On iPhone and iPad that works only from the app on the Home Screen (iOS 16.4 or later). It goes to students
+        who are active in the <strong>Term</strong> picked above (or every term).</p>
+      <p class="hint" id="push-summary"></p>
+
+      <div id="push-setup" class="push-setup" hidden>
+        <h3>Set up notifications (once, for every course)</h3>
+        <p id="push-setup-why" class="hint" style="margin:0 0 10px"></p>
+        <ol>
+          <li>Make a key pair: <button class="btn secondary small" type="button" id="push-make-keys">Make keys</button>
+            (made in this browser; nothing is sent anywhere).
+            <div id="push-keys" hidden>
+              <label for="push-key-public">VAPID_PUBLIC_KEY</label>
+              <input id="push-key-public" readonly>
+              <label for="push-key-private">VAPID_PRIVATE_KEY (keep it secret, like a password)</label>
+              <input id="push-key-private" readonly>
+            </div>
+          </li>
+          <li>In the Supabase dashboard, open <strong>Edge Functions &gt; Secrets</strong> and add both, with
+            exactly those names. Optionally add <code>VAPID_SUBJECT</code> = <code>mailto:</code> plus your email.</li>
+          <li>Reload this page. Then turn on <strong>Notifications</strong> in the textbook and use
+            <strong>Send test to my devices</strong>.</li>
+        </ol>
+        <p class="hint" style="margin:0">Make the keys only once: new keys stop every existing subscription
+          working, and students would have to turn notifications on again.</p>
+      </div>
+
+      <form id="push-form">
+        <div class="toolbar">
+          <div style="flex-basis: 100%">
+            <label for="push-title">Title</label>
+            <input id="push-title" maxlength="120" required placeholder="Quiz 3 opens tonight">
+          </div>
+          <div style="flex-basis: 100%">
+            <label for="push-message">Message (optional)</label>
+            <textarea id="push-message" maxlength="400" placeholder="It's open from 6 pm until Friday at noon."></textarea>
+          </div>
+          <div>
+            <label for="push-url">Opens this page when tapped (optional)</label>
+            <input id="push-url" list="push-pages" maxlength="500" placeholder="/syllabus.html">
+            <datalist id="push-pages"></datalist>
+          </div>
+          <div class="toolbar-action row-gap" style="margin:0">
+            <button class="btn secondary" type="button" id="push-test">Send test to my devices</button>
+            <button class="btn" type="submit" id="push-send">Send to students</button>
+          </div>
+        </div>
+      </form>
+
+      <h3 style="margin:18px 0 8px">Sent</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Sent</th><th>Announcement</th><th>To</th><th>Devices</th><th>Delivered</th><th>Removed</th><th>Failed</th></tr></thead>
+          <tbody id="push-rows"></tbody>
+        </table>
+      </div>
+      <p class="hint" style="margin-top:8px"><strong>Removed</strong> are devices whose notifications were turned off
+        or whose app was deleted; they're taken off the list. <strong>Failed</strong> ones are tried again next time.</p>
+    </div>
+
     <div class="panel" data-panel="quiz" hidden>
       <div class="toolbar">
         <div>
@@ -636,6 +706,9 @@
     quizFor: null, codeFor: null,
     questions: [],   // every question for the course and term (all statuses)
     polls: [], pollsError: "",
+    // Announcements tab: notification counts (admin_push_summary), what was
+    // sent, and whether the push Edge Function has its keys.
+    pushSummary: null, pushSent: [], pushError: "", pushReady: null,
     // Polls tab: which view is showing, and the poll (admin_poll) and its
     // responses on the Results view.
     pollView: "list", poll: null, pollResponses: [],
@@ -777,7 +850,7 @@
   async function refresh() {
     $("refresh").disabled = true;
     try {
-      const [roster, activity, pages, quiz, code, cq, cqQuestions, questions, polls] = await Promise.all([
+      const [roster, activity, pages, quiz, code, cq, cqQuestions, questions, polls, pushSummary, pushSent] = await Promise.all([
         rpc("admin_roster", scopeArgs()),
         rpc("admin_activity", scopeArgs({ p_limit: 500 })),
         rpc("admin_pages", scopeArgs()),
@@ -790,6 +863,9 @@
         rpc("admin_questions", scopeArgs({ p_limit: 2000 })).catch((e) => ({ error: e.message })),
         // Polls need section 8 of setup.sql (same idea).
         rpc("admin_polls", scopeArgs()).catch((e) => ({ error: e.message })),
+        // Announcements need section 9 of setup.sql (same idea).
+        rpc("admin_push_summary", scopeArgs()).catch((e) => ({ error: e.message })),
+        rpc("admin_push_announcements", { p_course: scope.course || null, p_limit: 100 }).catch(() => []),
       ]);
       state.roster = roster || [];
       state.activity = activity || [];
@@ -802,6 +878,9 @@
       state.questions = Array.isArray(questions) ? questions : [];
       state.pollsError = polls && polls.error ? polls.error : "";
       state.polls = Array.isArray(polls) ? polls : [];
+      state.pushError = pushSummary && pushSummary.error ? pushSummary.error : "";
+      state.pushSummary = Array.isArray(pushSummary) ? (pushSummary.find((r) => r.course === scope.course) || null) : null;
+      state.pushSent = Array.isArray(pushSent) ? pushSent : [];
       state.quizFor = null;
       state.codeFor = null;
       renderAll();
@@ -829,6 +908,7 @@
       renderActivity();
       renderPages();
       renderQuiz();
+      renderPush();
       renderCode();
     } catch (_) { /* titles are optional */ }
   }
@@ -845,6 +925,7 @@
     renderCode();
     renderQuestions();
     renderPolls();
+    renderPush();
     if (state.pollView === "results" && state.poll) openPollResults(state.poll.id);
   }
 
@@ -2119,6 +2200,121 @@
     $("add-submit").disabled = false;
   }
 
+
+  // ---- Announcements (push notifications; setup.sql section 9) --------------
+  // Sending goes through the Supabase Edge Function `push`
+  // (supabase/functions/push/ in the GEOG 215 repo), called with your sign-in.
+  async function pushCall(body) {
+    const { data, error } = await sb.functions.invoke("push", { body });
+    if (!error) return data;
+    let info = { message: error.message };
+    try { if (error.context && error.context.json) info = await error.context.json(); } catch (_) { /* keep message */ }
+    const err = new Error(info.message || info.error || error.message);
+    err.code = info.error || "";
+    throw err;
+  }
+
+  async function checkPushReady() {
+    try {
+      const data = await pushCall({ action: "key" });
+      state.pushReady = !!(data && data.publicKey);
+      $("push-setup-why").textContent = state.pushReady ? "" :
+        "The push function is running but has no keys yet.";
+    } catch (e) {
+      state.pushReady = false;
+      $("push-setup-why").textContent = "The push function isn't reachable yet (" + e.message +
+        "). Deploy it first (supabase/README.md" + "" + ", \"Push notifications\").";
+    }
+    renderPush();
+  }
+
+  function renderPush() {
+    const c = courseInfo();
+    const name = c ? c.title.split(":")[0] : "this course";
+    $("push-course-name").textContent = name + "'s";
+    const s = state.pushSummary;
+    const term = scope.term ? " in " + scope.term : "";
+    if (state.pushError) {
+      $("push-summary").textContent = "Announcements aren't set up yet: run supabase/setup.sql" + "" +
+        " again in the SQL Editor (" + state.pushError + ").";
+    } else if (s) {
+      const n = Number(s.students) || 0, d = Number(s.devices) || 0, mine = Number(s.instructor_devices) || 0;
+      $("push-summary").innerHTML = `<strong>${n}</strong> student${n === 1 ? "" : "s"}${esc(term)} ` +
+        `${n === 1 ? "has" : "have"} notifications on (${d} device${d === 1 ? "" : "s"}). ` +
+        (mine ? `You have ${mine} device${mine === 1 ? "" : "s"} on for ${esc(name)}.`
+              : `Turn on <strong>Notifications</strong> in the ${esc(name)} textbook to get the test sends.`);
+    } else {
+      $("push-summary").textContent = "";
+    }
+    $("push-setup").hidden = state.pushReady !== false;
+    $("push-send").disabled = $("push-test").disabled = !!state.pushError || state.pushReady === false;
+
+    $("push-pages").innerHTML = Object.keys(state.titles || {}).sort()
+      .map((p) => `<option value="${esc(p)}">${esc(pageTitle(p))}</option>`).join("");
+
+    const rows = state.pushSent.filter((a) => a.course === scope.course);
+    $("push-rows").innerHTML = rows.length ? rows.map((a) => `
+      <tr>
+        <td>${when(a.sent_at)}</td>
+        <td><strong>${esc(a.title)}</strong>${a.body ? "<br><span class=\"hint\">" + esc(a.body) + "</span>" : ""}${
+          a.url ? "<br><span class=\"hint\">Opens " + esc(a.url) + "</span>" : ""}</td>
+        <td>${a.test ? "Test (your devices)" : esc(a.term || "All terms")}</td>
+        <td>${a.devices}</td><td>${a.delivered}</td><td>${a.removed}</td><td>${a.failed}</td>
+      </tr>`).join("") : '<tr><td colspan="7" class="empty">Nothing sent yet.</td></tr>';
+  }
+
+  async function sendPush(test) {
+    const title = $("push-title").value.trim();
+    const body = $("push-message").value.trim();
+    const url = $("push-url").value.trim();
+    if (!title) { banner("The announcement needs a title.", true); $("push-title").focus(); return; }
+    if (url && !url.startsWith("/")) { banner("The page must start with / (for example /syllabus.html).", true); return; }
+    if (!test) {
+      const n = state.pushSummary ? Number(state.pushSummary.students) || 0 : 0;
+      const c = courseInfo();
+      if (!confirm(`Send "${title}" to ${n} student${n === 1 ? "" : "s"} in ${c ? c.title : scope.course}` +
+                   `${scope.term ? ", " + scope.term : " (every term)"}? This can't be unsent.`)) return;
+    }
+    $("push-send").disabled = $("push-test").disabled = true;
+    try {
+      const r = await pushCall({ action: "send", course: scope.course, term: scope.term || null, title, body, url, test });
+      banner((test ? "Test sent" : "Sent") + ` to ${r.delivered} of ${r.devices} device${r.devices === 1 ? "" : "s"}.` +
+        (r.removed ? ` ${r.removed} no longer had notifications on and ${r.removed === 1 ? "was" : "were"} removed.` : "") +
+        (r.failed ? ` ${r.failed} failed.` : "") +
+        (!r.devices ? (test ? " Turn on Notifications in the textbook on your phone or computer first." : " Nobody has notifications on yet.") : ""),
+        r.devices > 0 && r.delivered === 0);
+      if (!test) { $("push-title").value = ""; $("push-message").value = ""; $("push-url").value = ""; }
+      const [summary, sent] = await Promise.all([
+        rpc("admin_push_summary", scopeArgs()).catch(() => null),
+        rpc("admin_push_announcements", { p_course: scope.course || null, p_limit: 100 }).catch(() => state.pushSent),
+      ]);
+      if (Array.isArray(summary)) state.pushSummary = summary.find((x) => x.course === scope.course) || null;
+      state.pushSent = Array.isArray(sent) ? sent : state.pushSent;
+    } catch (e) {
+      if (e.code === "not_configured" || e.code === "bad_keys") state.pushReady = false;
+      banner("Couldn't send: " + e.message, true);
+    }
+    renderPush();
+  }
+
+  async function makePushKeys() {
+    const b64u = (bytes) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const kp = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
+    const raw = new Uint8Array(await crypto.subtle.exportKey("raw", kp.publicKey));
+    const jwk = await crypto.subtle.exportKey("jwk", kp.privateKey);
+    $("push-key-public").value = b64u(raw);
+    $("push-key-private").value = jwk.d;
+    $("push-keys").hidden = false;
+  }
+
+  function wirePush() {
+    $("push-form").addEventListener("submit", (e) => { e.preventDefault(); sendPush(false); });
+    $("push-test").addEventListener("click", () => sendPush(true));
+    $("push-make-keys").addEventListener("click", makePushKeys);
+    ["push-key-public", "push-key-private"].forEach((id) => $(id).addEventListener("focus", (e) => e.target.select()));
+    checkPushReady();
+  }
+
   // ---- Tabs ----------------------------------------------------------------
   function selectTab(tab) {
     document.querySelectorAll(".tabs button").forEach((b) =>
@@ -2223,6 +2419,7 @@
     $("add-form").addEventListener("submit", onAdd);
     $("questions-list").addEventListener("click", onQuestionAction);
     wirePolls();
+    wirePush();
     ["questions-status", "questions-search"].forEach((id) => $(id).addEventListener("input", renderQuestions));
     initSorting();
   }
