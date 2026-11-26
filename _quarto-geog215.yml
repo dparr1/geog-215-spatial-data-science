@@ -3,7 +3,10 @@
 # The default render, used for daveparr.com/intro-spatial-data-science/, has no gate.
 format:
   html:
-    include-in-header: assets/auth-gate.html
+    include-in-header:
+      - assets/auth-gate.html
+      # Home-screen app: manifest, icons, iPhone tags, offline service worker.
+      - assets/pwa-head.html
     # "Ask a question" on highlighted text, and "My questions" (needs the gate).
     # Then polls and surveys (banner + "Polls"; uses the dialog styles above).
     include-after-body:

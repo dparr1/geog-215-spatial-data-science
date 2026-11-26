@@ -1,0 +1,22 @@
+<!--
+  Home-screen app (geog215.org only, added by the `geog215` profile).
+  "Add to Home Screen" (iPhone: Share menu; Android: Chrome menu > Install app)
+  opens the site full screen with its own icon. The manifest, icons, offline
+  page, and service worker are in pwa/ and copied to the site root by
+  scripts/cloudflare-build.sh.
+-->
+<link rel="manifest" href="/site.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#2C5080">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="GEOG 215">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function () { /* site works without it */ });
+    });
+  }
+</script>
