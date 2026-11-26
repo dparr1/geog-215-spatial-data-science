@@ -2242,7 +2242,7 @@
       $("push-summary").innerHTML = `<strong>${n}</strong> student${n === 1 ? "" : "s"}${esc(term)} ` +
         `${n === 1 ? "has" : "have"} notifications on (${d} device${d === 1 ? "" : "s"}). ` +
         (mine ? `You have ${mine} device${mine === 1 ? "" : "s"} on for ${esc(name)}.`
-              : `Turn on <strong>Notifications</strong> in the ${esc(name)} textbook to get the test sends.`);
+              : `You have no devices on yet: open the ${esc(name)} textbook (not this admin page) on your phone or computer and tap <strong>Turn on</strong> in the banner at the top, or <strong>Turn on notifications</strong> in the bottom-right corner.`);
     } else {
       $("push-summary").textContent = "";
     }
