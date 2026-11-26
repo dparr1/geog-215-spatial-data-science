@@ -454,7 +454,12 @@
       corner.innerHTML = '<span id="sds-offline">Offline: answers aren\u2019t saved</span>';
       document.body.appendChild(corner);
     }
-    window.addEventListener("online", () => location.reload(), { once: true });
+    // Back online: reload once so the page signs in and records as usual.
+    window.addEventListener("online", function onOnline() {
+      if (!navigator.onLine) return;
+      window.removeEventListener("online", onOnline);
+      setTimeout(() => { if (navigator.onLine) location.reload(); }, 1000);
+    });
     return true;
   }
 

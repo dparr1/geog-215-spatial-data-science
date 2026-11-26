@@ -28,6 +28,8 @@ quarto render --to html --profile geog215
 rm -rf _book/admin
 cp -R admin _book/admin
 
-# Home-screen app files (manifest, icons, offline page, service worker) go in
+# Home-screen app files (manifest, icons, splash screens, offline page,
+# service worker) go in
 # the site root, where assets/pwa-head.html links to them. geog215.org only.
 cp pwa/site.webmanifest pwa/sw.js pwa/offline.html pwa/*.png _book/
+cp -R pwa/splash _book/splash
