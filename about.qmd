@@ -14,4 +14,4 @@ My teaching and research interests include volunteered geographic information, s
 
 ## About this book
 
-This book is a working draft, written from the lectures for GEOG 215. It is a [Quarto](https://quarto.org) book: every chapter is a runnable document, so the tables, maps, and figures come from the R code printed beside them, and many code boxes can be edited and run right in your browser.
+This book was developed and written from several years of lectures for GEOG 215. It is a [Quarto](https://quarto.org) book: every chapter is a runnable document, so the tables, maps, and figures come from the R code printed beside them, and many code boxes can be edited and run right in your browser.

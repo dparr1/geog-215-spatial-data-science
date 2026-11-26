@@ -1,0 +1,1 @@
+quarto render --to PrettyPDF-pdf --profile textbook

@@ -66,12 +66,15 @@ format:
   # The PDF textbook. Render it with the quiz-free textbook profile:
   #   quarto render --to PrettyPDF-pdf --profile textbook
   PrettyPDF-pdf:
+    toc: false
     include-in-header:
+      - preamble.tex
       # Lets PrettyPDF's section styles work with unit (part) pages.
       - assets/pdf-fixes.tex
       # Full-page cover (images/cover.jpg) before the title page.
       - assets/pdf-cover.tex
-    toc: true
+    include-before-body: 
+      - front-pages.tex
     number-sections: true
     keep-tex: true
 
