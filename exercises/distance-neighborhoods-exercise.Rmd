@@ -1,0 +1,350 @@
+---
+title: "Distance and Neighborhoods Exercise: Who Are My Neighbors?"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 21, Distance and Neighborhoods**. It uses joins (Chapter 15), projections (Chapter 12), and tmap (Chapter 10). It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Measure great circle, Euclidean, and Manhattan distances, and choose the right one for your data.
+2. Select features within a distance with `st_is_within_distance()`.
+3. Build contiguity (queen and rook), *k* nearest neighbor, and distance band neighbors with spdep, and count each feature's neighbors.
+4. Explain the edge effect and why *k* nearest neighbors aren't always symmetric.
+5. Turn neighbors into row-standardized weights and calculate a spatial lag.
+
+**Knowledge you'll gain.** You'll find out which states have the most and fewest neighbors, why four states in the Southwest are neighbors under one rule but not another, and whether a state's income looks like its neighbors' incomes.
+
+**Why this matters.** Every method in the rest of this course (Moran's I, hot spots, spatial regression) starts with a decision about who counts as a neighbor. That choice is yours, R won't make it for you, and different choices give different answers. Building several neighbor definitions on the same map, and seeing how they differ, is the best way to learn to choose one and defend it.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- Give units with every distance.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the packages | 3 min |
+| 2 | Measure distance three ways | 10 min |
+| 3 | Find the counties within 50 km | 7 min |
+| 4 | Contiguity neighbors: queen and rook | 12 min |
+| 5 | *k* nearest and distance band neighbors | 12 min |
+| 6 | Weights and the spatial lag | 12 min |
+| 7 | Reflect, knit, and turn in | 4 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and both maps appear in it.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences.
+- [ ] Every distance has its units (km or m).
+- [ ] You explain *why* neighbor definitions differ, not just *that* they differ.
+- [ ] Your maps have titles, legend titles, and credits with your name and the data source.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with both maps | Knits, but some chunks have errors | Doesn't knit, or no HTML turned in |
+| Code (4 pts) | Every blank filled in correctly | Most blanks correct | Many blanks missing or wrong |
+| Distances (3 pts) | Distances compared with units and the right measure explained | Numbers given without explanation | Not done |
+| Neighbors (5 pts) | Neighbor counts found and differences between definitions explained | Counts found, differences not explained | Not done |
+| Spatial lag (3 pts) | Lag calculated, mapped, and interpreted | Calculated but not interpreted | Not done |
+| Questions and reflection (3 pts) | Remaining questions and all three reflections answered | Some missing | Most missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* Why does Kansas have different neighbors with a distance band than with *k* = 4 nearest neighbors?
+>
+> *Weak answer:* "Because they're different methods."
+>
+> *Strong answer:* "A distance band gives every state the neighbors whose centers are within a fixed distance, so a big state like Kansas, whose neighbors' centers are far away, can end up with few or none. *k* = 4 always gives exactly four neighbors, so Kansas gets four, but they may be farther away than the band allows."
+
+The strong answer names how each rule works and connects it to the place.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Load the Packages (3 min)
+
+- Make a folder called `distance-neighborhoods-exercise` inside your `geog215` folder, and save this file there.
+- Change `author:` and `date:` at the top of the file.
+- Fill in the blank to load spdep, the package for neighbors and weights, then run the chunk. (If it isn't installed, run `install.packages("spdep")` in the **Console**, not in this file.)
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sf)
+library(tmap)
+library(spData)
+library(___)
+```
+
+# Part 2. Measure Distance Three Ways (10 min)
+
+Here are four cities, with their longitude and latitude.
+
+- Fill in the blanks to make an sf object of points. The coordinates are longitude and latitude, so the CRS is WGS 84.
+
+```{r cities}
+cities <- tibble(
+  name = c("Chapel Hill", "Wilmington", "Asheville", "Seattle"),
+  lon  = c(-79.0558, -77.9447, -82.5515, -122.3321),
+  lat  = c(35.9132, 34.2257, 35.5951, 47.6062)
+) |>
+  st_as_sf(coords = c(___, ___), crs = ___)
+```
+
+- Run the chunk. Because `cities` is in longitude and latitude, `st_distance()` gives **great circle** distances, in meters. We divide by 1,000 for kilometers.
+
+```{r great-circle}
+great_circle <- st_distance(cities) / 1000
+round(great_circle)
+```
+
+- Fill in the blank to project the cities to the North Carolina State Plane (EPSG:32119), then measure again. In a projected CRS, `st_distance()` gives **Euclidean** distances.
+
+```{r euclidean}
+cities_nc <- cities |>
+  st_transform(___)
+
+euclidean <- st_distance(cities_nc) / 1000
+round(euclidean)
+```
+
+**Q1.** Compare the two tables. How different are the distances between the three North Carolina cities? From Chapel Hill to Seattle? Explain the difference.
+
+*Your answer here.*
+
+- Fill in the blanks to calculate the **Manhattan** distance from Chapel Hill to Wilmington with the projected coordinates. `st_coordinates()` gives a matrix with columns `X` and `Y`, in meters.
+
+```{r manhattan}
+xy <- st_coordinates(cities_nc) / 1000   # kilometers
+
+manhattan_km <- abs(xy[2, "X"] - xy[1, "X"]) + abs(xy[2, ___] - xy[1, ___])
+manhattan_km
+```
+
+**Q2.** How much longer is the Manhattan distance than the Euclidean distance, in km? Is Manhattan distance a good model for a drive from Chapel Hill to Wilmington? Why or why not?
+
+*Your answer here.*
+
+# Part 3. Find the Counties Within 50 km (7 min)
+
+spData's `nc.sids` has a row for each North Carolina county, named in its row names, with the longitude and latitude of a point near the county's center.
+
+- Fill in the blanks to make points from the counties, project them, and keep the county names.
+
+```{r nc-points}
+nc_pts <- nc.sids |>
+  rownames_to_column("county") |>
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
+  st_transform(___)
+```
+
+- Fill in the blanks to find the counties whose points are within 50 km of Orange County's point. `st_is_within_distance()` measures in the units of the CRS, which here are **meters**.
+
+```{r within}
+orange <- nc_pts |>
+  filter(county == "Orange")
+
+near_orange <- nc_pts |>
+  filter(st_is_within_distance(nc_pts, orange, dist = ___, sparse = FALSE)[, 1])
+
+near_orange$county
+```
+
+**Q3.** Which counties are within 50 km of Orange? Why is Orange itself in the list? Name one county that borders Orange but isn't in the list, or explain why every bordering county is there.
+
+*Your answer here.*
+
+# Part 4. Contiguity Neighbors: Queen and Rook (12 min)
+
+Now we switch to polygons: the 48 contiguous states plus the District of Columbia.
+
+- Fill in the blanks to project the states to the Albers equal-area projection for the lower 48 (EPSG:5070), and join each state's median income in 2015 from `us_states_df`.
+
+```{r states}
+states <- us_states |>
+  st_transform(___) |>
+  left_join(us_states_df, by = join_by(NAME == ___))
+
+nrow(states)
+```
+
+- Fill in the blanks to build queen and rook contiguity neighbors, and count each state's neighbors with `card()` (short for *cardinality*, the number of things in a set).
+
+```{r contiguity}
+nb_queen <- poly2nb(states, queen = ___)
+nb_rook  <- poly2nb(states, queen = ___)
+
+states <- states |>
+  mutate(n_queen = card(nb_queen),
+         n_rook  = card(___))
+
+states |>
+  st_drop_geometry() |>
+  select(NAME, n_queen, n_rook) |>
+  arrange(desc(n_queen)) |>
+  head(5)
+
+table(states$n_queen)
+```
+
+**Q4.** Which states have the most queen neighbors, and how many? Which state has the fewest, and why?
+
+*Your answer here.*
+
+- Fill in the blank to find the states whose number of neighbors is different under the two rules.
+
+```{r queen-vs-rook}
+states |>
+  st_drop_geometry() |>
+  filter(n_queen ___ n_rook) |>
+  select(NAME, n_queen, n_rook)
+```
+
+**Q5.** Which four states differ, and by how many neighbors? Why? (Hint: look at a map of the Southwest.)
+
+*Your answer here.*
+
+# Part 5. *k* Nearest and Distance Band Neighbors (12 min)
+
+These two definitions use points, so we'll use the center of each state.
+
+- Fill in the blanks to get the coordinates of the state centroids, then build *k* = 4 nearest neighbors.
+
+```{r knn, warning=FALSE}
+coords <- states |>
+  st_centroid() |>
+  st_coordinates()
+
+nb_knn <- knn2nb(knearneigh(coords, k = ___))
+
+nc_row <- which(states$NAME == "North Carolina")
+states$NAME[nb_queen[[nc_row]]]   # NC's queen neighbors
+states$NAME[nb_knn[[___]]]   # NC's 4 nearest neighbors
+
+is.symmetric.nb(nb_knn)
+```
+
+**Q6.** How do North Carolina's queen and *k*-nearest neighbors differ? Why? What does `is.symmetric.nb()` tell you, and why can that happen with *k* nearest neighbors?
+
+*Your answer here.*
+
+- Fill in the blanks to build distance band neighbors with bands of 300, 400, and 500 km, and count how many states get **no** neighbors at all. `dnearneigh()` measures in the CRS's units, meters.
+
+```{r bands}
+nb_300 <- dnearneigh(coords, d1 = 0, d2 = 300000)
+nb_400 <- dnearneigh(coords, d1 = 0, d2 = ___)
+nb_500 <- dnearneigh(coords, d1 = 0, d2 = 500000)
+
+sum(card(nb_300) == 0)
+sum(card(nb_400) == 0)
+sum(card(___) == 0)
+
+states$NAME[card(nb_500) == 0]
+```
+
+**Q7.** How many states have no neighbors at each distance? Which states still have none at 500 km, and why those? Which part of the country gets many neighbors with a short band?
+
+*Your answer here.*
+
+# Part 6. Weights and the Spatial Lag (12 min)
+
+- Fill in the blanks to turn queen neighbors into **row-standardized** weights, and calculate the spatial lag of median income: each state's neighbors' average.
+
+```{r lag}
+weights <- nb2listw(nb_queen, style = ___)
+
+states <- states |>
+  mutate(income_lag = lag.listw(___, median_income_15),
+         income_diff = median_income_15 - income_lag)
+
+states |>
+  st_drop_geometry() |>
+  filter(NAME == "North Carolina") |>
+  select(NAME, median_income_15, income_lag)
+```
+
+**Q8.** What does `style = "W"` do to the weights? Using North Carolina, explain in words what the spatial lag means.
+
+*Your answer here.*
+
+- Fill in the blanks to map income and its spatial lag side by side, with the same breaks.
+
+```{r lag-maps}
+brks <- c(20000, 24000, 27000, 30000, 33000, 42000)
+
+map_income <- tm_shape(states) +
+  tm_polygons(fill = ___,
+              fill.scale = tm_scale_intervals(breaks = brks, values = "brewer.yl_gn_bu"),
+              fill.legend = tm_legend(title = "Median income ($)")) +
+  tm_title("Median Income, 2015") +
+  tm_credits("Author: Your Name\nData Source: spData us_states_df", position = c("left", "bottom"))
+
+map_lag <- tm_shape(states) +
+  tm_polygons(fill = ___,
+              fill.scale = tm_scale_intervals(breaks = brks, values = "brewer.yl_gn_bu"),
+              fill.legend = tm_legend(title = "Neighbors' average ($)")) +
+  tm_title("Spatial Lag of Median Income") +
+  tm_credits("Author: Your Name\nData Source: spData us_states_df", position = c("left", "bottom"))
+
+tmap_arrange(map_income, map_lag, ncol = 1)
+
+cor(states$median_income_15, states$income_lag)
+```
+
+**Q9.** How does the lag map look different from the income map? What does the correlation between income and its lag suggest?
+
+*Your answer here.*
+
+- Run the chunk to find the states that are most different from their neighbors.
+
+```{r outliers}
+states |>
+  st_drop_geometry() |>
+  arrange(income_diff) |>
+  select(NAME, median_income_15, income_lag, income_diff) |>
+  slice(c(1:3, 47:49))
+```
+
+**Q10.** Which states are much poorer than their neighbors, and which much richer? Pick one and suggest why.
+
+*Your answer here.*
+
+**Q11.** If you used *k* = 4 nearest neighbors instead of queen contiguity, would North Carolina's spatial lag change? Why? (You don't need to calculate it.)
+
+*Your answer here.*
+
+# Part 7. Reflection Questions (4 min)
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas.

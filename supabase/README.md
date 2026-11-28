@@ -178,7 +178,7 @@ course, and one with `courses = '{geog370}'` sees only GEOG 370.
 | **Chapter quizzes** | Results from the quiz page after each chapter, for everyone or one student, and for all chapters or one. **Correct** and **incorrect** count every answer, including re-asks of missed questions, and **success** is correct answers as a share of all answers. *By chapter* gives class totals. *By student* gives each student's quizzes finished, correct and incorrect answers, success, best first-try score, total points for the chapter and best single-quiz score. *Questions* lists every question, hardest first. |
 | **Self-checks** | Each self-check question in the chapters, by page: how many students answered it, how many got it right, and total attempts. Pick a student to see their last answer to each question. |
 | **Code** | Each webR code cell, by page: how many students ran it, total runs, and how many ended in an error. Pick a student to see the code they last ran in each cell. |
-| **Exercise keys** | The answer keys to the chapter exercises (chapters 3 to 19), for the course picked at the top. **Download** one key, **Download all**, **Upload** or **Replace** a key, or add files with **Upload keys**. See [Exercise answer keys](#exercise-answer-keys). |
+| **Exercise keys** | The answer keys to the chapter exercises (chapters 3 to 19, 21 and 22), for the course picked at the top. **Download** one key, **Download all**, **Upload** or **Replace** a key, or add files with **Upload keys**. See [Exercise answer keys](#exercise-answer-keys). |
 
 Tell students to go to geog215.org and sign in with **the email you added**.
 For most, that's their unc.edu address.
@@ -345,7 +345,7 @@ A direct link opens a poll on any page: `https://geog215.org/preface.html?sds-po
 
 ## Exercise answer keys
 
-Each chapter from 3 to 19 has an exercise page after the chapter (before
+Each chapter from 3 to 19, plus chapters 21 and 22, has an exercise page after the chapter (before
 its quiz) with a downloadable `.Rmd` file for students. The files are in
 `exercises/` in this repository. Their **answer keys are not**: the repository
 and both sites are public, so the keys live in a private Supabase Storage

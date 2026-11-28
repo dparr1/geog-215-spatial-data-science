@@ -1,0 +1,87 @@
+# Chapter exercise: Distance and Neighborhoods {.unnumbered}
+
+**Who Are My Neighbors?**
+
+This exercise goes with **Chapter 21, Distance and Neighborhoods**. It uses joins (Chapter 15), projections (Chapter 12), and tmap (Chapter 10). It should take you about **one hour**. Read this whole section before you start.
+
+::: {.callout-tip appearance="simple"}
+## Get the exercise file
+
+:::: {.content-visible when-format="html"}
+[Download distance-neighborhoods-exercise.Rmd](../exercises/distance-neighborhoods-exercise.Rmd){download="distance-neighborhoods-exercise.Rmd"}
+::::
+
+:::: {.content-visible when-format="pdf"}
+Download the file from <https://daveparr.com/intro-spatial-data-science/exercises/distance-neighborhoods-exercise.Rmd>.
+::::
+
+Save it in a new folder called `distance-neighborhoods-exercise` inside your `geog215` folder, open it in RStudio, and work through it from top to bottom. Everything on this page is also at the top of the file.
+:::
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Measure great circle, Euclidean, and Manhattan distances, and choose the right one for your data.
+2. Select features within a distance with `st_is_within_distance()`.
+3. Build contiguity (queen and rook), *k* nearest neighbor, and distance band neighbors with spdep, and count each feature's neighbors.
+4. Explain the edge effect and why *k* nearest neighbors aren't always symmetric.
+5. Turn neighbors into row-standardized weights and calculate a spatial lag.
+
+**Knowledge you'll gain.** You'll find out which states have the most and fewest neighbors, why four states in the Southwest are neighbors under one rule but not another, and whether a state's income looks like its neighbors' incomes.
+
+**Why this matters.** Every method in the rest of this course (Moran's I, hot spots, spatial regression) starts with a decision about who counts as a neighbor. That choice is yours, R won't make it for you, and different choices give different answers. Building several neighbor definitions on the same map, and seeing how they differ, is the best way to learn to choose one and defend it.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- Give units with every distance.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the packages | 3 min |
+| 2 | Measure distance three ways | 10 min |
+| 3 | Find the counties within 50 km | 7 min |
+| 4 | Contiguity neighbors: queen and rook | 12 min |
+| 5 | *k* nearest and distance band neighbors | 12 min |
+| 6 | Weights and the spatial lag | 12 min |
+| 7 | Reflect, knit, and turn in | 4 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and both maps appear in it.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences.
+- [ ] Every distance has its units (km or m).
+- [ ] You explain *why* neighbor definitions differ, not just *that* they differ.
+- [ ] Your maps have titles, legend titles, and credits with your name and the data source.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with both maps | Knits, but some chunks have errors | Doesn't knit, or no HTML turned in |
+| Code (4 pts) | Every blank filled in correctly | Most blanks correct | Many blanks missing or wrong |
+| Distances (3 pts) | Distances compared with units and the right measure explained | Numbers given without explanation | Not done |
+| Neighbors (5 pts) | Neighbor counts found and differences between definitions explained | Counts found, differences not explained | Not done |
+| Spatial lag (3 pts) | Lag calculated, mapped, and interpreted | Calculated but not interpreted | Not done |
+| Questions and reflection (3 pts) | Remaining questions and all three reflections answered | Some missing | Most missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* Why does Kansas have different neighbors with a distance band than with *k* = 4 nearest neighbors?
+>
+> *Weak answer:* "Because they're different methods."
+>
+> *Strong answer:* "A distance band gives every state the neighbors whose centers are within a fixed distance, so a big state like Kansas, whose neighbors' centers are far away, can end up with few or none. *k* = 4 always gives exactly four neighbors, so Kansas gets four, but they may be farther away than the band allows."
+
+The strong answer names how each rule works and connects it to the place.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.

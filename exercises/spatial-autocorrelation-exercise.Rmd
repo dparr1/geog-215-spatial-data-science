@@ -1,0 +1,326 @@
+---
+title: "Spatial Autocorrelation Exercise: Is It Clustered?"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 22, Spatial Clustering and Spatial Autocorrelation**. It builds on the neighbors and weights exercise from Chapter 21. It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Calculate the Average Nearest Neighbor (ANN) ratio for a set of points, and explain how the study area changes it.
+2. Run Moran's I with `moran.test()` and `moran.mc()`, and interpret its magnitude, significance, and importance.
+3. Check whether a Moran's I result holds up with a different neighbor definition.
+4. Run a local Getis-Ord Gi\* hot-spot analysis with `localG()`, classify the z-scores, and map them.
+5. Choose the right statistic for a question: ANN, Moran's I, or Gi\*.
+
+**Knowledge you'll gain.** You'll find out whether London's bike-hire docks are clustered, how strongly income and poverty cluster among U.S. states, and where the hot and cold spots of income are.
+
+**Why this matters.** Our eyes find patterns in any map, even a random one. These statistics let you say, with evidence, whether a pattern is real, how strong it is, and where it is. They're also how you check a regression's residuals (Chapter 19) and a standard part of a spatial data science project, including your final project.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- When you report Moran's I, give **both** *I* and its p-value, and describe its strength with the rule of thumb in the chapter.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 3 min |
+| 2 | Are the bike docks clustered? The ANN ratio | 14 min |
+| 3 | Moran's I for state income | 12 min |
+| 4 | Does the answer depend on the neighbors or the variable? | 10 min |
+| 5 | Hot spots with Getis-Ord Gi\* | 14 min |
+| 6 | Choose the statistic | 3 min |
+| 7 | Reflect, knit, and turn in | 4 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and the hot-spot map appears in it.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences.
+- [ ] Every Moran's I result gives *I*, the p-value, and a description of its strength.
+- [ ] You tell a significant result from an important one.
+- [ ] Your map has a title, a legend title, and credits with your name and the data source.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with the map | Knits, but some chunks have errors | Doesn't knit, or no HTML turned in |
+| Code (4 pts) | Every blank filled in correctly | Most blanks correct | Many blanks missing or wrong |
+| ANN (3 pts) | Ratio calculated and the effect of the study area explained | Calculated, not explained | Not done |
+| Moran's I (5 pts) | Magnitude, significance, and importance interpreted for each result | Some parts missing | Not done |
+| Hot spots (3 pts) | Mapped, and hot and cold spots described | Mapped, not described | Not done |
+| Questions and reflection (3 pts) | Remaining questions and all three reflections answered | Some missing | Most missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* Is the number of births in North Carolina's counties spatially autocorrelated?
+>
+> *Weak answer:* "Yes, p = 0.004."
+>
+> *Strong answer:* "Moran's I is 0.22, which is slightly clustered by the rule of thumb, and p = 0.004, so the clustering is statistically significant at the 0.05 level. Counties with many births tend to be near each other, but the effect is modest."
+
+The strong answer gives *I* and *p*, describes the strength, and says what it means on the map. (These numbers are made up for the example.)
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Load the Data (3 min)
+
+- Make a folder called `spatial-autocorrelation-exercise` inside your `geog215` folder, and save this file there.
+- Change `author:` and `date:` at the top of the file.
+- Run the chunk.
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sf)
+library(tmap)
+library(spData)
+library(spdep)
+```
+
+# Part 2. Are the Bike Docks Clustered? The ANN Ratio (14 min)
+
+spData's `cycle_hire` has the 742 docking stations of London's bike-hire scheme, and `lnd` has the boundaries of London's 33 boroughs.
+
+- Fill in the blanks to project both to the British National Grid (EPSG:27700), whose units are meters.
+
+```{r project-london}
+docks <- cycle_hire |>
+  st_transform(___)
+
+london <- lnd |>
+  st_transform(___)
+
+nrow(docks)
+```
+
+- Run the chunk to map the docks on the boroughs.
+
+```{r docks-map}
+tm_shape(london) +
+  tm_polygons(fill = "grey95") +
+  tm_shape(docks) +
+  tm_dots(size = 0.2, fill = "#b2182b") +
+  tm_title("London Bike-Hire Docks") +
+  tm_credits("Author: Your Name\nData Source: spData cycle_hire, lnd", position = c("left", "bottom"))
+```
+
+**Q1.** Before you calculate anything: are the docks clustered, random, or dispersed? Does your answer depend on how much of the map you look at?
+
+*Your answer here.*
+
+- Fill in the blanks to calculate the observed mean nearest-neighbor distance. `st_distance()` gives the distance from every dock to every other; setting the diagonal to infinity stops a dock from being its own nearest neighbor.
+
+```{r observed}
+d <- st_distance(docks)
+diag(d) <- Inf
+
+nearest <- apply(d, 1, ___)
+observed <- mean(___)
+observed
+```
+
+- Fill in the blanks to calculate the expected distance for random points, $0.5 / \sqrt{n / A}$, and the ANN ratio, using two different study areas: all of London, and the smallest polygon around the docks (the **convex hull**).
+
+```{r ann}
+n <- nrow(docks)
+
+area_london <- as.numeric(st_area(st_union(london)))
+area_hull   <- as.numeric(st_area(st_convex_hull(st_union(docks))))
+
+expected_london <- 0.5 / sqrt(n / ___)
+expected_hull   <- 0.5 / sqrt(n / ___)
+
+ann_london <- observed / expected_london
+ann_hull   <- observed / ___
+
+c(area_london_km2 = area_london / 1e6, area_hull_km2 = area_hull / 1e6)
+c(ann_london = ann_london, ann_hull = ann_hull)
+```
+
+**Q2.** What is the mean nearest-neighbor distance, in meters? What is the ANN ratio for each study area, and what does each say about the pattern?
+
+*Your answer here.*
+
+**Q3.** Which answer is right? Explain why the study area changes the ANN ratio so much, and which question each version answers.
+
+*Your answer here.*
+
+# Part 3. Moran's I for State Income (12 min)
+
+The ANN ratio uses only locations. Moran's I asks whether **values** are clustered. We'll use the states and their median incomes in 2015, as in the Chapter 21 exercise.
+
+- Fill in the blanks to join the data, build queen contiguity neighbors, and turn them into row-standardized weights.
+
+```{r states}
+states <- us_states |>
+  st_transform(5070) |>
+  left_join(us_states_df, by = join_by(NAME == state))
+
+nb_queen <- poly2nb(states, queen = TRUE)
+weights <- nb2listw(___, style = ___)
+```
+
+- Fill in the blank to run Moran's I on median income.
+
+```{r moran}
+moran_income <- moran.test(states$___, weights)
+moran_income
+```
+
+**Q4.** Report Moran's I and its p-value. Describe its strength with the chapter's rule of thumb. What is the expected value, and why isn't it exactly 0?
+
+*Your answer here.*
+
+- Fill in the blanks to run the Monte Carlo version with 999 random shuffles. `set.seed()` makes the shuffles the same every time you knit.
+
+```{r moran-mc}
+set.seed(215)
+moran_mc <- moran.mc(states$median_income_15, weights, nsim = ___)
+moran_mc
+
+hist(moran_mc$res, breaks = 30, main = "Moran's I for 999 random shuffles",
+     xlab = "Moran's I")
+abline(v = moran_mc$___, col = "red", lwd = 2)
+```
+
+**Q5.** Where does the real *I* (the red line) fall compared with the shuffles? Explain what the Monte Carlo p-value of 0.001 means, and why it can't be smaller than 0.001 here.
+
+*Your answer here.*
+
+# Part 4. Does the Answer Depend on the Neighbors or the Variable? (10 min)
+
+- Fill in the blanks to run Moran's I again with *k* = 4 nearest neighbors instead of queen contiguity.
+
+```{r moran-knn, warning=FALSE}
+coords <- states |>
+  st_centroid() |>
+  st_coordinates()
+
+weights_knn <- nb2listw(knn2nb(knearneigh(coords, k = ___)), style = "W")
+
+moran.test(states$median_income_15, ___)
+```
+
+**Q6.** Does the conclusion change with *k* nearest neighbors? Why is it good practice to check?
+
+*Your answer here.*
+
+- Fill in the blanks to calculate two more variables, poverty rate and population density, then run Moran's I on each with the queen weights.
+
+```{r more-variables}
+states <- states |>
+  mutate(poverty_rate = poverty_level_15 / total_pop_15 * 100,
+         density = total_pop_15 / as.numeric(___))   # people per km²
+
+moran_poverty <- moran.test(states$___, weights)
+moran_density <- moran.test(states$density, weights)
+
+moran_poverty$estimate[1]
+moran_poverty$p.value
+moran_density$estimate[1]
+moran_density$p.value
+```
+
+**Q7.** Report and describe Moran's I for poverty and for density. The density result is statistically significant: is it *important*? Explain.
+
+*Your answer here.*
+
+# Part 5. Hot Spots with Getis-Ord Gi\* (14 min)
+
+Moran's I says income is clustered somewhere. Gi\* says **where**.
+
+- Fill in the blanks to include each state in its own neighborhood, make binary weights, and calculate the Gi\* z-scores.
+
+```{r gi}
+weights_b <- nb2listw(___(nb_queen), style = ___)
+
+states <- states |>
+  mutate(gi = as.numeric(localG(median_income_15, weights_b)))
+
+states |>
+  st_drop_geometry() |>
+  select(NAME, median_income_15, gi) |>
+  arrange(desc(gi)) |>
+  slice(c(1:5, 45:49))
+```
+
+- Fill in the blanks to classify the z-scores at the 0.05 level (±1.96) and the 0.01 level (±2.58).
+
+```{r gi-classes}
+states <- states |>
+  mutate(gi_class = cut(gi, breaks = c(-Inf, -2.58, ___, 1.96, ___, Inf),
+                        labels = c("Cold spot (z < -2.58)", "Cold spot (z -2.58 to -1.96)",
+                                   "Not significant",
+                                   "Hot spot (z 1.96 to 2.58)", "Hot spot (z > 2.58)")))
+
+count(st_drop_geometry(states), gi_class)
+```
+
+- Fill in the blanks to map the hot and cold spots.
+
+```{r gi-map}
+tm_shape(states) +
+  tm_polygons(fill = ___,
+              fill.scale = tm_scale_categorical(
+                values = c("#2166ac", "#92c5de", "grey90", "#f4a582", "#b2182b")),
+              fill.legend = tm_legend(title = "Gi* z-score")) +
+  tm_title("Hot and Cold Spots of Median Income, 2015") +
+  tm_credits("Author: Your Name\nData Source: spData us_states, us_states_df", position = c("left", "bottom"))
+```
+
+**Q8.** Where are the hot spots and the cold spots? Which is the strongest hot spot, and which the strongest cold spot?
+
+*Your answer here.*
+
+**Q9.** Connecticut had one of the highest incomes, but it isn't a significant hot spot. Why not? (Hint: Gi\* looks at a state *and its neighbors*.)
+
+*Your answer here.*
+
+# Part 6. Choose the Statistic (3 min)
+
+**Q10.** For each question, which would you use: the ANN ratio, Moran's I, or Gi\*? Why?
+
+a. Is the rate of asthma clustered among North Carolina's counties?
+b. Which counties are at the center of a cluster of high asthma rates?
+c. Are the coffee shops in Chapel Hill clustered?
+
+*Your answer here.*
+
+**Q11.** In the Chapter 19 exercise, the residuals of the home value model looked clustered on the map. Which statistic would test that, and what result would tell you the model is missing something about place?
+
+*Your answer here.*
+
+# Part 7. Reflection Questions (4 min)
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas.

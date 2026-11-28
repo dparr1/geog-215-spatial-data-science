@@ -1,0 +1,87 @@
+# Chapter exercise: Spatial Clustering and Spatial Autocorrelation {.unnumbered}
+
+**Is It Clustered?**
+
+This exercise goes with **Chapter 22, Spatial Clustering and Spatial Autocorrelation**. It builds on the neighbors and weights exercise from Chapter 21. It should take you about **one hour**. Read this whole section before you start.
+
+::: {.callout-tip appearance="simple"}
+## Get the exercise file
+
+:::: {.content-visible when-format="html"}
+[Download spatial-autocorrelation-exercise.Rmd](../exercises/spatial-autocorrelation-exercise.Rmd){download="spatial-autocorrelation-exercise.Rmd"}
+::::
+
+:::: {.content-visible when-format="pdf"}
+Download the file from <https://daveparr.com/intro-spatial-data-science/exercises/spatial-autocorrelation-exercise.Rmd>.
+::::
+
+Save it in a new folder called `spatial-autocorrelation-exercise` inside your `geog215` folder, open it in RStudio, and work through it from top to bottom. Everything on this page is also at the top of the file.
+:::
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Calculate the Average Nearest Neighbor (ANN) ratio for a set of points, and explain how the study area changes it.
+2. Run Moran's I with `moran.test()` and `moran.mc()`, and interpret its magnitude, significance, and importance.
+3. Check whether a Moran's I result holds up with a different neighbor definition.
+4. Run a local Getis-Ord Gi\* hot-spot analysis with `localG()`, classify the z-scores, and map them.
+5. Choose the right statistic for a question: ANN, Moran's I, or Gi\*.
+
+**Knowledge you'll gain.** You'll find out whether London's bike-hire docks are clustered, how strongly income and poverty cluster among U.S. states, and where the hot and cold spots of income are.
+
+**Why this matters.** Our eyes find patterns in any map, even a random one. These statistics let you say, with evidence, whether a pattern is real, how strong it is, and where it is. They're also how you check a regression's residuals (Chapter 19) and a standard part of a spatial data science project, including your final project.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- When you report Moran's I, give **both** *I* and its p-value, and describe its strength with the rule of thumb in the chapter.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 3 min |
+| 2 | Are the bike docks clustered? The ANN ratio | 14 min |
+| 3 | Moran's I for state income | 12 min |
+| 4 | Does the answer depend on the neighbors or the variable? | 10 min |
+| 5 | Hot spots with Getis-Ord Gi\* | 14 min |
+| 6 | Choose the statistic | 3 min |
+| 7 | Reflect, knit, and turn in | 4 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and the hot-spot map appears in it.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences.
+- [ ] Every Moran's I result gives *I*, the p-value, and a description of its strength.
+- [ ] You tell a significant result from an important one.
+- [ ] Your map has a title, a legend title, and credits with your name and the data source.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with the map | Knits, but some chunks have errors | Doesn't knit, or no HTML turned in |
+| Code (4 pts) | Every blank filled in correctly | Most blanks correct | Many blanks missing or wrong |
+| ANN (3 pts) | Ratio calculated and the effect of the study area explained | Calculated, not explained | Not done |
+| Moran's I (5 pts) | Magnitude, significance, and importance interpreted for each result | Some parts missing | Not done |
+| Hot spots (3 pts) | Mapped, and hot and cold spots described | Mapped, not described | Not done |
+| Questions and reflection (3 pts) | Remaining questions and all three reflections answered | Some missing | Most missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* Is the number of births in North Carolina's counties spatially autocorrelated?
+>
+> *Weak answer:* "Yes, p = 0.004."
+>
+> *Strong answer:* "Moran's I is 0.22, which is slightly clustered by the rule of thumb, and p = 0.004, so the clustering is statistically significant at the 0.05 level. Counties with many births tend to be near each other, but the effect is modest."
+
+The strong answer gives *I* and *p*, describes the strength, and says what it means on the map. (These numbers are made up for the example.)
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
