@@ -1,0 +1,373 @@
+---
+title: "Census Data Exercise: Median Income at Three Scales"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 13, Census Data and APIs**. It builds on the tmap and coordinate systems exercises from Chapters 10 and 12. It should take you about **one hour**, plus a few minutes beforehand to get a Census API key. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Install a Census API key safely, outside your R Markdown file.
+2. Search the thousands of ACS variables with `load_variables()` to find the code you need.
+3. Download ACS estimates with `get_acs()`, with and without boundaries (`geometry = TRUE`), for states, counties, and tracts.
+4. Project the results and map them with tmap.
+5. Calculate a margin of error as a percent of the estimate, and use it to judge how far to trust each estimate.
+
+**Knowledge you'll gain.** You'll map median household income across the United States, across North Carolina's 100 counties, and across the census tracts of Orange County, and see how the story changes with scale, and why the smallest areas are the least certain.
+
+**Why this matters.** Census data is the starting point for most spatial data science about people in the United States, and it will probably be part of your final project. Knowing how to find a variable, download it at the right scale, and read its margin of error lets you answer questions about your own community. Seeing the same variable at three scales also shows one of the central ideas of this course: the pattern you find depends on the units you map.
+
+## Task
+
+**Before you start:** get a free Census API key at <https://api.census.gov/data/key_signup.html> and click the activation link in the email. It can take a few minutes to arrive.
+
+Work through Parts 1 to 8 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. Where you see `# your code here`, write the code yourself.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- This exercise downloads data, so you need an internet connection. The first download of boundaries takes a minute; after that they're cached.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Install your API key and load the packages | 7 min |
+| 2 | Find variables with `load_variables()` | 7 min |
+| 3 | Download a table of NC counties | 7 min |
+| 4 | Map the states | 9 min |
+| 5 | Map North Carolina's counties | 7 min |
+| 6 | Map Orange County's tracts | 9 min |
+| 7 | Margins of error and scale | 10 min |
+| 8 | Reflect, knit, and turn in | 4 min |
+| Optional | Challenge: households with no vehicle | 15 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and every map appears in it.
+- [ ] Your API key is **not** in the file. (It was installed in the Console.)
+- [ ] Every `___` and `# your code here` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q10) has an answer in complete sentences, using numbers and place names from your output.
+- [ ] Every map has a title, a legend title with units, and credits with your name and "US Census Bureau, 2019-2023 ACS 5-Year Estimates".
+- [ ] States are projected to EPSG:5070, and NC counties and tracts to EPSG:32119.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with every map showing, and no API key in the file | Knits, but some chunks have errors | Doesn't knit, or the key is in the file |
+| Code (5 pts) | Every blank filled in correctly; downloads and projections right | Most correct | Many blanks missing or wrong |
+| Maps (3 pts) | Four maps, each with a title, legend title, and credits | Maps missing labels | Maps missing |
+| Questions (8 pts) | Q1 to Q10 answered, with numbers, place names, and reasons | Some answers missing, wrong, or vague | Most answers missing |
+| Style (1 pt) | Pipe for chains, readable code, no `install.packages()` | | Several problems |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* What is the median household income of one county?
+>
+> *Weak answer:* "68500."
+>
+> *Strong answer:* "The 2019–2023 ACS estimates the county's median household income at $68,500, with a margin of error of ±$2,100, so we can be 90% confident it's between $66,400 and $70,600. That's a little below North Carolina's median."
+
+The strong answer names the source and years, gives the margin of error and what it means, and puts the number in context. (The numbers here are only an example; yours come from your output.)
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Install Your API Key and Load the Packages (7 min)
+
+- Make a folder called `census-exercise` inside your `geog215` folder, and save this file there.
+- Change `author:` and `date:` at the top of the file.
+- If you don't have **tidycensus** yet, install it from the **Packages** tab (or with `install.packages("tidycensus")` in the Console, never in this file).
+- Run this line in the **Console**, with your key pasted between the quotes:
+
+```
+tidycensus::census_api_key("PASTE YOUR KEY HERE", install = TRUE)
+```
+
+`install = TRUE` saves the key in a file called `.Renviron`, so R finds it every time it starts. **Restart R** (Session > Restart R) after you run it. You only need to do this once per computer. We run it in the Console, not in this file, because your key is like a password: it shouldn't be in the file you turn in. If R says a key already exists, add `overwrite = TRUE`.
+
+- Fill in the blank to load tidycensus, then run the chunk.
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sf)
+library(tmap)
+library(___)
+
+# Save downloaded boundaries on your computer, so they download only once
+options(tigris_use_cache = TRUE)
+```
+
+# Part 2. Finding Variables (7 min)
+
+Every ACS variable has a code like `B19013_001`. `load_variables()` returns a table of all of them, which you can search.
+
+```{r load-variables}
+acs_vars <- load_variables(year = 2023, dataset = "acs5", cache = TRUE)
+
+nrow(acs_vars)
+head(acs_vars)
+```
+
+`name` is the code, `label` says what is counted, and `concept` is the name of the table it belongs to. `str_detect()` is case sensitive, so we make `concept` lowercase with `str_to_lower()` and search for lowercase words.
+
+- Fill in the blank to find every variable whose `concept` contains "median household income".
+
+```{r search-income}
+acs_vars |>
+  filter(str_detect(str_to_lower(concept), ___)) |>
+  select(name, label, concept)
+```
+
+**Q1.** Many tables mention median household income. Which variable code is median household income for **all** households, not split up by race, age, and so on? (Hint: look for table `B19013` with no letter after the number. You can also type `View(acs_vars)` in the Console and use the search box.)
+
+*Your answer here.*
+
+- Search `concept` the same way to find the code for **total population**.
+
+```{r search-population}
+# your code here
+```
+
+**Q2.** What is the variable code for total population?
+
+*Your answer here.*
+
+# Part 3. Downloading a Table (7 min)
+
+`get_acs()` downloads ACS estimates. The arguments you'll use most are:
+
+- `geography`: the scale, such as `"state"`, `"county"`, or `"tract"`.
+- `variables`: one or more codes. `c(medinc = "B19013_001")` names the variable `medinc` instead of the code.
+- `state` and `county`: limit the download to one place.
+- `year`: the last year of the 5-year ACS (2023 means 2019–2023).
+
+- Fill in the blanks to download median household income for every county in North Carolina.
+
+```{r nc-county-table, message=FALSE}
+nc_county_income <- get_acs(geography = ___,
+                            variables = c(medinc = "B19013_001"),
+                            state = ___,
+                            year = 2023)
+
+glimpse(nc_county_income)
+```
+
+**Q3.** How many rows does `nc_county_income` have, and why that many? Is it an sf object (does it have a geometry column)?
+
+*Your answer here.*
+
+The ACS is a **survey**, not a count of everyone, so each number is an **estimate**. The `moe` column is its **margin of error**: the Census Bureau is 90% confident that the true value is between `estimate - moe` and `estimate + moe`.
+
+- Fill in the blanks to sort the counties from highest to lowest median income.
+
+```{r nc-county-rank}
+nc_county_income |>
+  select(NAME, estimate, moe) |>
+  arrange(___(___))
+```
+
+**Q4.** Which county has the highest median household income, and which has the lowest? What is the margin of error for the highest one, and what does it mean?
+
+*Your answer here.*
+
+# Part 4. State Scale (9 min)
+
+`geometry = TRUE` downloads the boundaries too, so the result is an sf object you can map. The state data includes Alaska, Hawaii, and Puerto Rico, which would make the lower 48 tiny, so we filter them out and project to EPSG:5070, the equal-area projection for the lower 48 (Chapter 12).
+
+- Fill in the blanks.
+
+```{r states-download, message=FALSE, results="hide"}
+states_income <- get_acs(geography = "state",
+                         variables = c(medinc = "B19013_001"),
+                         year = 2023,
+                         geometry = ___)
+```
+
+```{r states-clean}
+states_income <- states_income |>
+  filter(!NAME %in% c("Alaska", "Hawaii", "Puerto Rico")) |>
+  st_transform("EPSG:___")
+
+nrow(states_income)
+```
+
+- Fill in the blanks to map median household income by state, with a title. Put your name in the credits.
+
+```{r states-map}
+states_income |>
+  tm_shape() +
+  tm_polygons(fill = ___,
+              fill.scale = tm_scale_intervals(n = 5, style = "jenks"),
+              fill.legend = tm_legend(title = "Median income ($)")) +
+  tm_title(___) +
+  tm_credits("Author: Your Name\nData Source: US Census Bureau, 2019-2023 ACS 5-Year Estimates",
+             position = c("left", "bottom"))
+```
+
+```{r states-nc-rank}
+nc_rank <- states_income |>
+  st_drop_geometry() |>
+  mutate(rank = min_rank(desc(estimate))) |>
+  filter(NAME == "North Carolina") |>
+  select(NAME, estimate, moe, rank)
+
+nc_rank
+```
+
+**Q5.** At the state scale, how does North Carolina compare with the rest of the country? Describe one regional pattern on the map.
+
+*Your answer here.*
+
+# Part 5. County Scale (7 min)
+
+Now zoom in to North Carolina's 100 counties, projected to NC State Plane (EPSG:32119).
+
+- Fill in the blank to download county income **with** boundaries and project it.
+
+```{r counties-download, message=FALSE, results="hide"}
+nc_counties <- get_acs(geography = "county",
+                       variables = c(medinc = "B19013_001"),
+                       state = "NC",
+                       year = 2023,
+                       geometry = TRUE) |>
+  st_transform("EPSG:___")
+```
+
+- Map median household income by county, with a title, a legend title, and credits. (Copy the state map and change what you need.)
+
+```{r counties-map}
+# your code here
+```
+
+**Q6.** The state map gave North Carolina one color. What does the county map show that the state map hid? Where are the highest-income counties?
+
+*Your answer here.*
+
+# Part 6. Tract Scale (9 min)
+
+Census **tracts** are small areas of about 4,000 people each. Let's look at the tracts in Orange County, where UNC is.
+
+- Fill in the blanks to download tract income for Orange County and project it.
+
+```{r tracts-download, message=FALSE, results="hide"}
+orange_tracts <- get_acs(geography = ___,
+                         variables = c(medinc = "B19013_001"),
+                         state = "NC",
+                         county = ___,
+                         year = 2023,
+                         geometry = TRUE) |>
+  st_transform("EPSG:32119")
+```
+
+```{r tracts-look}
+nrow(orange_tracts)
+
+orange_tracts |>
+  st_drop_geometry() |>
+  arrange(estimate) |>
+  select(NAME, estimate, moe) |>
+  head()
+```
+
+- Fill in the blanks to map the tracts, with Orange County's boundary from `nc_counties` outlined on top.
+
+```{r tracts-map}
+orange_county <- nc_counties |>
+  filter(NAME == "Orange County, North Carolina")
+
+orange_tracts |>
+  tm_shape() +
+  tm_polygons(fill = "estimate",
+              fill.scale = tm_scale_intervals(n = 5, style = "jenks"),
+              fill.legend = tm_legend(title = "Median income ($)")) +
+  tm_shape(___) +
+  tm_borders(lwd = 2) +
+  tm_title(___) +
+  tm_credits("Author: Your Name\nData Source: US Census Bureau, 2019-2023 ACS 5-Year Estimates",
+             position = c("left", "bottom"))
+```
+
+**Q7.** On the county map, all of Orange County is one color. Describe how income varies **within** Orange County at the tract scale.
+
+*Your answer here.*
+
+**Q8.** Look at the tracts with the lowest income, and any that are `NA` ("Missing" on the map). Where are they? Why might they have such low (or no) values? (Hint: who lives near the middle of Chapel Hill?)
+
+*Your answer here.*
+
+# Part 7. Margins of Error and Scale (10 min)
+
+Fewer people answer the survey in a small area, so its estimates are less certain. A simple way to compare is the margin of error as a percent of the estimate.
+
+- Fill in the blanks to calculate `moe_pct` for the counties. (The tracts are done for you.)
+
+```{r moe-compare}
+nc_counties <- nc_counties |>
+  mutate(moe_pct = ___ / ___ * 100)
+
+orange_tracts <- orange_tracts |>
+  mutate(moe_pct = moe / estimate * 100)
+
+summary(nc_counties$moe_pct)
+summary(orange_tracts$moe_pct)
+```
+
+**Q9.** How does the typical (median) `moe_pct` for counties compare with tracts? Why does a smaller geography have a bigger margin of error?
+
+*Your answer here.*
+
+- Map `moe_pct` for the Orange County tracts, with a title, a legend title, and credits.
+
+```{r moe-map}
+# your code here
+```
+
+**Q10.** If you were writing a report about income in Chapel Hill, which tracts would you be careful about, and why? What would you do about them?
+
+*Your answer here.*
+
+# Part 8. Reflection Questions (4 min)
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas.
+
+# Optional Challenge: Households with No Vehicle (15 min)
+
+Pick a new variable and map it at two scales.
+
+1. Use `acs_vars` to find the codes for the number of households with **no vehicle available** and the **total** number of households in table `B08201` (Household Size by Vehicles Available).
+2. Use `get_acs()` with `geography = "tract"`, `geometry = TRUE`, and a North Carolina county of your choice (not Orange). Put the no-vehicle code in `variables` and the total code in `summary_var`. The total comes back in a column called `summary_est`.
+3. Use `mutate()` to calculate the percent of households with no vehicle, project to EPSG:32119, and map it with a title, legend title, and credits.
+4. Make the same map at the **county** scale for all of North Carolina. In a sentence or two, what does each scale tell you that the other doesn't?
+
+```{r challenge}
+# your code here
+```
+
+*Your answer here.*

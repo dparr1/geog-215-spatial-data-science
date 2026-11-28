@@ -1,0 +1,93 @@
+# Chapter exercise: R Basics {.unnumbered}
+
+**North Carolina Cities in Numbers**
+
+This exercise goes with **Chapter 3, R Basics**. It should take you about **one hour**. Read this whole section before you start.
+
+::: {.callout-tip appearance="simple"}
+## Get the exercise file
+
+:::: {.content-visible when-format="html"}
+[Download r-basics-exercise.Rmd](../exercises/r-basics-exercise.Rmd){download="r-basics-exercise.Rmd"}
+::::
+
+:::: {.content-visible when-format="pdf"}
+Download the file from <https://daveparr.com/intro-spatial-data-science/exercises/r-basics-exercise.Rmd>.
+::::
+
+Save it in a new folder called `r-basics-exercise` inside your `geog215` folder, open it in RStudio, and work through it from top to bottom. Everything on this page is also at the top of the file.
+:::
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Run the chunks of an R Markdown file in order, and use **Restart R and Run All Chunks** to check that a file will knit.
+2. Install a package once (with the Packages tab) and load it in every file (with `library()`).
+3. Make vectors of each of R's four basic data types (logical, integer, numeric, and character) and check them with `class()`.
+4. Spot and fix **coercion**, when one stray value turns a column of numbers into text.
+5. Name variables clearly and consistently in snake_case.
+6. Read an error message, find the broken line, and fix it.
+7. Use a help page to learn how a function works.
+
+**Knowledge you'll gain.** You'll learn how much six North Carolina cities grew between the 2010 and 2020 Censuses.
+
+**Why this matters.** Every map and analysis in this course is built on these pieces. Most of the problems students hit in the first few weeks come from one of them: chunks run out of order, a package that was never loaded, a number stored as text, or an error message nobody read. If you can catch these problems yourself, you'll spend much less time stuck later on. Checking that numbers really are numbers is also a skill professional analysts use every day, because real data is messy.
+
+## Task
+
+Work through Parts 1 to 8 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.* Delete *Your answer here.* when you write your answer.
+- Run each chunk with the green arrow or Ctrl+Enter (Cmd+Return on a Mac), and look at the output before you move on.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file | 5 min |
+| 2 | See why the order you run code in matters | 8 min |
+| 3 | Install and load a package, and read a help page | 10 min |
+| 4 | Make vectors of each data type and do math with them | 12 min |
+| 5 | Find and fix coercion | 8 min |
+| 6 | Rename badly named variables | 5 min |
+| 7 | Debug broken code | 10 min |
+| 8 | Learn a new function from its help page | 5 min |
+| 9 | Reflect, knit, and turn in | 5 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and the author and date at the top are yours.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] Every question (Q1 to Q12) has an answer in complete sentences.
+- [ ] Each answer explains *why*, not just *what*. (See the examples below.)
+- [ ] All the variable names you create are in snake_case and say what they hold.
+- [ ] The pipe `|>` is used where the instructions ask for it.
+- [ ] The broken code in Part 7 has been fixed, and the chunk now runs.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with no errors | Knits, but some chunks have errors shown | Doesn't knit, or no HTML turned in |
+| Code (4 pts) | Every blank filled in correctly; every chunk runs | Most blanks correct | Many blanks missing or wrong |
+| Questions (8 pts) | Q1 to Q12 answered correctly, with reasons | Some answers missing, wrong, or with no reason | Most answers missing |
+| Style (3 pts) | snake_case names that say what they hold; pipe used where asked; no `install.packages()` in the file | One or two style problems | Many style problems |
+| Debugging (2 pts) | All six lines in Part 7 fixed, with the mistake named | Some lines fixed | None fixed |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* Why does `mean(c("5", "10"))` return `NA`?
+>
+> *Weak answer:* "Because it's wrong."
+>
+> *Strong answer:* "The numbers are in quotation marks, so R stores them as character (text), not numeric. `mean()` can only average numbers, so it returns `NA` with a warning. Removing the quotation marks fixes it."
+
+The strong answer says what happened, why it happened, and how to fix it. It doesn't need to be long.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.

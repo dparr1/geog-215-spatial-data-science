@@ -2762,6 +2762,48 @@ begin
 end;
 $$;
 
+-- 10. Exercise answer keys ----------------------------------------------------------
+-- The answer keys to the chapter exercises live in a private Storage bucket,
+-- never in the textbook or its (public) repository. Each key is stored under
+-- its course, for example geog215/regression-exercise-key.Rmd. Only an
+-- instructor of that course can list, download, upload, replace or delete
+-- one; students and signed-out visitors can't even see the file names. The
+-- admin page's Exercise keys tab uses these.
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('exercise-keys', 'exercise-keys', false, 10485760)
+on conflict (id) do update set public = false, file_size_limit = excluded.file_size_limit;
+
+drop policy if exists "Instructors read exercise keys" on storage.objects;
+create policy "Instructors read exercise keys" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'exercise-keys'
+         and (storage.foldername(name))[1] is not null
+         and public.is_instructor((storage.foldername(name))[1]));
+
+drop policy if exists "Instructors add exercise keys" on storage.objects;
+create policy "Instructors add exercise keys" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'exercise-keys'
+              and (storage.foldername(name))[1] is not null
+              and public.is_instructor((storage.foldername(name))[1]));
+
+drop policy if exists "Instructors replace exercise keys" on storage.objects;
+create policy "Instructors replace exercise keys" on storage.objects
+  for update to authenticated
+  using (bucket_id = 'exercise-keys'
+         and (storage.foldername(name))[1] is not null
+         and public.is_instructor((storage.foldername(name))[1]))
+  with check (bucket_id = 'exercise-keys'
+              and (storage.foldername(name))[1] is not null
+              and public.is_instructor((storage.foldername(name))[1]));
+
+drop policy if exists "Instructors delete exercise keys" on storage.objects;
+create policy "Instructors delete exercise keys" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'exercise-keys'
+         and (storage.foldername(name))[1] is not null
+         and public.is_instructor((storage.foldername(name))[1]));
+
 -- Everyday tasks (the admin page at geog215.org/admin/ does most of these) --
 --
 -- Add students to a course and term (they can sign in with that email

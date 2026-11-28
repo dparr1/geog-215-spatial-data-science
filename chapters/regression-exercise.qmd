@@ -1,0 +1,88 @@
+# Chapter exercise: Linear Regression {.unnumbered}
+
+**What Explains House Values?**
+
+This exercise goes with **Chapter 19, Linear Regression**. It builds on the ANOVA exercise from Chapter 18, and uses ggplot2 and tmap. It should take you about **one hour**. Read this whole section before you start.
+
+::: {.callout-tip appearance="simple"}
+## Get the exercise file
+
+:::: {.content-visible when-format="html"}
+[Download regression-exercise.Rmd](../exercises/regression-exercise.Rmd){download="regression-exercise.Rmd"}
+::::
+
+:::: {.content-visible when-format="pdf"}
+Download the file from <https://daveparr.com/intro-spatial-data-science/exercises/regression-exercise.Rmd>.
+::::
+
+Save it in a new folder called `regression-exercise` inside your `geog215` folder, open it in RStudio, and work through it from top to bottom. Everything on this page is also at the top of the file.
+:::
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Tell a dependent variable from an independent variable, and correlation from regression.
+2. Fit a linear regression with `lm()`, write its equation, and use it to predict with `predict()`.
+3. Read a model summary: the coefficients, their p-values, R², and adjusted R².
+4. Build a multivariate model, interpret a coefficient "holding the others constant", and compare it with a simpler model.
+5. Map a model's residuals and explain what clusters of similar residuals mean.
+
+**Knowledge you'll gain.** You'll find out how much the number of rooms, the share of low-income residents, crime, and being on the Charles River explain the value of homes in the census tracts of Boston, and where the model gets it most wrong.
+
+**Why this matters.** Regression is the workhorse of data analysis: it is how researchers estimate how much one thing changes with another, and it is the basis of most models you'll meet after this course. For spatial data, a regression is only half done until you map its residuals: if the errors cluster in one part of the map, the model is missing something about place, and its p-values can't be trusted. That habit is what makes the analysis *spatial* data science.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- When you interpret a coefficient, give its units and the direction of the change.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 3 min |
+| 2 | A small regression: ice cream and temperature | 10 min |
+| 3 | Get to know the Boston data | 6 min |
+| 4 | A first model of house values | 10 min |
+| 5 | A multivariate model | 12 min |
+| 6 | Map the residuals | 14 min |
+| 7 | Reflect, knit, and turn in | 5 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and every graph and map appears in it.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences.
+- [ ] Every coefficient you interpret has its units ($1,000s per room, per percentage point, ...) and direction.
+- [ ] You compare models with adjusted R², not R².
+- [ ] You never say that the model shows one variable *causes* another.
+- [ ] Your residual map has a title, a legend title, and a diverging color scale centered on zero.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with every graph and map | Knits, but some chunks have errors | Doesn't knit, or no HTML turned in |
+| Code (4 pts) | Every blank filled in correctly | Most blanks correct | Many blanks missing or wrong |
+| Interpreting models (6 pts) | Coefficients, p-values, and R² interpreted with units and direction | Some interpretations missing units or wrong | Not interpreted |
+| Residual map (3 pts) | Mapped with a diverging scale, and the pattern described | Mapped but not described | Not done |
+| Questions (4 pts) | Remaining questions answered with reasons | Some missing | Most missing |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* What does the slope of the ice cream model mean?
+>
+> *Weak answer:* "6.77."
+>
+> *Strong answer:* "For every 1 °F warmer, the model predicts about 6.8 more cones sold. The slope's p-value is far below 0.05, so the relationship is unlikely to be chance, and R² = 0.96 says temperature explains about 96% of the variation in sales on these 12 days."
+
+The strong answer gives the units of both variables, the direction, and how much to trust it.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.

@@ -1,0 +1,292 @@
+---
+title: "ESDA Exercise: Getting to Know North Carolina's Births"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 16, Exploratory Spatial Data Analysis**. It uses the dplyr, ggplot2, and tmap skills from Chapters 6 to 10. It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Check the basics of a new table: its size, what one row is, the type of each column, and its missing values.
+2. Calculate and interpret the mean, median, and mode of a variable.
+3. Calculate and interpret the range, interquartile range (IQR), and standard deviation.
+4. Show a distribution with a histogram and a boxplot, choose a bin width, and describe its shape.
+5. Find outliers and decide what to do about them.
+6. Turn counts into a rate, map both, and explain why the rate map tells a different story.
+
+**Knowledge you'll gain.** You'll describe how births and sudden infant deaths (SIDS) were spread across North Carolina's 100 counties in the 1970s, find out which counties are outliers and why, and see where the *rate* of SIDS was highest.
+
+**Why this matters.** Before you fit any model or make any claim, you have to know your data: how big it is, what's missing, what's typical, and what's unusual. Skipping that step is how analysts end up reporting the "average" of a skewed variable, or mapping counts that only show where people live. Exploratory analysis is the first step of the final project, and of every analysis you'll do after this course.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- **Before you run** each chunk, predict what it will return. Then run it and check.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+
+A note on the data: SIDS is the sudden, unexplained death of a baby under one year old. These are real counts of real losses, from 1974 to 1984; the data are a classic in spatial statistics because the rates vary so much from county to county.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 4 min |
+| 2 | Step one: get to know the table | 8 min |
+| 3 | Describe the center: mean, median, mode | 10 min |
+| 4 | Describe the spread: range, IQR, standard deviation | 10 min |
+| 5 | Show the distribution: histograms, boxplots, outliers | 12 min |
+| 6 | From counts to rates, and onto the map | 12 min |
+| 7 | Reflect, knit, and turn in | 4 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and every graph and map appears in it.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences, with numbers and county names from your output.
+- [ ] When you describe a variable, you say whether it is skewed, and choose the mean or the median to match.
+- [ ] Every graph has axis labels with units, and every map has a title and a legend title.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with every graph and map | Knits, but some chunks have errors | Doesn't knit, or no HTML turned in |
+| Code (5 pts) | Every blank filled in correctly | Most blanks correct | Many blanks missing or wrong |
+| Statistics (4 pts) | Center and spread calculated and interpreted correctly, with units | Calculated but not interpreted | Not done |
+| Questions (6 pts) | Q1 to Q11 answered with numbers, names, and reasons | Some answers missing or vague | Most answers missing |
+| Graphs and maps (2 pts) | Labeled, and the rate map is compared with the count map | Labels missing | Not done |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* What is a typical number of births per county?
+>
+> *Weak answer:* "3300."
+>
+> *Strong answer:* "The median county had about 2,180 births from 1974 to 1978. The mean is higher, 3,300, because a few big counties (Mecklenburg, Cumberland, Guilford) had far more births than the rest, so the distribution is skewed to the right and the median is the better 'typical' value."
+
+The strong answer gives units and the time period, chooses between the mean and the median, and explains why using the shape of the data.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Load the Data (4 min)
+
+- Make a folder called `esda-exercise` inside your `geog215` folder, and save this file there.
+- Change `author:` and `date:` at the top of the file.
+- Run the chunk.
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sf)
+library(tmap)
+library(spData)
+```
+
+spData's `nc.sids` is a plain data frame (not an sf object) with one row per North Carolina county, the county names as row names, and the longitude and latitude of a point in each county. `rownames_to_column()` turns the row names into a column.
+
+```{r load-data}
+data(nc.sids)
+
+nc <- nc.sids |>
+  rownames_to_column("county") |>
+  as_tibble()
+```
+
+# Part 2. Step One: Get to Know the Table (8 min)
+
+- Fill in the blanks to look at the table and count its missing values.
+
+```{r look}
+___(nc)
+
+sum(___(nc))
+```
+
+- Run `?nc.sids` in the **Console** and read the descriptions of the columns.
+
+**Q1.** How many rows and columns does `nc` have? What is one row? What do `BIR74` and `SID74` count, and over which years? Are there missing values?
+
+*Your answer here.*
+
+**Q2.** Why would mapping `SID74` on its own mislead someone about where SIDS was most common?
+
+*Your answer here.*
+
+# Part 3. Describe the Center (10 min)
+
+- Fill in the blanks to calculate the mean and median number of births per county.
+
+```{r center}
+nc |>
+  summarize(mean_births = ___(BIR74),
+            median_births = ___(BIR74))
+```
+
+**Q3.** Which is bigger, the mean or the median? What does that tell you about the shape of the distribution? Which is a better "typical" county?
+
+*Your answer here.*
+
+R has no function for the **mode**, the most common value, but `count()` can find it.
+
+- Fill in the blanks to count how many counties had each number of SIDS deaths, most common first.
+
+```{r mode}
+nc |>
+  count(___, sort = ___) |>
+  head(5)
+```
+
+**Q4.** What is the mode of `SID74`? Why isn't the mode useful for `BIR74`?
+
+*Your answer here.*
+
+# Part 4. Describe the Spread (10 min)
+
+- Fill in the blanks to calculate the range, the interquartile range, and the standard deviation of `BIR74`.
+
+```{r spread}
+nc |>
+  summarize(min = min(BIR74),
+            max = ___(BIR74),
+            iqr = ___(BIR74),
+            sd = ___(BIR74))
+```
+
+**Q5.** What is the range of `BIR74`? Why might the IQR describe the spread of a typical county better than the range or the standard deviation?
+
+*Your answer here.*
+
+To see what the standard deviation does, here are seven small numbers from the chapter's exercises.
+
+- Fill in the blanks to calculate the standard deviation "by hand", step by step, and check it with `sd()`.
+
+```{r sd-by-hand}
+v <- c(7, 1, 4, 9, 4, 12, 3)
+
+deviations <- v - mean(v)
+squared <- deviations___
+variance <- sum(squared) / (length(v) - ___)
+sqrt(variance)
+
+sd(v)
+```
+
+**Q6.** What is the standard deviation of `v`? In words, what does the standard deviation measure?
+
+*Your answer here.*
+
+# Part 5. Show the Distribution (12 min)
+
+- Fill in the blanks to make a histogram of `BIR74` with bins 1,000 births wide. Then change the bin width to 250 and 5,000 and run it again.
+
+```{r histogram}
+ggplot(nc, aes(x = ___)) +
+  geom_histogram(binwidth = ___, fill = "gray60", color = "white") +
+  labs(x = "Live births, 1974-1978", y = "Number of counties")
+```
+
+**Q7.** Describe the shape of the distribution. Which bin width shows it best, and what goes wrong with the other two?
+
+*Your answer here.*
+
+- Fill in the blank to make a boxplot of `BIR74`. Then fill in the blanks to list the counties that the boxplot marks as outliers. `boxplot.stats()$out` returns the outlying values.
+
+```{r boxplot}
+ggplot(nc, aes(y = BIR74)) +
+  ___() +
+  labs(y = "Live births, 1974-1978")
+
+outliers <- boxplot.stats(nc$BIR74)$out
+
+nc |>
+  filter(BIR74 %in% ___) |>
+  select(county, BIR74) |>
+  arrange(desc(BIR74))
+```
+
+**Q8.** Which counties are outliers? Are they mistakes? Should you remove them before analyzing the data? Why does Cumberland County have so many births for its population? (Hint: what's near Fayetteville?)
+
+*Your answer here.*
+
+# Part 6. From Counts to Rates, and onto the Map (12 min)
+
+A **rate** divides a count by the population at risk. SIDS rates are usually given per 1,000 births.
+
+- Fill in the blanks to calculate the SIDS rate per 1,000 births from 1974 to 1978.
+
+```{r rate}
+nc <- nc |>
+  mutate(sid_rate = SID74 / ___ * ___)
+
+nc |>
+  select(county, SID74, BIR74, sid_rate) |>
+  arrange(desc(sid_rate)) |>
+  head(5)
+```
+
+**Q9.** Which county had the highest SIDS rate? Is it one of the counties with the most deaths? Why do small counties tend to have both the highest and the lowest rates? (Hint: how many counties had a rate of exactly 0?)
+
+*Your answer here.*
+
+To map the counties, turn `nc` into an sf layer of points from its longitude and latitude. (The data were recorded on the NAD27 datum, EPSG:4267.)
+
+- Fill in the blanks, then map the counts and the rates side by side.
+
+```{r points-map}
+nc_points <- nc |>
+  st_as_sf(coords = c(___, ___), crs = 4267) |>
+  st_transform(32119)
+
+map_counts <- tm_shape(nc_points) +
+  tm_dots(size = ___, fill = "gray30",
+          size.legend = tm_legend(title = "SIDS deaths")) +
+  tm_title("SIDS deaths, 1974-1978")
+
+map_rates <- tm_shape(nc_points) +
+  tm_dots(fill = ___, size = 0.6,
+          fill.scale = tm_scale_intervals(n = 5, style = "quantile"),
+          fill.legend = tm_legend(title = "Per 1,000 births")) +
+  tm_title("SIDS rate, 1974-1978")
+
+tmap_arrange(map_counts, map_rates, ncol = 1)
+```
+
+**Q10.** How do the two maps tell different stories? Describe where the rates are highest.
+
+*Your answer here.*
+
+**Q11.** The rate map shows a spatial pattern: high rates near other high rates. Name one question you would want to ask next, and one kind of data you would need to answer it.
+
+*Your answer here.*
+
+# Part 7. Reflection Questions (4 min)
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas.

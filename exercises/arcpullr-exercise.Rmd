@@ -1,0 +1,263 @@
+---
+title: "arcpullr Exercise: Medical Facilities from NC OneMap"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 14, ArcGIS Data with arcpullr**. It builds on the Census Data exercise from Chapter 13, which also downloaded data through an API. It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Read a layer's REST Services Directory page and record its geometry type, coordinate system, record limit, and field names.
+2. Download a layer from an ArcGIS feature service into R as an sf object with `get_spatial_layer()`.
+3. Write `where` clauses in SQL, with `=`, `IN`, `AND`, and text values in single quotes.
+4. Explain why filtering on the server is better than downloading everything and filtering in R.
+5. Check, project, map, and save a downloaded layer, and record when you downloaded it.
+
+**Knowledge you'll gain.** You'll find out how many licensed medical facilities North Carolina has, what kinds they are, and how Orange and Durham counties compare.
+
+**Why this matters.** State and local governments publish most of their GIS data (parcels, schools, roads, parks, hospitals) on ArcGIS portals such as NC OneMap. Being able to pull exactly the features you need straight into R, with a script that records where they came from, makes your work faster and reproducible. Portal layers change over time, so knowing how to document a download is part of doing honest analysis.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. Where you see `# your code here`, write the code yourself.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- This exercise downloads data, so you need an internet connection. The full statewide download in Part 5 takes a little while.
+- Your numbers may differ slightly from a classmate's if NC OneMap updates the layer between your downloads. That's expected; say when you downloaded it.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the packages | 4 min |
+| 2 | Read the layer's REST page | 10 min |
+| 3 | Download one county | 8 min |
+| 4 | Write `where` clauses | 12 min |
+| 5 | Filter on the server or in R? | 8 min |
+| 6 | Project, map, and save | 13 min |
+| 7 | Reflect, knit, and turn in | 5 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and the author and date at the top are yours.
+- [ ] Every `___` and `# your code here` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q10) has an answer in complete sentences, using numbers from your output.
+- [ ] Every `where` clause uses the field names from the REST page, single quotes around text, and `=` (not `==`).
+- [ ] The layer is projected to EPSG:32119 before anything is measured.
+- [ ] Your map has a title, a legend title, and credits with your name, "NC OneMap", and the date you downloaded the data.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with no errors | Knits, but some chunks have errors shown | Doesn't knit, or no HTML turned in |
+| REST page (2 pts) | Q1 and Q2 record the details correctly | Some details missing | Not done |
+| Downloads and where clauses (5 pts) | Every request correct, with correct SQL | Most correct | Many missing or wrong |
+| Questions (7 pts) | Q3 to Q10 answered with numbers and reasons | Some answers missing or without reasons | Most answers missing |
+| Map (3 pts) | Projected, with title, legend title, and credits with the download date | Some parts missing | Not done |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* Why use a `where` clause instead of `filter()`?
+>
+> *Weak answer:* "It's faster."
+>
+> *Strong answer:* "With `where`, the server sends only the 61 Orange County facilities instead of all 6,800 in the state, so the download took a fraction of the time. For a big layer like statewide parcels, downloading everything might not even be possible, and the `where` clause also records in my script exactly which features I used."
+
+The strong answer uses numbers from the output, explains *why*, and says when it matters most.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Load the Packages (4 min)
+
+- Make a folder called `arcpullr-exercise` inside your `geog215` folder, and save this file there.
+- Change `author:` and `date:` at the top of the file.
+- If you don't have **arcpullr** yet, install it from the **Packages** tab (never with `install.packages()` in this file).
+- Fill in the blank and run the chunk.
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sf)
+library(tmap)
+library(___)
+```
+
+# Part 2. Reading the Layer's REST Page (10 min)
+
+We'll use the **Medical Facilities** layer from NC OneMap, the same one as in the chapter. Its REST endpoint is:
+
+```{r url}
+url <- "https://services.nconemap.gov/secure/rest/services/NC1Map_Health/MapServer/2"
+```
+
+- Paste that URL into a web browser. The page that opens is the layer's **REST Services Directory** page.
+
+**Q1.** From the REST page, record: (a) the layer's name, (b) its geometry type, (c) its spatial reference (the WKID), and (d) its MaxRecordCount. What coordinate system is that WKID? (Hint: you met it in Chapter 12.)
+
+*Your answer here.*
+
+**Q2.** Scroll down to **Fields**. Write down the field that holds (a) the county name, (b) the city, (c) the facility's name, and (d) the type of facility. What does the description say about where the points came from?
+
+*Your answer here.*
+
+# Part 3. Downloading One County (8 min)
+
+- Fill in the blanks to download only the facilities in Orange County. The whole `where` clause is an R string in double quotes; the text value inside it goes in **single** quotes.
+
+```{r orange, message=FALSE}
+orange <- get_spatial_layer(url, where = "___ = '___'")
+
+nrow(orange)
+st_crs(orange)$input
+```
+
+**Q3.** How many medical facilities are in Orange County? What CRS did the layer come back in, and is it projected?
+
+*Your answer here.*
+
+- Fill in the blanks to count the kinds of facility in Orange County, most common first.
+
+```{r orange-types}
+orange |>
+  st_drop_geometry() |>
+  count(___, sort = ___)
+```
+
+**Q4.** What is the most common kind of facility in Orange County? Are you surprised that most "medical facilities" aren't hospitals?
+
+*Your answer here.*
+
+# Part 4. Writing where Clauses (12 min)
+
+SQL uses `=` (not `==`), `AND` and `OR` (not `&` and `|`), and `IN (...)` for "one of these".
+
+- Fill in the blanks to download the facilities in Orange **and** Durham counties in one request with `IN`.
+
+```{r two-counties, message=FALSE}
+orange_durham <- get_spatial_layer(url, where = "fcounty ___ ('Orange', '___')")
+
+orange_durham |>
+  st_drop_geometry() |>
+  count(fcounty)
+```
+
+**Q5.** How many facilities does each county have? Durham has more people than Orange; does it have more facilities per person too? (Orange had about 150,000 people in 2020 and Durham about 325,000.)
+
+*Your answer here.*
+
+- Now combine two conditions with `AND`. Fill in the blanks to download only the **Home Care** facilities in Durham County. Check the spelling of the value in your Q4 output: it must match exactly, capitals included.
+
+```{r and-clause, message=FALSE}
+durham_home_care <- get_spatial_layer(url, where = "fcounty = 'Durham' ___ stype = '___'")
+
+nrow(durham_home_care)
+```
+
+A classmate wrote these two requests. Run them (each has `try()` around it, so the file still knits if it fails).
+
+```{r bad-clauses, message=FALSE}
+try(nrow(get_spatial_layer(url, where = "fcounty == 'Orange'")))
+try(nrow(get_spatial_layer(url, where = "fcounty = 'orange'")))
+```
+
+**Q6.** What went wrong with each? How would you fix them?
+
+*Your answer here.*
+
+# Part 5. Filter on the Server or in R? (8 min)
+
+You could also download every facility in the state and use `filter()` in R. `system.time()` reports how long code takes to run; look at `elapsed`, in seconds.
+
+- Fill in the blanks to time both ways of getting the Orange County facilities.
+
+```{r compare-time, message=FALSE}
+system.time(
+  orange_server <- get_spatial_layer(url, where = "fcounty = 'Orange'")
+)
+
+system.time(
+  all_facilities <- get_spatial_layer(___)
+)
+
+orange_local <- all_facilities |>
+  filter(fcounty == ___)
+
+nrow(all_facilities)
+nrow(orange_server)
+nrow(orange_local)
+```
+
+**Q7.** How many facilities are in the whole state? Do both methods find the same number in Orange County? How much longer did the full download take? The layer's MaxRecordCount is 2,000; how do you think arcpullr got all of them?
+
+*Your answer here.*
+
+# Part 6. Project, Map, and Save (13 min)
+
+- Fill in the blank to project the two-county layer to NC State Plane.
+
+```{r project}
+orange_durham <- orange_durham |>
+  st_transform(___)
+```
+
+- Make a map of `orange_durham` with tmap: dots colored by `fcounty`, a title, a legend title, and credits with your name, "NC OneMap", and today's date. (Hint: `tm_dots(fill = "fcounty", fill.legend = tm_legend(title = "County"))`.)
+
+```{r map}
+# your code here
+```
+
+**Q8.** Where do the facilities cluster? A map of dots with no county boundaries can be hard to read; what layer would you add, and where could you get it? (Hint: Chapter 13.)
+
+*Your answer here.*
+
+Portal layers change, sometimes daily. To make your results reproducible, save a copy of exactly what you downloaded.
+
+- Fill in the blanks to save `orange_durham` as a GeoJSON file whose name includes today's date.
+
+```{r save}
+file_name <- paste0("medical_facilities_", Sys.Date(), ".geojson")
+
+st_write(___, ___, delete_dsn = TRUE, quiet = TRUE)
+
+file_name
+```
+
+**Q9.** Why put the date in the file name and the map credits?
+
+*Your answer here.*
+
+**Q10.** The chapter's "Think about it" asked what could go wrong with locations geocoded from a database. Pick one facility on your map that looks out of place and look up its address (`faddr1`) in `orange_durham`. Is the dot where the facility really is? (If none looks out of place, explain how you'd check.)
+
+*Your answer here.*
+
+# Part 7. Reflection Questions (5 min)
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas.

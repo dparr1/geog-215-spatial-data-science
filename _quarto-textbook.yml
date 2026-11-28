@@ -30,30 +30,47 @@ book:
         - chapters/intro-spatial-data-science.qmd
         - chapters/r-rstudio-rmarkdown.qmd
         - chapters/r-basics.qmd
+        - chapters/r-basics-exercise.qmd
         - chapters/indexing-vectors-data-frames.qmd
+        - chapters/indexing-vectors-data-frames-exercise.qmd
         - chapters/blocks-loops-functions.qmd
+        - chapters/blocks-loops-functions-exercise.qmd
     - part: units/unit-2.qmd
       chapters:
         - chapters/tidyverse-filter-pipe.qmd
+        - chapters/tidyverse-filter-pipe-exercise.qmd
         - chapters/tidyverse-arrange-select-mutate.qmd
+        - chapters/tidyverse-arrange-select-mutate-exercise.qmd
         - chapters/tidyverse-summarize-group-by.qmd
+        - chapters/tidyverse-summarize-group-by-exercise.qmd
         - chapters/tidyverse-ggplot.qmd
+        - chapters/tidyverse-ggplot-exercise.qmd
     - part: units/unit-3.qmd
       chapters:
         - chapters/thematic-maps-tmap.qmd
+        - chapters/thematic-maps-tmap-exercise.qmd
         - chapters/geographic-information.qmd
+        - chapters/geographic-information-exercise.qmd
         - chapters/location-coordinate-systems.qmd
+        - chapters/location-coordinate-systems-exercise.qmd
         - chapters/census-data-apis.qmd
+        - chapters/census-data-apis-exercise.qmd
         - chapters/arcpullr.qmd
+        - chapters/arcpullr-exercise.qmd
     - part: units/unit-4.qmd
       chapters:
         - chapters/joins.qmd
+        - chapters/joins-exercise.qmd
         - chapters/esda.qmd
+        - chapters/esda-exercise.qmd
         - chapters/spatial-statistics.qmd
+        - chapters/spatial-statistics-exercise.qmd
     - part: units/unit-5.qmd
       chapters:
         - chapters/anova.qmd
+        - chapters/anova-exercise.qmd
         - chapters/regression.qmd
+        - chapters/regression-exercise.qmd
         - chapters/writing-spatial-data-science.qmd
         - chapters/distance-neighborhoods.qmd
         - chapters/spatial-autocorrelation.qmd

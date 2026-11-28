@@ -1,0 +1,313 @@
+---
+title: "Spatial Statistics Exercise: Where Is the Center of North Carolina's Births?"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 17, Spatial Descriptive Statistics**. It builds on the ESDA exercise from Chapter 16, which used the same county data, and on writing functions (Chapter 5). It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Calculate a mean center, a weighted mean center, a central feature, and a standard distance, by hand and in R.
+2. Match each spatial statistic to the ordinary statistic it extends (mean, weighted mean, median, standard deviation).
+3. Write your own functions in R, with inputs, a return value, and tests that check them.
+4. Get the x and y coordinates of an sf layer with `st_coordinates()`, and make a new point with `st_point()`.
+5. Explain why spatial statistics must be calculated in a projected coordinate system.
+
+**Knowledge you'll gain.** You'll find the geographic center of North Carolina's 100 counties and the center of its births in the 1970s, see how far apart they are and why, and check whether the center of births moved between 1974–78 and 1979–84.
+
+**Why this matters.** "Where is the middle?" and "how spread out?" are the first questions to ask about any set of places: stores, crimes, cases of a disease, or the homes of your survey respondents. A shift in a weighted mean center is one of the simplest ways to show that something is moving, like the US center of population moving west over two centuries (Chapter 13). Writing these statistics as functions also gives you tools you can reuse on any layer.
+
+## Task
+
+Work through Parts 1 to 6 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. Where you see `# your code here`, write the code yourself.
+- Run the tests under each function. If a test doesn't give the value in its comment, fix the function before you go on.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 4 min |
+| 2 | Five stores, by hand and in R | 12 min |
+| 3 | Write your own functions | 15 min |
+| 4 | The centers of North Carolina | 14 min |
+| 5 | Central feature and standard distance for North Carolina | 10 min |
+| 6 | Reflect, knit, and turn in | 5 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas. You can do the Part 2 hand calculations on paper and type your answers into Q1 and Q2.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and every map and plot appears in it.
+- [ ] Every `___` and `# your code here` has been filled in, and every chunk runs.
+- [ ] Your three functions pass every test given under them.
+- [ ] Every question (Q1 to Q10) has an answer in complete sentences, with units (km or m) for every distance.
+- [ ] All the North Carolina statistics are calculated in NC State Plane (EPSG:32119).
+- [ ] Your map in Part 4 has a title, shows the counties and both centers, and has credits.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with every map and plot | Knits, but some chunks have errors | Doesn't knit, or no HTML turned in |
+| Hand calculations (2 pts) | Q1 and Q2 correct, with work shown | Some values wrong | Not done |
+| Functions (5 pts) | All three functions written and pass their tests | Some functions fail a test | Not done |
+| Questions (8 pts) | Q3 to Q10 answered with numbers, units, and reasons | Some answers missing or without units | Most answers missing |
+| Map (2 pts) | Projected, titled, both centers shown and labeled | Missing parts | Not done |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* What does the standard distance of the five stores tell you?
+>
+> *Weak answer:* "3.58."
+>
+> *Strong answer:* "The standard distance is about 3.6 km: a typical store is about 3.6 km from the stores' mean center at (4, 4). Drawn as a circle, it shows how spread out the stores are; a chain with all its stores downtown would have a much smaller one."
+
+The strong answer gives units, says what the number measures, and gives a comparison that makes it meaningful.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Load the Data (4 min)
+
+- Make a folder called `spatial-statistics-exercise` inside your `geog215` folder, and save this file there.
+- Change `author:` and `date:` at the top of the file.
+- Run the chunk. It loads the same county data as the ESDA exercise, as points projected to NC State Plane.
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sf)
+library(tmap)
+library(spData)
+
+data(nc.sids)
+
+nc_points <- nc.sids |>
+  rownames_to_column("county") |>
+  st_as_sf(coords = c("lon", "lat"), crs = 4267) |>
+  st_transform(32119)
+```
+
+# Part 2. Five Stores, by Hand and in R (12 min)
+
+Five stores are at (1, 1), (3, 2), (2, 5), (6, 4), and (8, 8), in kilometers.
+
+**Q1.** **By hand** (on paper or in your head), find the stores' mean center. Then, with weights of 100, 20, 20, 20, and 500 (each store's sales), find the weighted mean center. Which way did it move, and why?
+
+*Your answer here.*
+
+- Fill in the blanks to check your answers in R.
+
+```{r stores}
+x <- c(1, 3, 2, 6, 8)
+y <- c(1, 2, 5, 4, 8)
+sales <- c(100, 20, 20, 20, 500)
+
+c(mean(x), mean(___))
+c(weighted.mean(x, sales), weighted.mean(y, ___))
+```
+
+The **central feature** is the store with the smallest total distance to all the others: the spatial version of the median. `dist()` measures the distance between every pair of points.
+
+- Fill in the blanks to find the central feature.
+
+```{r central}
+d <- as.matrix(dist(cbind(x, y)))
+round(d, 2)
+
+total <- ___(d)
+round(total, 2)
+
+which.___(total)
+```
+
+**Q2.** Which store is the central feature? How is it different from the mean center? Why might a company care about the central feature rather than the mean center?
+
+*Your answer here.*
+
+# Part 3. Writing Your Own Functions (15 min)
+
+A function packages steps so you can reuse them. Each function below takes vectors of x and y coordinates.
+
+- Fill in the blanks to finish `meanCenter()`. It takes x, y, and weights `w`. The default `w = 1` gives every point the same weight, so the same function gives the plain mean center when you leave `w` out.
+
+```{r fn-mean-center}
+meanCenter <- function(x, y, w = 1) {
+  w <- rep_len(w, length(x))   # one weight per point
+  c(x = weighted.mean(x, ___),
+    y = weighted.mean(___, w))
+}
+
+# tests
+meanCenter(x, y)                 # should be 4, 4
+meanCenter(x, y, w = sales)      # should be about 6.55, 6.55
+meanCenter(c(0, 2), c(0, 0))     # should be 1, 0
+```
+
+The **standard distance** is the spatial version of the standard deviation:
+
+$$SD = \sqrt{\frac{\sum (x_i - \bar{x})^2}{n} + \frac{\sum (y_i - \bar{y})^2}{n}}$$
+
+- Fill in the blanks to finish `standardDistance()`.
+
+```{r fn-standard-distance}
+standardDistance <- function(x, y) {
+  sqrt(sum((x - mean(x))^2) / length(x) +
+       sum((___ - mean(y))^2) / ___)
+}
+
+# tests
+round(standardDistance(x, y), 2)                   # should be 3.58
+standardDistance(c(1, -1, 0, 0), c(0, 0, 1, -1))  # four points 1 from (0, 0): should be 1
+```
+
+- Now write `centralFeature(x, y)` yourself. It should return the **number** (position) of the central feature, using the steps from the `central` chunk in Part 2.
+
+```{r fn-central-feature}
+centralFeature <- function(x, y) {
+  # your code here
+}
+
+# tests
+centralFeature(x, y)                          # should be 2
+centralFeature(c(0, 1, 2, 10), c(0, 0, 0, 0)) # should be 2
+```
+
+**Q3.** In the last test, the points are at 0, 1, 2, and 10 on a line. The mean center is at 3.25, but the central feature is the point at 1. Why are they so different? Which ordinary statistics do they behave like?
+
+*Your answer here.*
+
+# Part 4. The Centers of North Carolina (14 min)
+
+`st_coordinates()` returns a matrix of the points' coordinates: x (easting, in meters) in the first column and y (northing) in the second.
+
+- Fill in the blanks to get the coordinates of the county points.
+
+```{r coords}
+xy <- st_coordinates(nc_points)
+head(xy)
+
+nc_x <- xy[, ___]
+nc_y <- xy[, ___]
+```
+
+- Fill in the blanks to find the mean center of the counties, and the mean centers weighted by births in 1974–78 (`BIR74`) and 1979–84 (`BIR79`).
+
+```{r nc-centers}
+center_plain <- meanCenter(nc_x, nc_y)
+center_74 <- meanCenter(nc_x, nc_y, w = nc_points$___)
+center_79 <- meanCenter(nc_x, nc_y, w = nc_points$___)
+
+rbind(center_plain, center_74, center_79)
+```
+
+- Fill in the blanks to turn the centers into an sf layer of points, in the same CRS as `nc_points`, so we can map them and measure distances.
+
+```{r centers-sf}
+centers <- tibble(
+  center = c("Counties (unweighted)", "Births 1974-78", "Births 1979-84"),
+  x = c(center_plain["x"], center_74["x"], center_79["x"]),
+  y = c(center_plain["y"], center_74["y"], center_79["y"])
+) |>
+  st_as_sf(coords = c("x", "y"), crs = ___)
+
+round(st_distance(centers) / 1000, 2)
+```
+
+**Q4.** How far is the births-weighted center (1974–78) from the unweighted center, in kilometers, and in which direction? Why did weighting by births move it that way? (Hint: which big counties are south and east of the middle of the state?)
+
+*Your answer here.*
+
+**Q5.** Did the center of births move between 1974–78 and 1979–84? How far? Is that a big change compared with the size of the state (about 800 km from east to west)?
+
+*Your answer here.*
+
+- Fill in the blanks to map the county points, sized by births, with the three centers on top. Put your name in the credits.
+
+```{r centers-map}
+tm_shape(nc_points) +
+  tm_dots(size = "BIR74", fill = "gray60",
+          size.legend = tm_legend(title = "Births, 1974-78")) +
+  tm_shape(___) +
+  tm_dots(fill = ___, size = 0.8, shape = 21,
+          fill.legend = tm_legend(title = "Mean center")) +
+  tm_title("Mean Centers of North Carolina's Counties and Births") +
+  tm_credits("Author: Your Name\nData Source: spData nc.sids (NC SIDS data, Cressie 1993)",
+             position = c("left", "bottom"))
+```
+
+**Q6.** Why do we calculate these centers in NC State Plane, and not by averaging the longitudes and latitudes?
+
+*Your answer here.*
+
+# Part 5. Central Feature and Standard Distance for North Carolina (10 min)
+
+- Fill in the blanks to find the county that is the central feature, and the standard distance of the county points, in kilometers.
+
+```{r nc-central-sd}
+cf <- centralFeature(___, ___)
+nc_points$county[cf]
+
+standardDistance(nc_x, nc_y) / ___
+```
+
+**Q7.** Which county is the central feature? Is it close to where you would expect the "middle" of North Carolina to be?
+
+*Your answer here.*
+
+**Q8.** What is the standard distance of the counties? Picture a circle of that radius around the mean center: about how much of the state does it cover?
+
+*Your answer here.*
+
+- Run the chunk to draw the counties, the mean center, and the standard distance circle. `st_buffer()` makes a circle of a given radius around a point.
+
+```{r sd-circle}
+sd_circle <- centers[1, ] |>
+  st_buffer(dist = standardDistance(nc_x, nc_y))
+
+tm_shape(sd_circle) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(nc_points) +
+  tm_dots(fill = "gray30", size = 0.3) +
+  tm_shape(centers[1, ]) +
+  tm_dots(fill = "red", size = 0.8) +
+  tm_title("Mean center and standard distance of NC's counties")
+```
+
+**Q9.** Would you expect the standard distance weighted by births to be bigger or smaller than the unweighted one? Why?
+
+*Your answer here.*
+
+**Q10.** Pick one real question a planner or public health official could answer with a weighted mean center. What would the points be, and what would the weights be?
+
+*Your answer here.*
+
+# Part 6. Reflection Questions (5 min)
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas.

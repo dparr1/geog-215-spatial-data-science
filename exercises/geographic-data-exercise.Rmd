@@ -1,0 +1,305 @@
+---
+title: "Geographic Data Exercise: Points, Lines, Polygons, and Grids"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 11, What Is Geographic Data?** It builds on the tmap exercise from Chapter 10. It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Choose how to represent real-world entities (as points, lines, polygons, or a raster) for a map at a given scale.
+2. Tell continuous data from discrete objects, and spatial data from attributes, in an sf object.
+3. Find the geometry type, the number of features, and the number of vertices of a vector layer.
+4. Explain how generalization trades detail for size, and how it changes measurements like area.
+5. Treat a raster as a grid of cell values, and calculate cell counts, areas, and resolution.
+6. Save a layer as a GeoJSON file and a shapefile, and explain what each format keeps and loses.
+
+**Knowledge you'll gain.** You'll work with New Zealand's regions, its highest peaks, and an elevation grid of one of Auckland's volcanoes, and see how the same place can be stored in very different ways.
+
+**Why this matters.** Every layer you'll download this semester, from the Census Bureau, NC OneMap, or an ArcGIS portal, is a *model* of the world that someone built by making choices: what to keep, how much detail, which file format. Understanding those choices tells you what a layer can and can't answer, why two "county" layers give different areas, and why a file you emailed to a classmate won't open. These are the questions you'll ask of every data source in your final project.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- **Before you run** each chunk, predict what it will return. Then run it and check.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 3 min |
+| 2 | Data abstraction: choose a representation | 10 min |
+| 3 | The parts of vector data | 12 min |
+| 4 | Generalization and map scale | 8 min |
+| 5 | A raster is a grid of cell values | 12 min |
+| 6 | Geographic file formats | 10 min |
+| 7 | Reflect, knit, and turn in | 5 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and the author and date at the top are yours.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] The table in Part 2 is complete, with a reason for each choice.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences, using the output of your code where it asks for a number.
+- [ ] You used the chapter's vocabulary correctly: feature, attribute, vertex, cell, resolution, extent, and metadata.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with no errors | Knits, but some chunks have errors shown | Doesn't knit, or no HTML turned in |
+| Code (5 pts) | Every blank filled in correctly; every chunk returns what was asked | Most blanks correct | Many blanks missing or wrong |
+| Abstraction table (2 pts) | Every row has a sensible representation at both scales, with a reason | Some rows missing reasons | Not done |
+| Questions (9 pts) | Q1 to Q11 answered correctly, with numbers from the output and the right vocabulary | Some answers missing or wrong | Most answers missing |
+| Style (1 pt) | Pipe where asked, readable code, no `install.packages()` | | Several problems |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* Should a map of North Carolina's rivers store them as vector or raster data?
+>
+> *Weak answer:* "Vector."
+>
+> *Strong answer:* "Vector lines. A river is a discrete object with a clear location, and we'd want attributes for each river, such as its name and length. A raster would store it as a staircase of cells, and at the scale of a state map most rivers would be narrower than one cell."
+
+The strong answer names the data model *and* the geometry, and explains the choice using the entity and the map's scale.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Load the Data (3 min)
+
+- Make a folder called `geographic-data-exercise` inside your `geog215` folder, and save this file there. (Part 6 writes files into this folder.)
+- Change `author:` and `date:` at the top of the file.
+- Run the chunk to load the packages.
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sf)
+library(tmap)
+library(spData)
+```
+
+We'll use three layers from spData: `nz`, New Zealand's 16 regions; `nz_height`, the 101 highest peaks in New Zealand; and `seine`, three rivers in France.
+
+# Part 2. Data Abstraction: Choose a Representation (10 min)
+
+Before any data goes into a computer, someone decides how to represent each **entity**: as a point, a line, a polygon, or a raster of cells.
+
+- Complete the table below in Markdown (just type in the empty cells). For each entity, choose **point**, **line**, **polygon**, or **raster** for a map of the UNC campus at 1:5,000, and for a map of all of North Carolina at 1:1,000,000. Give a short reason.
+
+| Entity | Campus map (1:5,000) | North Carolina map (1:1,000,000) | Reason |
+|:-------|:---------------------|:---------------------------------|:-------|
+| The Old Well | | | |
+| Franklin Street | | | |
+| Jordan Lake | | | |
+| Elevation of the land | | | |
+| A bus route | | | |
+| Chapel Hill (the town) | | | |
+
+**Q1.** Which entity in the table is **continuous data**, not a discrete object? Why can't it be stored well as points, lines, or polygons?
+
+*Your answer here.*
+
+# Part 3. The Parts of Vector Data (12 min)
+
+Every sf layer has **attributes** (the ordinary columns) and **spatial data** (the geometry column).
+
+- Fill in the blanks to find the geometry type of each layer. `st_geometry_type()` gives one answer per feature, so `unique()` keeps one of each.
+
+```{r geometry-types}
+st_geometry_type(nz) |> unique()
+st_geometry_type(___) |> unique()
+st_geometry_type(___) |> unique()
+```
+
+**Q2.** Which layer is points, which is lines, and which is polygons? Why are they called *MULTI*polygons and *MULTI*linestrings?
+
+*Your answer here.*
+
+- Fill in the blanks to separate the attributes from the geometry. `st_drop_geometry()` keeps the attributes; `st_geometry()` keeps the geometry.
+
+```{r attributes-geometry}
+nz |>
+  ___() |>
+  head(3)
+
+nz |>
+  ___() |>
+  head(3)
+```
+
+**Q3.** List the attributes of `nz`. Which one or two would you use to make a choropleth map? Why would `Population` be a poor choice on its own?
+
+*Your answer here.*
+
+A polygon or line is stored as a list of **vertices**: points joined by straight line segments. `st_coordinates()` returns one row per vertex.
+
+- Fill in the blanks to count the vertices in each layer.
+
+```{r vertices}
+st_coordinates(nz) |> nrow()
+st_coordinates(___) |> nrow()
+st_coordinates(nz_height) |> ___()
+```
+
+**Q4.** How many vertices does each layer have? Why does `nz_height` have exactly as many vertices as it has features?
+
+*Your answer here.*
+
+- Last, map the highest peaks on top of the regions. Fill in the blanks.
+
+```{r map-peaks}
+tm_shape(nz) +
+  tm_polygons(fill = "gray90") +
+  tm_shape(___) +
+  tm_dots(fill = ___, size = 0.4)
+```
+
+**Q5.** Where are New Zealand's highest peaks? Why might an attribute like `elevation` be stored with a point here, when elevation in general is continuous data?
+
+*Your answer here.*
+
+# Part 4. Generalization and Map Scale (8 min)
+
+**Generalization** removes detail so a layer is smaller and easier to draw at a small scale. `st_simplify()` removes vertices that are closer than `dTolerance` (in meters, here) to a simpler line.
+
+- Fill in the blanks to simplify `nz` with a tolerance of 20,000 meters (20 km), and count the vertices that are left.
+
+```{r simplify}
+nz_simple <- nz |>
+  st_simplify(dTolerance = ___, preserveTopology = TRUE) |>
+  st_cast("MULTIPOLYGON")   # make every feature a multipolygon again
+
+st_coordinates(___) |> nrow()
+```
+
+- Map the two side by side. `tmap_arrange()` puts two maps next to each other.
+
+```{r compare-simple}
+map_full <- tm_shape(nz) + tm_polygons() + tm_title("Full detail")
+map_simple <- tm_shape(nz_simple) + tm_polygons() + tm_title("Simplified (20 km)")
+
+tmap_arrange(map_full, map_simple)
+```
+
+- Fill in the blanks to compare the total area of the two layers, in square kilometers.
+
+```{r compare-area}
+sum(st_area(nz)) / 1e6
+sum(st_area(___)) / 1e6
+```
+
+**Q6.** How many vertices did simplifying remove, and how much did the total area change? For which kind of map would the simplified layer be good enough, and for which would it not?
+
+*Your answer here.*
+
+# Part 5. A Raster Is a Grid of Cell Values (12 min)
+
+R comes with a small raster built in, `volcano`: a grid of elevations, in meters, for Maunga Whau (Mt Eden), a volcano in Auckland. Each cell is **10 m × 10 m**. It is stored as a plain matrix: rows and columns of numbers.
+
+- Fill in the blanks to find the number of rows and columns, and the lowest and highest values.
+
+```{r volcano}
+dim(___)
+range(volcano)
+```
+
+- Draw it. `image()` draws a matrix as colored cells. The 87 rows run from west to east, and the 61 columns from south to north.
+
+```{r volcano-image}
+image(volcano, col = terrain.colors(20), asp = 61 / 87,
+      axes = FALSE, main = "Maunga Whau elevation (10 m cells)")
+```
+
+**Q7.** How many cells does the raster have? How many meters wide (west to east, 87 rows) and tall (south to north, 61 columns) is the area it covers? What is the elevation range?
+
+*Your answer here.*
+
+To make the raster coarser, keep every third row and every third column. Each new cell then stands for a 30 m × 30 m area.
+
+- Fill in the blanks to keep every third row and column with `seq()`, and count the cells.
+
+```{r coarser}
+volcano_30 <- volcano[seq(1, nrow(volcano), by = ___), seq(1, ncol(volcano), by = ___)]
+
+dim(volcano_30)
+length(volcano_30)
+range(volcano_30)
+
+image(volcano_30, col = terrain.colors(20), asp = 61 / 87,
+      axes = FALSE, main = "The same volcano with 30 m cells")
+```
+
+**Q8.** How many cells does the 30 m raster have? About how many times fewer than the 10 m raster, and why that number? Did the highest elevation change? Why might it?
+
+*Your answer here.*
+
+**Q9.** A raster covers an area 3 km wide and 2 km tall with 10 m cells. Use R as a calculator in the chunk below to find how many cells it has. How many would it have with 30 m cells?
+
+```{r cell-arithmetic}
+# your code here
+```
+
+*Your answer here.*
+
+# Part 6. Geographic File Formats (10 min)
+
+`st_write()` saves a layer to a file. The file extension tells sf which format to use.
+
+- Fill in the blanks to save `nz` as a shapefile and as a GeoJSON file. (`delete_dsn = TRUE` lets you run the chunk again without an error.)
+
+```{r write-files, message=FALSE, warning=FALSE}
+st_write(nz, "nz.shp", delete_dsn = TRUE, quiet = TRUE)
+st_write(nz |> st_transform(4326), "nz.___", delete_dsn = TRUE, quiet = TRUE)
+
+list.files(pattern = "^nz\\.")
+```
+
+**Q10.** How many files did the shapefile make, and what are their extensions? What does the `.prj` file hold, and what would go wrong if you emailed a classmate only `nz.shp`?
+
+*Your answer here.*
+
+- Now read both files back in and compare their column names with the original.
+
+```{r read-back}
+names(nz)
+names(read_sf("nz.shp"))
+names(read_sf("nz.geojson"))
+```
+
+**Q11.** What happened to the column names in the shapefile? Why? Which format would you choose to share a layer with long column names, and what's one reason someone might still use a shapefile?
+
+*Your answer here.*
+
+# Part 7. Reflection Questions (5 min)
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas.

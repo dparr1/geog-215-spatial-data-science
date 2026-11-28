@@ -1,0 +1,90 @@
+# Chapter exercise: Location and Coordinate Systems {.unnumbered}
+
+**Measuring North Carolina**
+
+This exercise goes with **Chapter 12, Location and Coordinate Systems**. It builds on the tmap and geographic data exercises from Chapters 10 and 11. It should take you about **one hour**. Read this whole section before you start.
+
+::: {.callout-tip appearance="simple"}
+## Get the exercise file
+
+:::: {.content-visible when-format="html"}
+[Download coordinate-systems-exercise.Rmd](../exercises/coordinate-systems-exercise.Rmd){download="coordinate-systems-exercise.Rmd"}
+::::
+
+:::: {.content-visible when-format="pdf"}
+Download the file from <https://daveparr.com/intro-spatial-data-science/exercises/coordinate-systems-exercise.Rmd>.
+::::
+
+Save it in a new folder called `coordinate-systems-exercise` inside your `geog215` folder, open it in RStudio, and work through it from top to bottom. Everything on this page is also at the top of the file.
+:::
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Calculate the flattening of the ellipsoid, and how long a degree of longitude is at different latitudes.
+2. Convert coordinates between degrees, minutes, and seconds (DMS) and decimal degrees, with your own functions.
+3. Make an sf layer of points from a table of latitudes and longitudes.
+4. Check a layer's coordinate reference system with `st_crs()`, and change it with `st_transform()`.
+5. Measure areas and distances in different projections, and explain why the answers differ.
+6. Choose a projection for a task.
+
+**Knowledge you'll gain.** You'll measure the area of North Carolina and the distances between five of its cities, and find out how much the map projection on your phone (Web Mercator) exaggerates them.
+
+**Why this matters.** Every spatial layer comes with a coordinate reference system, and every measurement you make (an area, a distance, a buffer, a density) is only as good as the CRS it was calculated in. Mixing up degrees and meters, or measuring on a Web Mercator map, is one of the most common ways a spatial analysis goes quietly wrong. From here on, every NC assignment asks you to project to NC State Plane (EPSG:32119) before measuring anything; this exercise shows you why.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- **Before you run** each chunk, predict roughly what it will return. Then run it and check.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- Give every distance and area with its units.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 3 min |
+| 2 | The shape of the Earth and the length of a degree | 8 min |
+| 3 | Convert between DMS and decimal degrees | 10 min |
+| 4 | Make a layer of NC cities | 7 min |
+| 5 | Check and change the CRS, and measure area | 12 min |
+| 6 | Measure distances | 12 min |
+| 7 | Choose a projection, reflect, and turn in | 8 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and the author and date at the top are yours.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Your two DMS functions return the test values given in Part 3.
+- [ ] Every question (Q1 to Q12) has an answer in complete sentences, with units for every distance and area.
+- [ ] You can say which CRS each measurement was made in, and why it does or doesn't distort.
+- [ ] Longitudes west of Greenwich are negative.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with no errors | Knits, but some chunks have errors shown | Doesn't knit, or no HTML turned in |
+| Code (5 pts) | Every blank filled in correctly; functions pass their tests | Most blanks correct | Many blanks missing or wrong |
+| Questions (9 pts) | Q1 to Q12 answered correctly, with units, naming the CRS, with reasons | Some answers missing, wrong, or without units | Most answers missing |
+| Projection choices (2 pts) | Q12 names a sensible projection for each task, with a reason | Some choices without reasons | Not done |
+| Style (1 pt) | Readable code, pipe for chains, no `install.packages()` | | Several problems |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* How far is it from Chapel Hill to Raleigh?
+>
+> *Weak answer:* "40492."
+>
+> *Strong answer:* "About 40.5 km (25 miles) in a straight line, measured with `st_distance()` on the WGS84 points. NC State Plane gives the same distance to within 0.1 km, but Web Mercator says 50 km, about 23% too far."
+
+The strong answer gives units, says how the distance was measured, and compares it with the other projections.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.

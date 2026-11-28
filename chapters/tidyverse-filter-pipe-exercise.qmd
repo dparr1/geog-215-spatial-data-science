@@ -1,0 +1,90 @@
+# Chapter exercise: Into the Tidyverse: glimpse, filter, and the Pipe {.unnumbered}
+
+**Flights to North Carolina**
+
+This exercise goes with **Chapter 6, Into the Tidyverse: glimpse, filter, and the Pipe**. It builds on the Indexing exercise from Chapter 4. It should take you about **one hour**. Read this whole section before you start.
+
+::: {.callout-tip appearance="simple"}
+## Get the exercise file
+
+:::: {.content-visible when-format="html"}
+[Download filter-pipe-exercise.Rmd](../exercises/filter-pipe-exercise.Rmd){download="filter-pipe-exercise.Rmd"}
+::::
+
+:::: {.content-visible when-format="pdf"}
+Download the file from <https://daveparr.com/intro-spatial-data-science/exercises/filter-pipe-exercise.Rmd>.
+::::
+
+Save it in a new folder called `filter-pipe-exercise` inside your `geog215` folder, open it in RStudio, and work through it from top to bottom. Everything on this page is also at the top of the file.
+:::
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Load the tidyverse and a data package, and look inside a data frame with `glimpse()`.
+2. Keep the rows you need with `filter()`, using one condition or several.
+3. Choose between AND (`,` or `&`) and OR (`|`), and predict which gives more rows.
+4. Chain steps together with the pipe, `|>`, and read a chain top to bottom.
+5. Count rows with `count()` and `nrow()`.
+6. Find missing values with `is.na()`, and explain why base R brackets and `filter()` can give different counts.
+
+**Knowledge you'll gain.** You'll find out how many flights left New York City for North Carolina's airports in 2013, which North Carolina airport got the most, and how many of the flights to Raleigh–Durham were cancelled.
+
+**Why this matters.** Almost every analysis this semester starts with a filter: the counties in one state, the tracts in one city, the years after 2010. `filter()` and the pipe make those steps short enough to read at a glance, so you and anyone checking your work can see exactly which rows you kept. Missing values are the most common reason two "correct" methods give different answers, and nothing warns you when it happens. Learning to check for them now will save you from wrong numbers in your final project.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- **Before you run** each chunk, predict how many rows it will return. Then run it and check.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- Use the pipe, `|>`, for every chain, as the instructions show.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 5 min |
+| 2 | Look inside `flights` with `glimpse()` | 8 min |
+| 3 | Filter with one condition | 10 min |
+| 4 | Filter with several conditions: AND and OR | 12 min |
+| 5 | Chain steps with the pipe | 8 min |
+| 6 | Missing values: why the counts don't match | 12 min |
+| 7 | Reflect, knit, and turn in | 5 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors (except in the chunk marked `error=TRUE`, which is *meant* to show an error), and the author and date at the top are yours.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences.
+- [ ] Answers that ask for a number use the output of your code, and say what the number counts (flights, cancelled flights, airports...).
+- [ ] You used `==` for every "is equal to" test, and `is.na()` (not `== NA`) to find missing values.
+- [ ] Every chain uses the pipe `|>`, with one step per line.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with no errors | Knits, but some chunks have errors shown | Doesn't knit, or no HTML turned in |
+| Filter code (6 pts) | Every blank filled in correctly; every chunk returns what was asked | Most blanks correct | Many blanks missing or wrong |
+| Questions (8 pts) | Q1 to Q11 answered correctly, using the output, with reasons | Some answers missing, wrong, or with no reason | Most answers missing |
+| Missing values (2 pts) | Part 6 explains why the two counts differ, and fixes it with `is.na()` | Counts given, but not explained | Not done |
+| Style (1 pt) | Pipe for every chain, one step per line, `==` and `is.na()` used correctly, no `install.packages()` | | Several problems |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* How many flights left New York for Raleigh–Durham in 2013?
+>
+> *Weak answer:* "8163."
+>
+> *Strong answer:* "8,163 flights left New York City's three airports for Raleigh–Durham (RDU) in 2013. That's about 22 a day. I counted them with `filter(dest == "RDU")` and `count()`."
+
+The strong answer gives the number with its units, puts it in context, and says how it was found.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.

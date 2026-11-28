@@ -1,0 +1,92 @@
+# Chapter exercise: Census Data and APIs {.unnumbered}
+
+**Median Income at Three Scales**
+
+This exercise goes with **Chapter 13, Census Data and APIs**. It builds on the tmap and coordinate systems exercises from Chapters 10 and 12. It should take you about **one hour**, plus a few minutes beforehand to get a Census API key. Read this whole section before you start.
+
+::: {.callout-tip appearance="simple"}
+## Get the exercise file
+
+:::: {.content-visible when-format="html"}
+[Download census-exercise.Rmd](../exercises/census-exercise.Rmd){download="census-exercise.Rmd"}
+::::
+
+:::: {.content-visible when-format="pdf"}
+Download the file from <https://daveparr.com/intro-spatial-data-science/exercises/census-exercise.Rmd>.
+::::
+
+Save it in a new folder called `census-exercise` inside your `geog215` folder, open it in RStudio, and work through it from top to bottom. Everything on this page is also at the top of the file.
+:::
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Install a Census API key safely, outside your R Markdown file.
+2. Search the thousands of ACS variables with `load_variables()` to find the code you need.
+3. Download ACS estimates with `get_acs()`, with and without boundaries (`geometry = TRUE`), for states, counties, and tracts.
+4. Project the results and map them with tmap.
+5. Calculate a margin of error as a percent of the estimate, and use it to judge how far to trust each estimate.
+
+**Knowledge you'll gain.** You'll map median household income across the United States, across North Carolina's 100 counties, and across the census tracts of Orange County, and see how the story changes with scale, and why the smallest areas are the least certain.
+
+**Why this matters.** Census data is the starting point for most spatial data science about people in the United States, and it will probably be part of your final project. Knowing how to find a variable, download it at the right scale, and read its margin of error lets you answer questions about your own community. Seeing the same variable at three scales also shows one of the central ideas of this course: the pattern you find depends on the units you map.
+
+## Task
+
+**Before you start:** get a free Census API key at <https://api.census.gov/data/key_signup.html> and click the activation link in the email. It can take a few minutes to arrive.
+
+Work through Parts 1 to 8 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. Where you see `# your code here`, write the code yourself.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- This exercise downloads data, so you need an internet connection. The first download of boundaries takes a minute; after that they're cached.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Install your API key and load the packages | 7 min |
+| 2 | Find variables with `load_variables()` | 7 min |
+| 3 | Download a table of NC counties | 7 min |
+| 4 | Map the states | 9 min |
+| 5 | Map North Carolina's counties | 7 min |
+| 6 | Map Orange County's tracts | 9 min |
+| 7 | Margins of error and scale | 10 min |
+| 8 | Reflect, knit, and turn in | 4 min |
+| Optional | Challenge: households with no vehicle | 15 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and every map appears in it.
+- [ ] Your API key is **not** in the file. (It was installed in the Console.)
+- [ ] Every `___` and `# your code here` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q10) has an answer in complete sentences, using numbers and place names from your output.
+- [ ] Every map has a title, a legend title with units, and credits with your name and "US Census Bureau, 2019-2023 ACS 5-Year Estimates".
+- [ ] States are projected to EPSG:5070, and NC counties and tracts to EPSG:32119.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with every map showing, and no API key in the file | Knits, but some chunks have errors | Doesn't knit, or the key is in the file |
+| Code (5 pts) | Every blank filled in correctly; downloads and projections right | Most correct | Many blanks missing or wrong |
+| Maps (3 pts) | Four maps, each with a title, legend title, and credits | Maps missing labels | Maps missing |
+| Questions (8 pts) | Q1 to Q10 answered, with numbers, place names, and reasons | Some answers missing, wrong, or vague | Most answers missing |
+| Style (1 pt) | Pipe for chains, readable code, no `install.packages()` | | Several problems |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* What is the median household income of one county?
+>
+> *Weak answer:* "68500."
+>
+> *Strong answer:* "The 2019–2023 ACS estimates the county's median household income at $68,500, with a margin of error of ±$2,100, so we can be 90% confident it's between $66,400 and $70,600. That's a little below North Carolina's median."
+
+The strong answer names the source and years, gives the margin of error and what it means, and puts the number in context. (The numbers here are only an example; yours come from your output.)
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.

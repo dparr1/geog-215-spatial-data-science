@@ -1,0 +1,326 @@
+---
+title: "Arrange, Select, and Mutate Exercise: The Fastest Flight to North Carolina"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 7, Into the Tidyverse: arrange, distinct, select, and mutate**. It builds on the Filter and Pipe exercise from Chapter 6. It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Find the unique values, and unique combinations of values, in a data frame with `distinct()`.
+2. Sort rows with `arrange()`, smallest first or largest first with `desc()`, and by two columns.
+3. Keep, drop, and reorder columns with `select()` and the selection helpers `starts_with()`, `ends_with()`, and `contains()`.
+4. Make new columns from existing ones with `mutate()`, and check that they make sense.
+5. Chain `filter()`, `mutate()`, `arrange()`, and `select()` to answer a question one step at a time.
+
+**Knowledge you'll gain.** You'll find out which airlines and routes connected New York with North Carolina in 2013, which flight to North Carolina left latest, and which was the fastest.
+
+**Why this matters.** Real data sets have more columns than you need and rarely have the one you want. Census tables come as counts, and you'll make your own percentages and densities with `mutate()`. You'll sort counties to find the highest and lowest, and use `select()` to keep a table small enough to read. These four verbs, with `filter()`, are most of the day-to-day work of getting data into shape for a map.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- **Before you run** each chunk, predict what it will return. Then run it and check.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- Use the pipe, `|>`, for every chain, with one step per line.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and keep the flights to North Carolina | 5 min |
+| 2 | Find unique values with `distinct()` | 10 min |
+| 3 | Sort rows with `arrange()` | 10 min |
+| 4 | Pick columns with `select()` | 8 min |
+| 5 | Make new columns with `mutate()` | 15 min |
+| 6 | Put the verbs together | 8 min |
+| 7 | Reflect, knit, and turn in | 4 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and the author and date at the top are yours.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences.
+- [ ] Answers that ask for a value use the output of your code and give its units (minutes, miles, miles per hour).
+- [ ] New columns made with `mutate()` have clear, snake_case names, and you checked that their values make sense.
+- [ ] Every chain uses the pipe `|>`, with one step per line.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with no errors | Knits, but some chunks have errors shown | Doesn't knit, or no HTML turned in |
+| Code (6 pts) | Every blank filled in correctly; every chunk returns what was asked | Most blanks correct | Many blanks missing or wrong |
+| Questions (8 pts) | Q1 to Q11 answered correctly, using the output, with units and reasons | Some answers missing, wrong, or with no units | Most answers missing |
+| Part 6 chain (2 pts) | The chain answers the question, in a sensible order of verbs | Runs, but answers a different question | Not done |
+| Style (1 pt) | Pipe for every chain, one step per line, snake_case names, no `install.packages()` | | Several problems |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* What was the longest flight from New York in 2013?
+>
+> *Weak answer:* "4983."
+>
+> *Strong answer:* "The longest was Hawaiian Airlines' flight from JFK to Honolulu (HNL), 4,983 miles. I found it by sorting `flights` with `arrange(desc(distance))`."
+
+The strong answer names the flight, gives the number with its units, and shows where the number came from.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Keep the Flights to North Carolina (5 min)
+
+- Make a folder called `arrange-select-mutate-exercise` inside your `geog215` folder, and save this file there.
+- Change `author:` and `date:` at the top of the file.
+- Fill in the blanks to load the two packages.
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(___)
+library(___)
+```
+
+In the Chapter 6 exercise you kept the flights to each North Carolina airport one at a time. Writing `dest == "RDU" | dest == "CLT" | ...` for five airports is long, so here is a shortcut: `%in%` asks "is this value one of these?" and returns `TRUE` or `FALSE` for each row.
+
+- Fill in the blank to keep the flights whose destination is one of the five North Carolina airports, and save them as `nc_flights`.
+
+```{r nc-flights}
+nc_airports <- c("AVL", "CLT", "GSO", "ILM", "RDU")
+
+nc_flights <- flights |>
+  filter(dest ___ nc_airports)
+
+nrow(nc_flights)
+```
+
+# Part 2. Unique Values with distinct() (10 min)
+
+`distinct()` returns one row for each unique value (or combination of values) in the columns you name.
+
+- Fill in the blanks to list the destinations, and then the airlines (`carrier`), in `nc_flights`. Pipe the airlines into `nrow()` to count them.
+
+```{r distinct-one}
+nc_flights |>
+  distinct(___)
+
+nc_flights |>
+  distinct(___) |>
+  nrow()
+```
+
+**Q1.** How many different airlines flew from New York to North Carolina in 2013? (Bonus: the `airlines` table, also in nycflights13, gives each carrier's full name. Type `airlines` in the Console.)
+
+*Your answer here.*
+
+- Name two columns in `distinct()` to list every **route**, each combination of `origin` and `dest`. Then sort the routes by destination.
+
+```{r routes}
+nc_flights |>
+  distinct(origin, ___) |>
+  arrange(___)
+```
+
+**Q2.** How many routes were there? Which North Carolina airports had flights from all three New York airports? Which had flights from only one?
+
+*Your answer here.*
+
+`distinct()` can also show whether a value you expect to be fixed really is. Each route has one distance, right?
+
+- Fill in the blanks to list each unique combination of `dest` and `distance`, sorted by distance.
+
+```{r distances}
+nc_flights |>
+  distinct(dest, ___) |>
+  arrange(___)
+```
+
+**Q3.** Why does RDU appear three times, with three different distances? (Hint: compare with the routes in Q2.)
+
+*Your answer here.*
+
+# Part 3. Sorting Rows with arrange() (10 min)
+
+`arrange()` sorts rows, smallest first. Wrap a column in `desc()` to put the largest first. Missing values always go last.
+
+- Fill in the blanks to find the flight to North Carolina that left **earliest** compared with its schedule, and then the one that left **latest**. The `select()` step just makes the output easier to read.
+
+```{r earliest-latest}
+nc_flights |>
+  arrange(___) |>
+  select(month, day, carrier, origin, dest, dep_delay)
+
+nc_flights |>
+  arrange(___(dep_delay)) |>
+  select(month, day, carrier, origin, dest, dep_delay)
+```
+
+**Q4.** Which flight left earliest, and how early? Which left latest, and how late, in hours? (Divide by 60.)
+
+*Your answer here.*
+
+- Sort by two columns: first by `dest`, then by `dep_delay` from largest to smallest within each destination.
+
+```{r two-sorts}
+nc_flights |>
+  arrange(dest, ___) |>
+  select(dest, month, day, carrier, dep_delay)
+```
+
+**Q5.** Which airport comes first in the result, and why? What does the second column in `arrange()` do?
+
+*Your answer here.*
+
+# Part 4. Picking Columns with select() (8 min)
+
+`flights` has 19 columns. `select()` keeps only the ones you name, in the order you name them.
+
+- Fill in the blanks so that each line returns the four columns `dep_time`, `dep_delay`, `arr_time`, and `arr_delay`, in three different ways. Pipe each into `names()` so the output is short.
+
+```{r select-three-ways}
+# by name
+nc_flights |>
+  select(dep_time, dep_delay, arr_time, ___) |>
+  names()
+
+# with helpers: names that start with "dep" or "arr"
+nc_flights |>
+  select(starts_with("dep"), ___("arr")) |>
+  names()
+
+# a range of neighboring columns, with a colon
+nc_flights |>
+  select(___:arr_delay, -sched_dep_time, -sched_arr_time) |>
+  names()
+```
+
+**Q6.** In the third version, what does `dep_time:arr_delay` keep, and why do we need the two minus signs?
+
+*Your answer here.*
+
+- Fill in the blank with a helper that keeps every column whose name **contains** `"delay"`.
+
+```{r contains}
+nc_flights |>
+  select(___("delay")) |>
+  names()
+```
+
+# Part 5. New Columns with mutate() (15 min)
+
+`mutate()` adds a new column, calculated from the others, to every row.
+
+## Speed
+
+`distance` is in miles and `air_time` is in minutes.
+
+- Fill in the blank to calculate the average speed of each flight in **miles per hour**. (Hint: miles per minute times 60.)
+
+```{r speed}
+nc_flights <- nc_flights |>
+  mutate(speed_mph = distance / air_time * ___)
+
+nc_flights |>
+  select(origin, dest, distance, air_time, speed_mph) |>
+  head()
+```
+
+- Always check a new column. Fill in the blanks to sort by `speed_mph`, fastest first.
+
+```{r fastest}
+nc_flights |>
+  arrange(___) |>
+  select(month, day, carrier, flight, origin, dest, distance, air_time, speed_mph)
+```
+
+**Q7.** Which was the fastest flight to North Carolina, and how fast did it fly? Is that speed believable for a passenger jet? (Jets usually cruise at around 500 to 575 miles per hour.)
+
+*Your answer here.*
+
+**Q8.** How many flights have `NA` for `speed_mph`? Why? (Hint: `sum(is.na(nc_flights$speed_mph))`.)
+
+*Your answer here.*
+
+## Making up time
+
+A plane that leaves late can make up some of the delay in the air.
+
+- Fill in the blanks to make a column `gain`: how many minutes the flight made up, the departure delay minus the arrival delay. Then sort by it, largest first.
+
+```{r gain}
+nc_flights <- nc_flights |>
+  mutate(gain = ___ - ___)
+
+nc_flights |>
+  arrange(desc(gain)) |>
+  select(month, day, carrier, origin, dest, dep_delay, arr_delay, gain)
+```
+
+**Q9.** What does a positive `gain` mean, and a negative one? Which flight made up the most time?
+
+*Your answer here.*
+
+## Several columns at once
+
+- Fill in the blanks to add two columns in one `mutate()`: the distance in **kilometers** (1 mile = 1.609 km), and the departure delay in **hours**.
+
+```{r two-columns}
+nc_flights <- nc_flights |>
+  mutate(distance_km = distance * ___,
+         dep_delay_hours = dep_delay / ___)
+
+nc_flights |>
+  select(dest, distance, distance_km, dep_delay, dep_delay_hours) |>
+  head()
+```
+
+# Part 6. Putting the Verbs Together (8 min)
+
+**Question:** Of the flights from LaGuardia to Raleigh–Durham, which airline had the fastest flight, and how fast was it?
+
+- Fill in the blanks to answer it with one chain: keep the right flights, sort by speed, and keep just the columns you need. (`speed_mph` is already in `nc_flights`.)
+
+```{r together}
+nc_flights |>
+  filter(origin == ___, dest == ___) |>
+  arrange(___) |>
+  select(month, day, carrier, flight, speed_mph)
+```
+
+**Q10.** Which airline had the fastest flight from LaGuardia to RDU, and how fast was it?
+
+*Your answer here.*
+
+**Q11.** Would the chain still work if you put `select(month, day, carrier, flight)` *before* `arrange()`? Why or why not?
+
+*Your answer here.*
+
+# Part 7. Reflection Questions (4 min)
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas.

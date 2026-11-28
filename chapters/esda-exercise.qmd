@@ -1,0 +1,90 @@
+# Chapter exercise: Exploratory Spatial Data Analysis {.unnumbered}
+
+**Getting to Know North Carolina's Births**
+
+This exercise goes with **Chapter 16, Exploratory Spatial Data Analysis**. It uses the dplyr, ggplot2, and tmap skills from Chapters 6 to 10. It should take you about **one hour**. Read this whole section before you start.
+
+::: {.callout-tip appearance="simple"}
+## Get the exercise file
+
+:::: {.content-visible when-format="html"}
+[Download esda-exercise.Rmd](../exercises/esda-exercise.Rmd){download="esda-exercise.Rmd"}
+::::
+
+:::: {.content-visible when-format="pdf"}
+Download the file from <https://daveparr.com/intro-spatial-data-science/exercises/esda-exercise.Rmd>.
+::::
+
+Save it in a new folder called `esda-exercise` inside your `geog215` folder, open it in RStudio, and work through it from top to bottom. Everything on this page is also at the top of the file.
+:::
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Check the basics of a new table: its size, what one row is, the type of each column, and its missing values.
+2. Calculate and interpret the mean, median, and mode of a variable.
+3. Calculate and interpret the range, interquartile range (IQR), and standard deviation.
+4. Show a distribution with a histogram and a boxplot, choose a bin width, and describe its shape.
+5. Find outliers and decide what to do about them.
+6. Turn counts into a rate, map both, and explain why the rate map tells a different story.
+
+**Knowledge you'll gain.** You'll describe how births and sudden infant deaths (SIDS) were spread across North Carolina's 100 counties in the 1970s, find out which counties are outliers and why, and see where the *rate* of SIDS was highest.
+
+**Why this matters.** Before you fit any model or make any claim, you have to know your data: how big it is, what's missing, what's typical, and what's unusual. Skipping that step is how analysts end up reporting the "average" of a skewed variable, or mapping counts that only show where people live. Exploratory analysis is the first step of the final project, and of every analysis you'll do after this course.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- **Before you run** each chunk, predict what it will return. Then run it and check.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+
+A note on the data: SIDS is the sudden, unexplained death of a baby under one year old. These are real counts of real losses, from 1974 to 1984; the data are a classic in spatial statistics because the rates vary so much from county to county.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 4 min |
+| 2 | Step one: get to know the table | 8 min |
+| 3 | Describe the center: mean, median, mode | 10 min |
+| 4 | Describe the spread: range, IQR, standard deviation | 10 min |
+| 5 | Show the distribution: histograms, boxplots, outliers | 12 min |
+| 6 | From counts to rates, and onto the map | 12 min |
+| 7 | Reflect, knit, and turn in | 4 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and every graph and map appears in it.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences, with numbers and county names from your output.
+- [ ] When you describe a variable, you say whether it is skewed, and choose the mean or the median to match.
+- [ ] Every graph has axis labels with units, and every map has a title and a legend title.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with every graph and map | Knits, but some chunks have errors | Doesn't knit, or no HTML turned in |
+| Code (5 pts) | Every blank filled in correctly | Most blanks correct | Many blanks missing or wrong |
+| Statistics (4 pts) | Center and spread calculated and interpreted correctly, with units | Calculated but not interpreted | Not done |
+| Questions (6 pts) | Q1 to Q11 answered with numbers, names, and reasons | Some answers missing or vague | Most answers missing |
+| Graphs and maps (2 pts) | Labeled, and the rate map is compared with the count map | Labels missing | Not done |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* What is a typical number of births per county?
+>
+> *Weak answer:* "3300."
+>
+> *Strong answer:* "The median county had about 2,180 births from 1974 to 1978. The mean is higher, 3,300, because a few big counties (Mecklenburg, Cumberland, Guilford) had far more births than the rest, so the distribution is skewed to the right and the median is the better 'typical' value."
+
+The strong answer gives units and the time period, chooses between the mean and the median, and explains why using the shape of the data.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.

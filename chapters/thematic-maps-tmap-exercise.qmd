@@ -1,0 +1,90 @@
+# Chapter exercise: Thematic Maps with tmap {.unnumbered}
+
+**People, Cities, and Rivers**
+
+This exercise goes with **Chapter 10, Thematic Maps with tmap**. It builds on the tidyverse exercises from Chapters 6 to 9. It should take you about **one hour**. Read this whole section before you start.
+
+::: {.callout-tip appearance="simple"}
+## Get the exercise file
+
+:::: {.content-visible when-format="html"}
+[Download tmap-exercise.Rmd](../exercises/tmap-exercise.Rmd){download="tmap-exercise.Rmd"}
+::::
+
+:::: {.content-visible when-format="pdf"}
+Download the file from <https://daveparr.com/intro-spatial-data-science/exercises/tmap-exercise.Rmd>.
+::::
+
+Save it in a new folder called `tmap-exercise` inside your `geog215` folder, open it in RStudio, and work through it from top to bottom. Everything on this page is also at the top of the file.
+:::
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Explain what an sf object is: a data frame of attributes with a geometry column.
+2. Build a map in layers with `tm_shape()` and `tm_polygons()`, `tm_dots()`, or `tm_lines()`.
+3. Shade features by an attribute, and control the classes with `n` and `style` in `tm_scale_intervals()`.
+4. Explain how the choice of classification style changes the story a map tells.
+5. Combine several layers in one map, and finish it with a title, a scale bar, a north arrow, and credits.
+6. Switch between static and interactive maps with `tmap_mode()`.
+
+**Knowledge you'll gain.** You'll map where people live in the United States, compare a map of population with a map of population *density*, and map the world's largest cities on top of life expectancy.
+
+**Why this matters.** Maps are the main product of spatial data science: they are how you will show your results in every remaining assignment and your final project. A thematic map can tell very different stories depending on what you map (counts or rates) and how you classify it. Learning to make those choices on purpose, and to finish a map so a reader can trust it, is the difference between a map that informs and one that misleads.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- **Before you run** each chunk, picture the map you expect. Then run it and compare.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- tmap layers are joined with `+`, like ggplot2. Data steps before `tm_shape()` use the pipe `|>`.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and look at an sf object | 6 min |
+| 2 | Map polygons: population and density | 12 min |
+| 3 | Classification: `n` and `style` | 10 min |
+| 4 | Map points: the world's largest cities | 8 min |
+| 5 | Map lines: the rivers of Paris | 5 min |
+| 6 | Put a finished map together | 14 min |
+| 7 | Reflect, knit, and turn in | 5 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and every map appears in it.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences that describes what the map shows, with place names.
+- [ ] Your finished map in Part 6 has a title, a legend title, a scale bar, a north arrow, and credits with your name and the data source.
+- [ ] Your code uses tmap version 4 arguments (`fill =`, `fill.scale =`, `tm_title()`), not the old version 3 ones.
+- [ ] The file is back in `tmap_mode("plot")` before it knits.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with every map showing | Knits, but some chunks have errors | Doesn't knit, or no HTML turned in |
+| Map code (5 pts) | Every blank filled in correctly; every map shows what was asked | Most maps correct | Many blanks missing or wrong |
+| Questions (8 pts) | Q1 to Q11 answered, describing patterns with place names and reasons | Some answers missing, or vague ("it's darker in places") | Most answers missing |
+| Finished map (3 pts) | Title, legend title, scale bar, north arrow, and credits; nothing covers the data | Some parts missing | Not done |
+| Style (1 pt) | tmap v4 arguments, `+` between layers, pipe for data steps, no `install.packages()` | | Several problems |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* Where do the states with the most people cluster?
+>
+> *Weak answer:* "On the coasts."
+>
+> *Strong answer:* "The darkest class is California, Texas, Florida, and New York, the four biggest states by population. A second band runs through the Midwest and Northeast (Illinois, Ohio, Pennsylvania). The Mountain West and Great Plains are in the lightest class."
+
+The strong answer names places, says which class they're in, and describes the pattern rather than a single impression.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.

@@ -15,6 +15,10 @@ project:
     - assets/quiz/
     # OpenDyslexic for the reading settings menu (assets/reader-settings.css).
     - assets/fonts/
+    # Chapter exercise files that students download from the chapter
+    # exercise pages (chapters/*-exercise.qmd). Answer keys are never in
+    # this repository; instructors download them from the admin page.
+    - exercises/*.Rmd
 
 book:
   title: "Introduction to Spatial Data Science"

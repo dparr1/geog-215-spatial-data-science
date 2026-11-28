@@ -1,0 +1,345 @@
+---
+title: "Joins Exercise: Matching Tables by Name and by Place"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 15, Joins: Attribute and Spatial**. It builds on the tidyverse, tmap, and coordinate systems exercises. It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Combine two tables with `inner_join()`, `left_join()`, `right_join()`, and `full_join()`, and predict how many rows each returns.
+2. Name the key with `join_by()`, including when the key columns have different names.
+3. Find the rows that didn't match with `anti_join()`, and fix a key that doesn't match.
+4. Describe the cardinality of a relationship.
+5. Join by location with `st_join()`, and count the points in each polygon with a summarized join.
+6. Find the nearest feature with a distance join, after projecting both layers.
+
+**Knowledge you'll gain.** You'll attach Census populations to North Carolina cities, map how median income changed across the states, find the London boroughs with the most bike-share stations, and find the nearest airport to ten North Carolina cities.
+
+**Why this matters.** Data almost never arrives in one table. Census counts come without boundaries, boundaries come without the counts, and points such as schools or crimes need to be matched to the neighborhood they fall in. Joining is how you'll bring your final project's data together. A join that silently drops or duplicates rows is one of the most common hidden errors in data analysis, so checking the row count before and after every join is a habit worth building now.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- **Before you run** each join, predict how many rows it will return. Then run it and check.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 3 min |
+| 2 | Four kinds of join on two small tables | 12 min |
+| 3 | Join income data to state boundaries | 10 min |
+| 4 | When names don't match | 7 min |
+| 5 | Spatial joins: which borough is each station in? | 13 min |
+| 6 | Distance joins: the nearest airport | 10 min |
+| 7 | Reflect, knit, and turn in | 5 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and every map appears in it.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences, with row counts and names from your output.
+- [ ] Before each join, you predicted the number of rows (in your head or in a comment), and checked it after.
+- [ ] Both layers in every spatial join are in the same projected CRS.
+- [ ] Every map has a title, a legend title, and credits with your name and the data source.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with every map showing | Knits, but some chunks have errors | Doesn't knit, or no HTML turned in |
+| Join code (5 pts) | Every blank filled in correctly; right join type and key each time | Most correct | Many blanks missing or wrong |
+| Questions (9 pts) | Q1 to Q11 answered with row counts, names, and reasons | Some answers missing, wrong, or without reasons | Most answers missing |
+| Maps (2 pts) | Both maps finished with title, legend title, and credits | Labels missing | Maps missing |
+| Style (1 pt) | Pipe for chains, `join_by()` for keys, no `install.packages()` | | Several problems |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* Why did the join return fewer rows than the first table?
+>
+> *Weak answer:* "Some rows were dropped."
+>
+> *Strong answer:* "`inner_join()` keeps only rows with a match in both tables. `us_states` has the lower 48 states and DC, so Alaska and Hawaii in `us_states_df` had no match and were dropped: 51 rows became 49. `anti_join()` lists them."
+
+The strong answer names the join type, says which rows were lost and why, gives the counts, and shows how to check.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Load the Data (3 min)
+
+- Make a folder called `joins-exercise` inside your `geog215` folder, and save this file there.
+- Change `author:` and `date:` at the top of the file.
+- Run the chunk. All of the data comes with packages you already have.
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sf)
+library(tmap)
+library(spData)
+library(nycflights13)
+```
+
+# Part 2. Four Kinds of Join (12 min)
+
+Here are two small tables. `cities` gives six North Carolina cities and the county each is in. `counties` gives the 2020 Census population of six counties.
+
+```{r small-tables}
+cities <- tibble(
+  city   = c("Charlotte", "Raleigh", "Greensboro", "Durham", "Winston-Salem", "Chapel Hill"),
+  county = c("Mecklenburg", "Wake", "Guilford", "Durham", "Forsyth", "Orange")
+)
+
+counties <- tibble(
+  county   = c("Mecklenburg", "Wake", "Guilford", "Durham", "Forsyth", "Buncombe"),
+  pop_2020 = c(1115482, 1129410, 541299, 324833, 382590, 269452)
+)
+```
+
+**Q1.** Before you run anything: which city has no matching county in `counties`, and which county has no matching city? Predict how many rows `inner_join()`, `left_join()`, `right_join()`, and `full_join()` of `cities` and `counties` will each return.
+
+*Your answer here.*
+
+- Fill in the blanks to run the four joins, with `county` as the key, and check your predictions.
+
+```{r four-joins}
+cities |> inner_join(counties, by = join_by(___))
+cities |> ___(counties, by = join_by(county))
+cities |> right_join(counties, by = join_by(county))
+cities |> ___(counties, by = join_by(county))
+```
+
+**Q2.** Were your predictions right? Which join would you use to attach county populations to a list of cities, if you must keep every city? What does the `NA` tell you?
+
+*Your answer here.*
+
+- Fill in the blank with the join that keeps only the rows of `cities` with **no** match.
+
+```{r anti}
+cities |> ___(counties, by = join_by(county))
+```
+
+**Q3.** What is the cardinality of the relationship between cities and counties here: one-to-one, one-to-many, many-to-one, or many-to-many? What if `cities` had listed every city and town in the state?
+
+*Your answer here.*
+
+# Part 3. Joining Income Data to State Boundaries (10 min)
+
+`us_states` has boundaries but no income data. `us_states_df` has income but no boundaries. Both have the state's name, but in columns with different names: `NAME` and `state`.
+
+- Fill in the blanks to join them. In `join_by()`, the left table's column goes first.
+
+```{r states-join}
+states_income <- us_states |>
+  inner_join(us_states_df, by = join_by(___ == ___))
+
+nrow(us_states)
+nrow(us_states_df)
+nrow(states_income)
+```
+
+- Fill in the blank to list the rows of `us_states_df` that found no match.
+
+```{r states-dropped}
+us_states_df |>
+  ___(us_states, by = join_by(state == NAME))
+```
+
+**Q4.** Which rows were dropped, and why? Is `states_income` an sf object? Why does it matter which table comes first?
+
+*Your answer here.*
+
+- Fill in the blanks to calculate the change in median income from 2010 to 2015, project to EPSG:5070, and map it. Put your name in the credits.
+
+```{r states-map}
+states_income <- states_income |>
+  mutate(income_change = median_income_15 - ___) |>
+  st_transform(5070)
+
+tm_shape(states_income) +
+  tm_polygons(fill = ___,
+              fill.scale = tm_scale_intervals(n = 5, style = "jenks"),
+              fill.legend = tm_legend(title = "Change ($)")) +
+  tm_title("Change in Median Income, 2010-2015") +
+  tm_credits("Author: Your Name\nData Source: spData (US Census ACS)",
+             position = c("left", "bottom"))
+```
+
+**Q5.** Which state had the largest increase in median income from 2010 to 2015? Describe one pattern on the map.
+
+*Your answer here.*
+
+# Part 4. When Names Don't Match (7 min)
+
+`coffee_data` has coffee production for 2016 and 2017 by country; `world` has country boundaries. Both use `name_long`.
+
+- Fill in the blanks to find which rows of `coffee_data` fail to match.
+
+```{r coffee-unmatched}
+nrow(coffee_data)
+
+coffee_data |>
+  anti_join(___, by = join_by(___))
+```
+
+**Q6.** Which rows don't match, and why? Which one can you fix?
+
+*Your answer here.*
+
+- Fill in the blank with the spelling `world` uses, then join.
+
+```{r coffee-fix}
+coffee_fixed <- coffee_data |>
+  mutate(name_long = if_else(name_long == "Congo, Dem. Rep. of",
+                             ___,
+                             name_long))
+
+world_coffee <- world |>
+  inner_join(coffee_fixed, by = join_by(name_long))
+
+nrow(world_coffee)
+```
+
+# Part 5. Spatial Joins: Which Borough Is Each Station In? (13 min)
+
+`cycle_hire` has London's 742 bike-share stations, as points, and `lnd` has London's 33 boroughs, as polygons. There's no shared column, so we join by location. First, project both to the British National Grid (EPSG:27700), in meters.
+
+- Fill in the blanks.
+
+```{r london}
+stations <- cycle_hire |> st_transform(___)
+boroughs <- lnd |> st_transform(___)
+
+stations_joined <- st_join(___, boroughs["NAME"])
+
+nrow(stations)
+nrow(stations_joined)
+```
+
+**Q7.** Is `stations_joined` points or polygons? Why does it have the same number of rows as `stations`? What is the cardinality of stations to boroughs?
+
+*Your answer here.*
+
+- Fill in the blank to find any station that wasn't inside a borough.
+
+```{r stations-na}
+stations_joined |>
+  filter(___(NAME))
+```
+
+**Q8.** How many stations have no borough? Why might that happen to a station that is clearly in London?
+
+*Your answer here.*
+
+A **summarized join** counts the matches. Drop the geometry, count the stations in each borough, then attach the counts to the boroughs with an attribute join.
+
+- Fill in the blanks.
+
+```{r counts}
+station_counts <- stations_joined |>
+  st_drop_geometry() |>
+  count(___, name = "n_stations")
+
+boroughs <- boroughs |>
+  ___(station_counts, by = join_by(NAME))
+
+boroughs |>
+  st_drop_geometry() |>
+  select(NAME, n_stations) |>
+  arrange(desc(n_stations)) |>
+  head(5)
+
+tm_shape(boroughs) +
+  tm_polygons(fill = "n_stations",
+              fill.legend = tm_legend(title = "Stations")) +
+  tm_shape(stations) +
+  tm_dots(size = 0.05) +
+  tm_title("Bike-Share Stations in London's Boroughs") +
+  tm_credits("Author: Your Name\nData Source: spData (Transport for London)",
+             position = c("left", "bottom"))
+```
+
+**Q9.** Which borough has the most stations? Why did we use `left_join()` and not `inner_join()` to attach the counts? What do the gray boroughs mean?
+
+*Your answer here.*
+
+# Part 6. Distance Joins: The Nearest Airport (10 min)
+
+Which airport is closest to each of ten North Carolina cities? nycflights13's `airports` table has every US airport's latitude and longitude.
+
+- Fill in the blanks to make points of North Carolina's commercial airports and of the cities, both projected to NC State Plane.
+
+```{r points}
+nc_airports <- airports |>
+  filter(faa %in% c("AVL", "CLT", "GSO", "ILM", "RDU", "INT", "EWN", "FAY", "OAJ", "PGV")) |>
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
+  st_transform(___)
+
+nc_cities <- tibble(
+  city = c("Chapel Hill", "Raleigh", "Charlotte", "Asheville", "Wilmington",
+           "Durham", "Greensboro", "Winston-Salem", "Boone", "Greenville"),
+  lat  = c(35.9132, 35.7796, 35.2271, 35.5951, 34.2257,
+           35.9940, 36.0726, 36.0999, 36.2168, 35.6127),
+  lon  = c(-79.0558, -78.6382, -80.8431, -82.5515, -77.9447,
+           -78.8986, -79.7920, -80.2442, -81.6746, -77.3664)
+) |>
+  st_as_sf(coords = c(___, ___), crs = 4326) |>
+  st_transform(32119)
+```
+
+- Fill in the blanks to attach each city's nearest airport, then measure how far away it is.
+
+```{r nearest}
+cities_airports <- st_join(nc_cities, nc_airports |> select(faa, name),
+                           join = ___)
+
+nearest <- st_nearest_feature(nc_cities, nc_airports)
+cities_airports$dist_km <- st_distance(nc_cities, nc_airports[nearest, ],
+                                       by_element = ___) / 1000
+
+cities_airports |>
+  st_drop_geometry() |>
+  arrange(desc(dist_km))
+```
+
+**Q10.** Which city is farthest from its nearest airport, and which airport is it? Is the nearest airport always the one people there actually use? Name one thing a "nearest" join ignores.
+
+*Your answer here.*
+
+**Q11.** Why did we project both layers before the distance join? What could go wrong if you ran it on latitude and longitude?
+
+*Your answer here.*
+
+# Part 7. Reflection Questions (5 min)
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas.
