@@ -1,0 +1,87 @@
+# Chapter exercise: Spatial Descriptive Statistics {.unnumbered}
+
+**Where Is the Center of North Carolina's Births?**
+
+This exercise goes with **Chapter 17, Spatial Descriptive Statistics**. It builds on the ESDA exercise from Chapter 16, which used the same county data, and on writing functions (Chapter 5). It should take you about **one hour**. Read this whole section before you start.
+
+::: {.callout-tip appearance="simple"}
+## Get the exercise file
+
+:::: {.content-visible when-format="html"}
+[Download spatial-statistics-exercise.Rmd](../exercises/spatial-statistics-exercise.Rmd){download="spatial-statistics-exercise.Rmd"}
+::::
+
+:::: {.content-visible when-format="pdf"}
+Download the file from <https://daveparr.com/intro-spatial-data-science/exercises/spatial-statistics-exercise.Rmd>.
+::::
+
+Save it in a new folder called `spatial-statistics-exercise` inside your `geog215` folder, open it in RStudio, and work through it from top to bottom. Everything on this page is also at the top of the file.
+:::
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Calculate a mean center, a weighted mean center, a central feature, and a standard distance, by hand and in R.
+2. Match each spatial statistic to the ordinary statistic it extends (mean, weighted mean, median, standard deviation).
+3. Write your own functions in R, with inputs, a return value, and tests that check them.
+4. Get the x and y coordinates of an sf layer with `st_coordinates()`, and make a new point with `st_point()`.
+5. Explain why spatial statistics must be calculated in a projected coordinate system.
+
+**Knowledge you'll gain.** You'll find the geographic center of North Carolina's 100 counties and the center of its births in the 1970s, see how far apart they are and why, and check whether the center of births moved between 1974–78 and 1979–84.
+
+**Why this matters.** "Where is the middle?" and "how spread out?" are the first questions to ask about any set of places: stores, crimes, cases of a disease, or the homes of your survey respondents. A shift in a weighted mean center is one of the simplest ways to show that something is moving, like the US center of population moving west over two centuries (Chapter 13). Writing these statistics as functions also gives you tools you can reuse on any layer.
+
+## Task
+
+Work through Parts 1 to 6 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. Where you see `# your code here`, write the code yourself.
+- Run the tests under each function. If a test doesn't give the value in its comment, fix the function before you go on.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 4 min |
+| 2 | Five stores, by hand and in R | 12 min |
+| 3 | Write your own functions | 15 min |
+| 4 | The centers of North Carolina | 14 min |
+| 5 | Central feature and standard distance for North Carolina | 10 min |
+| 6 | Reflect, knit, and turn in | 5 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas. You can do the Part 2 hand calculations on paper and type your answers into Q1 and Q2.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and every map and plot appears in it.
+- [ ] Every `___` and `# your code here` has been filled in, and every chunk runs.
+- [ ] Your three functions pass every test given under them.
+- [ ] Every question (Q1 to Q10) has an answer in complete sentences, with units (km or m) for every distance.
+- [ ] All the North Carolina statistics are calculated in NC State Plane (EPSG:32119).
+- [ ] Your map in Part 4 has a title, shows the counties and both centers, and has credits.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with every map and plot | Knits, but some chunks have errors | Doesn't knit, or no HTML turned in |
+| Hand calculations (2 pts) | Q1 and Q2 correct, with work shown | Some values wrong | Not done |
+| Functions (5 pts) | All three functions written and pass their tests | Some functions fail a test | Not done |
+| Questions (8 pts) | Q3 to Q10 answered with numbers, units, and reasons | Some answers missing or without units | Most answers missing |
+| Map (2 pts) | Projected, titled, both centers shown and labeled | Missing parts | Not done |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* What does the standard distance of the five stores tell you?
+>
+> *Weak answer:* "3.58."
+>
+> *Strong answer:* "The standard distance is about 3.6 km: a typical store is about 3.6 km from the stores' mean center at (4, 4). Drawn as a circle, it shows how spread out the stores are; a chain with all its stores downtown would have a much smaller one."
+
+The strong answer gives units, says what the number measures, and gives a comparison that makes it meaningful.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.

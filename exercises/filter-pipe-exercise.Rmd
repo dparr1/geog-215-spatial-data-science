@@ -1,0 +1,337 @@
+---
+title: "Filter and Pipe Exercise: Flights to North Carolina"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 6, Into the Tidyverse: glimpse, filter, and the Pipe**. It builds on the Indexing exercise from Chapter 4. It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Load the tidyverse and a data package, and look inside a data frame with `glimpse()`.
+2. Keep the rows you need with `filter()`, using one condition or several.
+3. Choose between AND (`,` or `&`) and OR (`|`), and predict which gives more rows.
+4. Chain steps together with the pipe, `|>`, and read a chain top to bottom.
+5. Count rows with `count()` and `nrow()`.
+6. Find missing values with `is.na()`, and explain why base R brackets and `filter()` can give different counts.
+
+**Knowledge you'll gain.** You'll find out how many flights left New York City for North Carolina's airports in 2013, which North Carolina airport got the most, and how many of the flights to Raleigh–Durham were cancelled.
+
+**Why this matters.** Almost every analysis this semester starts with a filter: the counties in one state, the tracts in one city, the years after 2010. `filter()` and the pipe make those steps short enough to read at a glance, so you and anyone checking your work can see exactly which rows you kept. Missing values are the most common reason two "correct" methods give different answers, and nothing warns you when it happens. Learning to check for them now will save you from wrong numbers in your final project.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- **Before you run** each chunk, predict how many rows it will return. Then run it and check.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- Use the pipe, `|>`, for every chain, as the instructions show.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 5 min |
+| 2 | Look inside `flights` with `glimpse()` | 8 min |
+| 3 | Filter with one condition | 10 min |
+| 4 | Filter with several conditions: AND and OR | 12 min |
+| 5 | Chain steps with the pipe | 8 min |
+| 6 | Missing values: why the counts don't match | 12 min |
+| 7 | Reflect, knit, and turn in | 5 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors (except in the chunk marked `error=TRUE`, which is *meant* to show an error), and the author and date at the top are yours.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences.
+- [ ] Answers that ask for a number use the output of your code, and say what the number counts (flights, cancelled flights, airports...).
+- [ ] You used `==` for every "is equal to" test, and `is.na()` (not `== NA`) to find missing values.
+- [ ] Every chain uses the pipe `|>`, with one step per line.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with no errors | Knits, but some chunks have errors shown | Doesn't knit, or no HTML turned in |
+| Filter code (6 pts) | Every blank filled in correctly; every chunk returns what was asked | Most blanks correct | Many blanks missing or wrong |
+| Questions (8 pts) | Q1 to Q11 answered correctly, using the output, with reasons | Some answers missing, wrong, or with no reason | Most answers missing |
+| Missing values (2 pts) | Part 6 explains why the two counts differ, and fixes it with `is.na()` | Counts given, but not explained | Not done |
+| Style (1 pt) | Pipe for every chain, one step per line, `==` and `is.na()` used correctly, no `install.packages()` | | Several problems |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* How many flights left New York for Raleigh–Durham in 2013?
+>
+> *Weak answer:* "8163."
+>
+> *Strong answer:* "8,163 flights left New York City's three airports for Raleigh–Durham (RDU) in 2013. That's about 22 a day. I counted them with `filter(dest == "RDU")` and `count()`."
+
+The strong answer gives the number with its units, puts it in context, and says how it was found.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Load the Data (5 min)
+
+- Make a folder called `filter-pipe-exercise` inside your `geog215` folder, and save this file there.
+- Change `author:` and `date:` at the top of the file.
+- If you haven't installed **tidyverse** and **nycflights13** yet, install them now from the **Packages** tab (or by typing `install.packages()` in the **Console**, never in this file).
+- Fill in the blanks to load both packages.
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(___)
+library(___)
+```
+
+The `flights` data has every flight that left New York City's three airports, JFK, LaGuardia (LGA), and Newark (EWR), in 2013. It loads as soon as you call `library(nycflights13)`. North Carolina has five airports in the data: Asheville (`"AVL"`), Charlotte (`"CLT"`), Greensboro (`"GSO"`), Wilmington (`"ILM"`), and Raleigh–Durham (`"RDU"`).
+
+# Part 2. Looking Inside with glimpse() (8 min)
+
+- Fill in the blank to take a first look at `flights`.
+
+```{r glimpse}
+___(flights)
+```
+
+**Q1.** How many rows and columns does `flights` have? What is one row, one observation, in this table?
+
+*Your answer here.*
+
+**Q2.** What type of data is in `dest`, and in `dep_delay`? (Look at the `<chr>`, `<dbl>`, and `<int>` after each column name.) What does a *negative* `dep_delay` mean? (Hint: run `?flights` in the Console.)
+
+*Your answer here.*
+
+# Part 3. Filtering with One Condition (10 min)
+
+`filter()` keeps the rows where a condition is `TRUE`. `count()` counts the rows that are left.
+
+- Fill in the blanks to count the flights to Raleigh–Durham. (Text values need quotation marks.)
+
+```{r rdu}
+flights |>
+  filter(dest == ___) |>
+  count()
+```
+
+- Now do the same for the other four North Carolina airports. Change only the airport code in each.
+
+```{r nc-airports}
+flights |>
+  filter(dest == "CLT") |>
+  count()
+
+flights |>
+  filter(dest == ___) |>
+  count()
+
+flights |>
+  filter(dest == ___) |>
+  count()
+
+flights |>
+  filter(dest == ___) |>
+  count()
+```
+
+**Q3.** Which North Carolina airport had the most flights from New York in 2013, and which had the fewest? Why do you think the busiest one is so much busier than Raleigh–Durham, even though the Triangle has more people than Charlotte?
+
+*Your answer here.*
+
+A classmate tried to count the flights to Charlotte like this. Run it to see the error. (The `error=TRUE` option lets the file knit even though this chunk has an error.)
+
+```{r one-equals, error=TRUE}
+flights |>
+  filter(dest = "CLT") |>
+  count()
+```
+
+**Q4.** What does the error message suggest? What's the difference between `=` and `==`?
+
+*Your answer here.*
+
+- Last in this part, fill in the blank to count the flights that left from LaGuardia (`"LGA"`), whatever their destination. Which column holds the airport a flight left from?
+
+```{r lga}
+flights |>
+  filter(___ == "LGA") |>
+  count()
+```
+
+# Part 4. Several Conditions: AND and OR (12 min)
+
+Separate conditions with a comma (or `&`) when **all** must be true. Use `|` when **any** can be true.
+
+- Fill in the blanks to count the flights to RDU in December (`month` is a number, so write `12`, not `"December"`).
+
+```{r rdu-december}
+flights |>
+  filter(dest == "RDU", month == ___) |>
+  count()
+```
+
+- Fill in the blanks to count the flights to RDU on Christmas Day (December 25), and then those that also left more than an hour late.
+
+```{r rdu-christmas}
+flights |>
+  filter(dest == "RDU", month == 12, day == ___) |>
+  count()
+
+flights |>
+  filter(dest == "RDU", month == 12, day == 25, dep_delay > ___) |>
+  count()
+```
+
+**Q5.** How many flights went to RDU on Christmas Day, and how many of them left more than an hour late?
+
+*Your answer here.*
+
+- Fill in the blank with `|` to count the flights to Raleigh–Durham **or** Charlotte.
+
+```{r rdu-or-clt}
+flights |>
+  filter(dest == "RDU" ___ dest == "CLT") |>
+  count()
+```
+
+- Before you run the next chunk, predict how many rows each line returns. Then run it.
+
+```{r and-or-predict}
+flights |>
+  filter(dest == "RDU" & dest == "CLT") |>
+  count()
+
+flights |>
+  filter(dest == "RDU" | dest == "CLT") |>
+  count()
+```
+
+**Q6.** Why does the first line return 0? In everyday English we say "flights to Raleigh and Charlotte", so why do we need `|` in R?
+
+*Your answer here.*
+
+- Last, put both kinds together. Fill in the blanks to count the flights that left from JFK and went to either RDU or CLT. (The parentheses keep the OR together.)
+
+```{r jfk-nc}
+flights |>
+  filter(origin == ___, (dest == "RDU" ___ dest == "CLT")) |>
+  count()
+```
+
+# Part 5. Chaining Steps with the Pipe (8 min)
+
+The pipe sends the result of one step into the next, so a chain can have as many `filter()` steps as you need. These two chains ask the same question in different ways.
+
+- Fill in the blanks so that both chains count the flights to RDU in July that left more than two hours (120 minutes) late.
+
+```{r two-chains}
+# two filters, one after the other
+flights |>
+  filter(dest == "RDU") |>
+  filter(month == ___) |>
+  filter(dep_delay > ___) |>
+  count()
+
+# one filter with three conditions
+flights |>
+  filter(dest == "RDU", month == 7, dep_delay > 120) |>
+  count()
+```
+
+Here is the same question written without a pipe, with each function inside the next:
+
+```{r nested}
+count(filter(filter(filter(flights, dest == "RDU"), month == 7), dep_delay > 120))
+```
+
+**Q7.** Do all three give the same count? Which one would you rather read, and why? In the nested version, which function runs first?
+
+*Your answer here.*
+
+# Part 6. Missing Values: Why the Counts Don't Match (12 min)
+
+A cancelled flight never left, so its departure delay is unknown: `NA`. Let's count the flights to RDU that left **on time or early** (`dep_delay <= 0`) two ways.
+
+- Fill in the blanks. The first way uses base R brackets, as in Chapter 4; the second uses `filter()`.
+
+```{r two-ways}
+# base R
+rdu <- flights[flights$dest == "RDU", ]
+rdu_on_time <- rdu[rdu$dep_delay <= ___, ]
+nrow(rdu_on_time)
+
+# the tidy way
+flights |>
+  filter(dest == "RDU", dep_delay <= ___) |>
+  nrow()
+```
+
+**Q8.** How many flights does each way find? Why don't they match? (Hint: run `tail(rdu_on_time)` in the Console and look at the last rows.)
+
+*Your answer here.*
+
+- Fill in the blank to count the flights to RDU with a missing departure delay. (You can't use `== NA`; use the function that tests for `NA`.)
+
+```{r cancelled}
+flights |>
+  filter(dest == "RDU", ___(dep_delay)) |>
+  count()
+```
+
+**Q9.** How many flights to RDU have a missing `dep_delay`? Does that explain the difference in Q8?
+
+*Your answer here.*
+
+A classmate tried to find those flights with `==`:
+
+```{r equals-na}
+flights |>
+  filter(dest == "RDU", dep_delay == NA) |>
+  count()
+```
+
+**Q10.** Why does this return 0, even though there are missing delays?
+
+*Your answer here.*
+
+- Last, fill in the blanks to count the flights to RDU that left on time or early **or** have a missing delay. This should match the base R count from Q8.
+
+```{r keep-na}
+flights |>
+  filter(dest == "RDU") |>
+  filter(___ | dep_delay <= 0) |>
+  count()
+```
+
+**Q11.** You're writing a report on how often flights to RDU leave on time. Should the cancelled flights be counted with the on-time flights, left out, or reported separately? Explain your choice in two or three sentences.
+
+*Your answer here.*
+
+# Part 7. Reflection Questions (5 min)
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas.

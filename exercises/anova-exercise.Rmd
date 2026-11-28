@@ -1,0 +1,259 @@
+---
+title: "ANOVA Exercise: Does Income Differ by Region?"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 18, Comparing Groups: p-values and ANOVA**. It uses joins (Chapter 15) and the summary statistics and boxplots from the ESDA exercise (Chapter 16). It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Calculate group means, the sum of squares between and within groups, and the *F* statistic, by hand and with `aov()`.
+2. State a null hypothesis, and read a test result in three steps: the statistic, the p-value, and what it means for the question.
+3. Explore groups with summary statistics and boxplots before testing them.
+4. Follow a significant ANOVA with Tukey's HSD to find which groups differ.
+5. Check ANOVA's assumptions, and use `kruskal.test()` when they fail.
+6. Explain how outliers, the way regions are drawn, and neighboring places affect a test on spatial data.
+
+**Knowledge you'll gain.** You'll test whether median income differs between the four Census regions of the United States, and find out how much the answer depends on one unusual place.
+
+**Why this matters.** "Are these places really different, or is it chance?" is one of the most common questions in spatial data science, and in the news. Reading a p-value correctly, checking what's behind it, and knowing when a test's assumptions don't hold will keep you from overclaiming in your final project, and help you judge the claims other people make with statistics.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- When you report a test, give the statistic, its degrees of freedom, and the p-value, and say what it means in words.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 3 min |
+| 2 | ANOVA by hand | 12 min |
+| 3 | Explore income by region | 10 min |
+| 4 | Run the ANOVA | 8 min |
+| 5 | One unusual place | 10 min |
+| 6 | Which regions differ? Check the assumptions | 12 min |
+| 7 | Reflect, knit, and turn in | 5 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas. You can do the Part 2 hand calculations on paper and type your answers into Q1.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and the author and date at the top are yours.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Your hand calculation of *F* in Part 2 matches `aov()`.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences.
+- [ ] Every test result you report includes the statistic, degrees of freedom, p-value, and a sentence in plain English.
+- [ ] You never say a test "proves" anything, or that a large p-value means the groups are the same.
+- [ ] Your boxplot has axis labels with units and a title.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with no errors | Knits, but some chunks have errors | Doesn't knit, or no HTML turned in |
+| Hand calculation (3 pts) | Means, SS between, SS within, and *F* correct | Some steps wrong | Not done |
+| Code (4 pts) | Every blank filled in correctly | Most blanks correct | Many blanks missing or wrong |
+| Reporting tests (4 pts) | Statistic, df, p-value, and plain-English meaning every time | Some parts missing | Results not interpreted |
+| Questions (6 pts) | Q2 to Q11 answered correctly, with reasons | Some answers missing or wrong | Most answers missing |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* What does a p-value of 0.03 from an ANOVA mean?
+>
+> *Weak answer:* "There's a 3% chance the result is wrong."
+>
+> *Strong answer:* "If the groups really had the same mean, we'd see differences this large or larger only about 3% of the time by chance. That's below 0.05, so we reject the null hypothesis that all the group means are equal. It doesn't tell us which groups differ, or whether the difference is big enough to matter."
+
+The strong answer states what the p-value is a probability *of*, connects it to the null hypothesis, and says what the test doesn't tell you.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Load the Data (3 min)
+
+- Make a folder called `anova-exercise` inside your `geog215` folder, and save this file there.
+- Change `author:` and `date:` at the top of the file.
+- Run the chunk.
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sf)
+library(spData)
+```
+
+# Part 2. ANOVA by Hand (12 min)
+
+Three groups have these values: A = (2, 4, 6), B = (5, 7, 9), and C = (8, 10, 12).
+
+**Q1.** **By hand**, find: (a) each group's mean and the overall mean; (b) the sum of squares *between* groups, SS~between~ = Σ *n*~group~ × (group mean − overall mean)²; (c) the sum of squares *within* groups, SS~within~ = Σ (value − its group's mean)²; (d) *F* = (SS~between~ / (*k* − 1)) / (SS~within~ / (*N* − *k*)), where *k* = 3 groups and *N* = 9 values.
+
+*Your answer here.*
+
+- Fill in the blanks to check your answer with `aov()`.
+
+```{r by-hand}
+d <- tibble(
+  group = rep(c("A", "B", "C"), each = 3),
+  value = c(2, 4, 6,  5, 7, 9,  8, 10, 12)
+)
+
+fit_small <- aov(___ ~ ___, data = d)
+summary(fit_small)
+```
+
+**Q2.** Does `aov()` agree with you? What is the p-value, and what does it mean? What is the null hypothesis?
+
+*Your answer here.*
+
+# Part 3. Explore Income by Region (10 min)
+
+Our real question: **does median income differ between the four Census regions of the United States?** `us_states` has each state's `REGION`; `us_states_df` has its median income in 2015. Join them (Chapter 15), and drop the geometry, which we don't need for the test.
+
+- Fill in the blanks.
+
+```{r join}
+states <- us_states |>
+  st_drop_geometry() |>
+  inner_join(us_states_df, by = join_by(___ == state))
+
+states |>
+  count(REGION)
+```
+
+**Q3.** Look closely at the region names. What's wrong with one of them? Why does it matter for a report, even though R doesn't care?
+
+*Your answer here.*
+
+- Fill in the blank to fix the spelling with `if_else()`.
+
+```{r fix}
+states <- states |>
+  mutate(REGION = if_else(REGION == "Norteast", ___, as.character(REGION)))
+
+states |>
+  count(REGION)
+```
+
+- Fill in the blanks to summarize income in each region, and make a boxplot with the states as points on top.
+
+```{r explore}
+states |>
+  group_by(___) |>
+  summarize(n = n(),
+            mean = mean(median_income_15),
+            sd = sd(median_income_15),
+            median = median(median_income_15))
+
+ggplot(states, aes(x = REGION, y = ___)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(width = 0.15) +
+  labs(title = "Median Income by Census Region, 2015",
+       x = NULL, y = "Median income ($)",
+       caption = "Source: American Community Survey, via spData")
+```
+
+**Q4.** Which region has the highest mean income, and which the lowest? Which region is most spread out, and which single point stands out?
+
+*Your answer here.*
+
+# Part 4. Run the ANOVA (8 min)
+
+- Fill in the blanks to test whether mean income differs by region.
+
+```{r anova}
+fit <- aov(___ ~ ___, data = states)
+summary(fit)
+```
+
+**Q5.** Report the result in three steps: the *F* statistic and its degrees of freedom, the p-value, and what it means for the question. Can you say that the regions have the *same* mean income?
+
+*Your answer here.*
+
+# Part 5. One Unusual Place (10 min)
+
+The District of Columbia is a city, not a state, and its income is far above the rest of the South. What happens to the test without it?
+
+- Fill in the blanks to drop DC and run the ANOVA again.
+
+```{r no-dc}
+states_no_dc <- states |>
+  filter(NAME ___ "District of Columbia")
+
+fit_no_dc <- aov(median_income_15 ~ REGION, data = ___)
+summary(fit_no_dc)
+```
+
+**Q6.** Report the new result in three steps. Why did removing one place change the answer so much? (Hint: think about the variation *within* the South.)
+
+*Your answer here.*
+
+**Q7.** Is it honest to drop DC? Give one argument for and one against, and say what you would report.
+
+*Your answer here.*
+
+# Part 6. Which Regions Differ? Check the Assumptions (12 min)
+
+A significant ANOVA says *some* means differ, not *which*. Tukey's HSD compares every pair of regions, adjusting the p-values for making several comparisons.
+
+- Fill in the blank.
+
+```{r tukey}
+___(fit_no_dc)
+```
+
+**Q8.** Which pairs of regions differ significantly (`p adj` below 0.05)? By about how much? Does that match your boxplot?
+
+*Your answer here.*
+
+ANOVA assumes that the residuals are roughly normal, and that every group has about the same variance.
+
+- Fill in the blanks to run the Shapiro–Wilk test on the residuals, Bartlett's test for equal variances, and the Kruskal–Wallis test, which compares the groups' *ranks* and doesn't need either assumption.
+
+```{r assumptions}
+shapiro.test(___(fit_no_dc))
+bartlett.test(median_income_15 ~ REGION, data = states_no_dc)
+___(median_income_15 ~ REGION, data = states_no_dc)
+```
+
+**Q9.** Are the residuals normal? Are the variances equal? Does the Kruskal–Wallis test agree with the ANOVA?
+
+*Your answer here.*
+
+**Q10.** Neighboring states tend to have similar incomes. Why does that make the p-value less trustworthy? (Hint: how many *independent* pieces of information do 48 states really give?)
+
+*Your answer here.*
+
+**Q11.** The four regions were drawn by the Census Bureau. How might the result change if the lines were drawn differently, for example if Maryland and Delaware were in the Northeast? What is this problem called?
+
+*Your answer here.*
+
+# Part 7. Reflection Questions (5 min)
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas.

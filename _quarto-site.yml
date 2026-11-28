@@ -37,50 +37,67 @@ book:
         - chapters/r-rstudio-rmarkdown.qmd
         - chapters/r-rstudio-rmarkdown-quiz.qmd
         - chapters/r-basics.qmd
+        - chapters/r-basics-exercise.qmd
         - chapters/r-basics-quiz.qmd
         - chapters/indexing-vectors-data-frames.qmd
+        - chapters/indexing-vectors-data-frames-exercise.qmd
         - chapters/indexing-vectors-data-frames-quiz.qmd
         - chapters/blocks-loops-functions.qmd
+        - chapters/blocks-loops-functions-exercise.qmd
         - chapters/blocks-loops-functions-quiz.qmd
         - units/unit-1-quiz.qmd
     - part: units/unit-2.qmd
       chapters:
         - chapters/tidyverse-filter-pipe.qmd
+        - chapters/tidyverse-filter-pipe-exercise.qmd
         - chapters/tidyverse-filter-pipe-quiz.qmd
         - chapters/tidyverse-arrange-select-mutate.qmd
+        - chapters/tidyverse-arrange-select-mutate-exercise.qmd
         - chapters/tidyverse-arrange-select-mutate-quiz.qmd
         - chapters/tidyverse-summarize-group-by.qmd
+        - chapters/tidyverse-summarize-group-by-exercise.qmd
         - chapters/tidyverse-summarize-group-by-quiz.qmd
         - chapters/tidyverse-ggplot.qmd
+        - chapters/tidyverse-ggplot-exercise.qmd
         - chapters/tidyverse-ggplot-quiz.qmd
         - units/unit-2-quiz.qmd
     - part: units/unit-3.qmd
       chapters:
         - chapters/thematic-maps-tmap.qmd
+        - chapters/thematic-maps-tmap-exercise.qmd
         - chapters/thematic-maps-tmap-quiz.qmd
         - chapters/geographic-information.qmd
+        - chapters/geographic-information-exercise.qmd
         - chapters/geographic-information-quiz.qmd
         - chapters/location-coordinate-systems.qmd
+        - chapters/location-coordinate-systems-exercise.qmd
         - chapters/location-coordinate-systems-quiz.qmd
         - chapters/census-data-apis.qmd
+        - chapters/census-data-apis-exercise.qmd
         - chapters/census-data-apis-quiz.qmd
         - chapters/arcpullr.qmd
+        - chapters/arcpullr-exercise.qmd
         - chapters/arcpullr-quiz.qmd
         - units/unit-3-quiz.qmd
     - part: units/unit-4.qmd
       chapters:
         - chapters/joins.qmd
+        - chapters/joins-exercise.qmd
         - chapters/joins-quiz.qmd
         - chapters/esda.qmd
+        - chapters/esda-exercise.qmd
         - chapters/esda-quiz.qmd
         - chapters/spatial-statistics.qmd
+        - chapters/spatial-statistics-exercise.qmd
         - chapters/spatial-statistics-quiz.qmd
         - units/unit-4-quiz.qmd
     - part: units/unit-5.qmd
       chapters:
         - chapters/anova.qmd
+        - chapters/anova-exercise.qmd
         - chapters/anova-quiz.qmd
         - chapters/regression.qmd
+        - chapters/regression-exercise.qmd
         - chapters/regression-quiz.qmd
         - chapters/writing-spatial-data-science.qmd
         - chapters/writing-spatial-data-science-quiz.qmd

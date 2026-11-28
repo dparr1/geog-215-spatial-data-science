@@ -300,6 +300,7 @@
       <button role="tab" data-tab="cq" aria-selected="false">Chapter quizzes</button>
       <button role="tab" data-tab="quiz" aria-selected="false">Self-checks</button>
       <button role="tab" data-tab="code" aria-selected="false">Code</button>
+      <button role="tab" data-tab="keys" aria-selected="false">Exercise keys</button>
     </div>
 
     <!-- Students -->
@@ -671,6 +672,32 @@
         </table>
       </div>
     </div>
+
+    <!-- Exercise keys -->
+    <div class="panel" data-panel="keys" hidden>
+      <p class="hint">Answer keys for the chapter exercises, for the course picked at the top. They're
+        kept in a private Supabase Storage bucket, not in the textbook or its repository, so only
+        instructors of this course can see or download them.</p>
+      <div class="toolbar">
+        <div>
+          <label for="keys-upload">Upload keys</label>
+          <input type="file" id="keys-upload" multiple accept=".Rmd,.rmd,.qmd,.R,.html,.pdf,.docx">
+        </div>
+        <div class="toolbar-action"><button class="btn secondary" type="button" id="keys-download-all" disabled>Download all</button></div>
+      </div>
+      <p class="hint">Pick one or more files to add them; a file with the same name as a key replaces it.
+        Name each key like <code>regression-exercise-key.Rmd</code> so it lines up with its chapter.</p>
+      <p class="msg" id="keys-msg"></p>
+      <input type="file" id="keys-replace" accept=".Rmd,.rmd,.qmd,.R,.html,.pdf,.docx" hidden>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th class="num">Ch</th><th>Exercise</th><th>Key file</th><th>Uploaded</th><th>Size</th><th></th></tr>
+          </thead>
+          <tbody id="keys-body"></tbody>
+        </table>
+      </div>
+    </div>
   </main>
 </section>
 
@@ -849,6 +876,9 @@
   // ---- Data ----------------------------------------------------------------
   async function refresh() {
     $("refresh").disabled = true;
+    // Exercise keys come from Storage, not an rpc; they load on their own.
+    keysMsg("");
+    loadKeys().catch((e) => keysMsg("Couldn't list the keys: " + e.message, true));
     try {
       const [roster, activity, pages, quiz, code, cq, cqQuestions, questions, polls, pushSummary, pushSent] = await Promise.all([
         rpc("admin_roster", scopeArgs()),
@@ -2315,6 +2345,140 @@
     checkPushReady();
   }
 
+  // ---- Exercise keys ---------------------------------------------------------
+  // Answer keys for the chapter exercises live in the private `exercise-keys`
+  // Storage bucket (section 10 of supabase/setup.sql), one folder per course,
+  // for example geog215/regression-exercise-key.Rmd. Storage policies let only
+  // instructors of that course list, download or change them.
+  const KEY_BUCKET = "exercise-keys";
+  // [chapter, chapter title, chapter page, exercise file name]
+  const EXERCISES = [
+    [3, "R Basics", "r-basics", "r-basics-exercise"],
+    [4, "Indexing Vectors and Data Frames", "indexing-vectors-data-frames", "indexing-exercise"],
+    [5, "Blocks, Loops, and Functions", "blocks-loops-functions", "blocks-loops-functions-exercise"],
+    [6, "glimpse, filter, and the Pipe", "tidyverse-filter-pipe", "filter-pipe-exercise"],
+    [7, "arrange, distinct, select, and mutate", "tidyverse-arrange-select-mutate", "arrange-select-mutate-exercise"],
+    [8, "summarize, group_by, and drop_na", "tidyverse-summarize-group-by", "summarize-group-by-exercise"],
+    [9, "Graphs with ggplot2", "tidyverse-ggplot", "ggplot-exercise"],
+    [10, "Thematic Maps with tmap", "thematic-maps-tmap", "tmap-exercise"],
+    [11, "What Is Geographic Data?", "geographic-information", "geographic-data-exercise"],
+    [12, "Location and Coordinate Systems", "location-coordinate-systems", "coordinate-systems-exercise"],
+    [13, "Census Data and APIs", "census-data-apis", "census-exercise"],
+    [14, "ArcGIS Data with arcpullr", "arcpullr", "arcpullr-exercise"],
+    [15, "Joins: Attribute and Spatial", "joins", "joins-exercise"],
+    [16, "Exploratory Spatial Data Analysis", "esda", "esda-exercise"],
+    [17, "Spatial Descriptive Statistics", "spatial-statistics", "spatial-statistics-exercise"],
+    [18, "Comparing Groups: p-values and ANOVA", "anova", "anova-exercise"],
+    [19, "Linear Regression", "regression", "regression-exercise"],
+  ];
+  const keyFolder = () => scope.course || "geog215";
+  const keyPath = (name) => keyFolder() + "/" + name;
+  let keyFiles = [];
+  let keyReplaceName = null;
+
+  function keysMsg(text, isError) {
+    $("keys-msg").className = isError ? "msg error" : "msg";
+    $("keys-msg").textContent = text || "";
+  }
+
+  const fileSize = (n) => (n == null ? "" : n < 1024 ? n + " B" : n < 1048576
+    ? Math.round(n / 1024) + " KB" : (n / 1048576).toFixed(1) + " MB");
+
+  async function loadKeys() {
+    const { data, error } = await sb.storage.from(KEY_BUCKET)
+      .list(keyFolder(), { limit: 1000, sortBy: { column: "name", order: "asc" } });
+    if (error) {
+      keyFiles = [];
+      renderKeys();
+      keysMsg(/not found/i.test(error.message || "")
+        ? "The exercise-keys bucket doesn't exist yet. Run section 10 of supabase/setup.sql in the Supabase SQL Editor."
+        : "Couldn't list the keys: " + error.message, true);
+      return;
+    }
+    // Storage lists an empty placeholder for folders; keep real files only.
+    keyFiles = (data || []).filter((f) => f.id && f.name !== ".emptyFolderPlaceholder");
+    renderKeys();
+  }
+
+  function renderKeys() {
+    const byName = Object.fromEntries(keyFiles.map((f) => [f.name, f]));
+    const row = (ch, label, name, f, page) => `<tr>
+      <td class="num">${ch}</td>
+      <td>${page ? `<a href="${esc(siteUrl().replace(/\/$/, "") + "/chapters/" + page + "-exercise.html")}" target="_blank" rel="noopener">${esc(label)}</a>` : esc(label)}</td>
+      <td><code>${esc(name)}</code></td>
+      <td>${f ? when(f.updated_at || f.created_at) : '<span class="badge warn">Not uploaded</span>'}</td>
+      <td class="num">${f ? esc(fileSize(f.metadata && f.metadata.size)) : ""}</td>
+      <td class="actions">
+        ${f ? `<button class="btn small" type="button" data-kdownload="${esc(name)}">Download</button>` : ""}
+        <button class="btn secondary small" type="button" data-kreplace="${esc(name)}">${f ? "Replace" : "Upload"}</button>
+        ${f && !page ? `<button class="btn danger small" type="button" data-kdelete="${esc(name)}">Delete</button>` : ""}
+      </td></tr>`;
+    const known = new Set();
+    let html = EXERCISES.map(([ch, title, page, slug]) => {
+      const name = slug + "-key.Rmd";
+      known.add(name);
+      return row(ch, title, name, byName[name], page);
+    }).join("");
+    html += keyFiles.filter((f) => !known.has(f.name))
+      .map((f) => row("–", "Other file", f.name, f, null)).join("");
+    $("keys-body").innerHTML = html;
+    $("keys-download-all").disabled = !keyFiles.length;
+  }
+
+  async function downloadKey(name) {
+    const { data, error } = await sb.storage.from(KEY_BUCKET).download(keyPath(name));
+    if (error) { keysMsg("Couldn't download " + name + ": " + error.message, true); return; }
+    const url = URL.createObjectURL(data);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+
+  async function uploadKeys(files, asName) {
+    let done = 0;
+    const failed = [];
+    for (const file of files) {
+      const name = asName || file.name.replace(/[^A-Za-z0-9._-]+/g, "-");
+      keysMsg("Uploading " + name + "…");
+      const { error } = await sb.storage.from(KEY_BUCKET).upload(keyPath(name), file,
+        { upsert: true, contentType: file.type || "text/plain" });
+      if (error) failed.push(name + " (" + error.message + ")"); else done++;
+    }
+    await loadKeys();
+    keysMsg(failed.length ? "Couldn't upload " + failed.join(", ") : done === 1 ? "Uploaded 1 file." : "Uploaded " + done + " files.",
+      !!failed.length);
+  }
+
+  function wireKeys() {
+    $("keys-upload").addEventListener("change", async (e) => {
+      const files = [...e.target.files];
+      e.target.value = "";
+      if (files.length) await uploadKeys(files, null);
+    });
+    $("keys-replace").addEventListener("change", async (e) => {
+      const files = [...e.target.files];
+      e.target.value = "";
+      if (files.length && keyReplaceName) await uploadKeys(files.slice(0, 1), keyReplaceName);
+    });
+    $("keys-download-all").addEventListener("click", async () => {
+      for (const f of keyFiles) await downloadKey(f.name);
+    });
+    $("keys-body").addEventListener("click", async (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      if (b.dataset.kdownload) downloadKey(b.dataset.kdownload);
+      if (b.dataset.kreplace) { keyReplaceName = b.dataset.kreplace; $("keys-replace").click(); }
+      if (b.dataset.kdelete) {
+        const { error } = await sb.storage.from(KEY_BUCKET).remove([keyPath(b.dataset.kdelete)]);
+        if (error) keysMsg("Couldn't delete: " + error.message, true); else { keysMsg("Deleted " + b.dataset.kdelete + "."); loadKeys(); }
+      }
+    });
+  }
+
   // ---- Tabs ----------------------------------------------------------------
   function selectTab(tab) {
     document.querySelectorAll(".tabs button").forEach((b) =>
@@ -2420,6 +2584,7 @@
     $("questions-list").addEventListener("click", onQuestionAction);
     wirePolls();
     wirePush();
+    wireKeys();
     ["questions-status", "questions-search"].forEach((id) => $(id).addEventListener("input", renderQuestions));
     initSorting();
   }

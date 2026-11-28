@@ -1,0 +1,412 @@
+---
+title: "Indexing Exercise: Picking Out Cities and States"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 4, Indexing Vectors and Data Frames**. It builds on the R Basics exercise from Chapter 3. It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Index a vector by position, by a logical condition, and by name.
+2. Write comparisons (`>`, `<`, `==`, `!=`, ...) and combine them with `&`, `|`, and `!`.
+3. Count how many values meet a condition.
+4. Look inside a data frame with `str()`, `nrow()`, `ncol()`, and `names()`.
+5. Pull out rows, columns, and single values from a data frame with `[row, column]` and `$`.
+6. Read a CSV file into R with `read.csv()`, and check that each column has the type you expect.
+
+**Knowledge you'll gain.** You'll find out how North Carolina's median income compares with the other states, and which states saw their median income fall between 2010 and 2015.
+
+**Why this matters.** Most of data analysis is not making data but *picking out* the part you need: the counties above the state median, the tracts inside one city, the states where income fell. Every map you make this semester starts by selecting the right rows and columns. Later, the tidyverse gives you shortcuts for this (`filter()` and `select()`), but they work exactly like the brackets you'll use today, so understanding brackets now makes the rest of the course easier.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- **Before you run** each chunk, predict what it will return. Then run it and check. Predicting first is the fastest way to learn indexing.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 5 min |
+| 2 | Index a vector by position | 8 min |
+| 3 | Index a vector with conditions, AND, OR, and NOT | 12 min |
+| 4 | Index a vector by name | 7 min |
+| 5 | Explore and index a data frame of the 50 states | 18 min |
+| 6 | Make a CSV file and read it into R | 8 min |
+| 7 | Reflect, knit, and turn in | 2 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and the author and date at the top are yours.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q12) has an answer in complete sentences.
+- [ ] Answers that ask for a number or a state use the output of your code, and say what the number means.
+- [ ] You used `==` (two equals signs) for every "is equal to" test.
+- [ ] Your CSV file, `nc_cities.csv`, is saved in the same folder as this `.Rmd` file, and `read.csv()` reads it with the right column types.
+- [ ] The pipe `|>` is used where the instructions ask for it.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with no errors | Knits, but some chunks have errors shown | Doesn't knit, or no HTML turned in |
+| Indexing code (6 pts) | Every blank filled in correctly; every chunk returns what was asked | Most blanks correct | Many blanks missing or wrong |
+| Questions (8 pts) | Q1 to Q12 answered correctly, using the output, with reasons | Some answers missing, wrong, or with no reason | Most answers missing |
+| CSV file (2 pts) | `nc_cities.csv` read in, with `pop_2010` numeric after the fix | Read in, but the type problem isn't fixed | Not done |
+| Style (1 pt) | `==` for equality, pipe where asked, no `install.packages()` | | Several problems |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* What does `nc_pop[3]` return?
+>
+> *Weak answer:* "3."
+>
+> *Strong answer:* "It returns 299,035, Greensboro's 2020 population. 3 is the *index*, the position in the vector; the value at that position is 299,035."
+
+The strong answer gives the value, says what it means, and keeps the index and the value apart.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Load the Data (5 min)
+
+- Make a folder called `indexing-exercise` inside your `geog215` folder, and save this file there.
+- Change `author:` and `date:` at the top of the file.
+- You installed spData in the R Basics exercise. Fill in the blank to load it.
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(___)
+```
+
+spData's `us_states_df` table has the median income and the number of people in poverty for each state in 2010 and 2015. It is stored as a *tibble*, the tidyverse's version of a data frame, which you'll meet in Chapter 6. Tibbles index a little differently, so for now we turn it into a plain data frame with `as.data.frame()`.
+
+```{r load-data}
+# Median income and poverty for the 50 states and DC, 2010 and 2015
+# Source: American Community Survey, via the spData package
+states_df <- as.data.frame(us_states_df)
+```
+
+# Part 2. Indexing by Position (8 min)
+
+Here are the 2020 populations of the six North Carolina cities from the R Basics exercise, in the same order: Charlotte, Raleigh, Greensboro, Durham, Winston-Salem, and Chapel Hill.
+
+```{r nc-pop}
+# 2020 Census population of six NC cities
+nc_pop <- c(874579, 467665, 299035, 283506, 249545, 61960)
+```
+
+Put a position (an **index**) in square brackets to get the value at that position. R starts counting at 1.
+
+- Fill in the blanks. Each line has a comment saying what it should return.
+
+```{r by-position}
+nc_pop[1]            # Charlotte
+nc_pop[___]          # Durham
+nc_pop[c(___, ___)]  # Charlotte and Chapel Hill
+nc_pop[___:___]      # Raleigh, Greensboro, and Durham (use the colon)
+nc_pop[-___]         # every city except Chapel Hill
+```
+
+**Q1.** What does `nc_pop[3]` return? What is the difference between the 3 and the value R returns? Does `nc_pop[-6]` change `nc_pop`? How can you tell?
+
+*Your answer here.*
+
+An indexed value is just a number, so you can do math with it.
+
+- Fill in the blanks to find how many times bigger Charlotte is than Chapel Hill. Use the pipe to round the answer to one decimal place.
+
+```{r ratio}
+(nc_pop[___] / nc_pop[___]) |>
+  round(digits = 1)
+```
+
+**Q2.** How many times bigger than Chapel Hill is Charlotte?
+
+*Your answer here.*
+
+# Part 3. Indexing with Conditions (12 min)
+
+A comparison checks **every** element and returns a logical vector of `TRUE` and `FALSE`, one for each element.
+
+```{r compare}
+nc_pop > 250000
+```
+
+Put that logical vector in the brackets, and R keeps the elements where it is `TRUE`.
+
+- Fill in the blanks. Remember that "is equal to" is `==` (two equals signs) and "is not equal to" is `!=`.
+
+```{r by-condition}
+# cities with more than 250,000 people
+nc_pop[nc_pop > 250000]
+
+# cities with 300,000 people or fewer
+nc_pop[nc_pop ___ 300000]
+
+# every city except the one with exactly 283,506 people
+nc_pop[nc_pop ___ 283506]
+```
+
+Use `&` (AND) when **both** conditions must be true, and `|` (OR) when **either** can be.
+
+- Fill in the blanks.
+
+```{r and-or}
+# between 250,000 and 500,000 people (both must be true)
+nc_pop[nc_pop > 250000 ___ nc_pop < 500000]
+
+# very small or very large: under 100,000 or over 800,000
+nc_pop[nc_pop < 100000 ___ nc_pop > 800000]
+
+# NOT more than 250,000 people
+nc_pop[!(nc_pop > 250000)]
+```
+
+A classmate wanted the cities between 100,000 and 500,000 people, and wrote this:
+
+```{r careless-or}
+nc_pop[nc_pop > 100000 | nc_pop < 500000]
+```
+
+**Q3.** How many cities did your classmate's line return, and why? Fix it so it returns only the cities between 100,000 and 500,000.
+
+*Your answer here.*
+
+R counts `TRUE` as 1 and `FALSE` as 0, so `sum()` of a logical vector counts the `TRUE` values.
+
+- Fill in the blank to count how many of the cities have more than 250,000 people.
+
+```{r count}
+sum(nc_pop ___)
+```
+
+**Q4.** How many of the six cities have more than 250,000 people? Why does `sum()` give a count here and not a total population?
+
+*Your answer here.*
+
+# Part 4. Indexing by Name (7 min)
+
+Positions are easy to mix up. Names are easier to read. `names()` gives each element a label.
+
+- Fill in the blank with the six city names, in the same order as the populations. (Remember the quotation marks.)
+
+```{r add-names}
+names(nc_pop) <- c(___)
+nc_pop
+```
+
+- Fill in the blanks to get Durham's population by name, and then Raleigh's and Chapel Hill's together.
+
+```{r by-name}
+nc_pop["___"]
+nc_pop[c("___", "___")]
+```
+
+Now let's see what happens if the order changes. `sort()` puts a vector in order from smallest to largest.
+
+```{r sorted}
+nc_pop_sorted <- sort(nc_pop)
+nc_pop_sorted
+
+nc_pop_sorted[4]
+nc_pop_sorted["Durham"]
+```
+
+**Q5.** `nc_pop[4]` was Durham. Which city is `nc_pop_sorted[4]`? Why is indexing by name safer than indexing by position?
+
+*Your answer here.*
+
+`length()` counts the elements of a vector. Because the last element's position is the same as the length, `nc_pop[length(nc_pop)]` always returns the last element.
+
+- Fill in the blank to return the **largest** city from `nc_pop_sorted`, whatever its length. (Hint: after sorting, the largest city is last.)
+
+```{r last}
+nc_pop_sorted[___]
+```
+
+# Part 5. A Data Frame of the States (18 min)
+
+## Looking inside
+
+A data frame is a table: each column is a variable, and each row is an observation.
+
+- Run the chunk below and read its output.
+
+```{r look}
+nrow(states_df)
+ncol(states_df)
+names(states_df)
+str(states_df)
+```
+
+**Q6.** How many rows and columns does `states_df` have? What is one row, an observation, in this table? What type is each column?
+
+*Your answer here.*
+
+## Rows, columns, and values
+
+Index a data frame with `[row, column]`. Leave a position blank to get all of it.
+
+- Fill in the blanks.
+
+```{r rows-cols}
+# row 34, every column
+states_df[34, ]
+
+# rows 1 to 3, just the state and median_income_15 columns
+states_df[1:3, c("state", "___")]
+
+# North Carolina's row, found by a condition instead of a position
+states_df[states_df$state ___ "North Carolina", ]
+```
+
+**Q7.** Row 34 and the North Carolina row are the same. Why is the condition (`states_df$state == "North Carolina"`) a better way to find North Carolina than the number 34?
+
+*Your answer here.*
+
+## One column at a time
+
+`$` pulls out one column as a vector, which you can then use like any other vector.
+
+- Fill in the blanks to find the average and the highest median income in 2015. Use the pipe for the second one.
+
+```{r one-column}
+mean(states_df$median_income_15)
+
+states_df$___ |>
+  max()
+```
+
+- Fill in the blank to return the row of the state (or district) with the highest median income in 2015.
+
+```{r highest}
+states_df[states_df$median_income_15 == ___(states_df$median_income_15), ]
+```
+
+**Q8.** Which place had the highest median income in 2015? Is it a state? Why might it be so different from the states?
+
+*Your answer here.*
+
+## Comparing North Carolina with the other states
+
+First we save North Carolina's 2015 median income in a variable, so we don't have to type the number.
+
+- Fill in the blank to pull out North Carolina's `median_income_15` value. (Row condition, comma, column name.)
+
+```{r nc-income}
+nc_income <- states_df[states_df$state == "North Carolina", "___"]
+nc_income
+```
+
+- Fill in the blanks to return the names of the states with a **higher** median income than North Carolina, and then to count them.
+
+```{r compare-nc}
+states_df[states_df$median_income_15 > nc_income, "___"]
+
+sum(states_df$median_income_15 ___ nc_income)
+```
+
+**Q9.** How many states (counting DC) had a higher median income than North Carolina in 2015? Is North Carolina near the top, the middle, or the bottom? (There are 51 rows.)
+
+*Your answer here.*
+
+## A new column
+
+You can make a new column by assigning to a name after `$`. R subtracts the two columns element by element, just like the vectors in the R Basics exercise.
+
+- Fill in the blank to calculate the change in median income from 2010 to 2015.
+
+```{r change}
+states_df$income_change <- states_df$median_income_15 - states_df$___
+```
+
+- Fill in the blanks to return the `state` and `income_change` columns for every state where median income **fell**, and then to count them.
+
+```{r fell}
+states_df[states_df$income_change ___ 0, c("state", "income_change")]
+
+sum(states_df$income_change ___ 0)
+```
+
+**Q10.** In how many states did median income fall from 2010 to 2015, and which ones? Which one fell the most?
+
+*Your answer here.*
+
+- Last, combine two conditions with `&`. Fill in the blanks to return the names of the states with **more than 1,000,000** people in poverty in 2015 **and** a median income **above** North Carolina's.
+
+```{r two-conditions}
+states_df[states_df$poverty_level_15 > ___ & states_df$median_income_15 > ___, "state"]
+```
+
+**Q11.** Which states meet both conditions? Why do so many of them have more than a million people in poverty, even though their median incomes are high? (Hint: the poverty columns are *counts* of people, not percentages.)
+
+*Your answer here.*
+
+# Part 6. Reading a CSV File (8 min)
+
+Most data arrives as a file. The most common format is a **CSV** (comma-separated values) file: plain text with one row per line, a comma between values, and the column names on the first line.
+
+- In RStudio, choose **File > New File > Text File**.
+- Copy the seven lines below into the new file **exactly** (including the `N/A`).
+- Save it as `nc_cities.csv` in your `indexing-exercise` folder, the same folder as this `.Rmd` file.
+
+```
+city,pop_2010,pop_2020,county_seat
+Charlotte,731424,874579,TRUE
+Raleigh,403892,467665,TRUE
+Greensboro,269666,299035,TRUE
+Durham,228330,283506,TRUE
+Winston-Salem,229617,249545,TRUE
+Chapel Hill,N/A,61960,FALSE
+```
+
+- Fill in the blank with the file name (in quotation marks) to read the file, then run the chunk.
+
+```{r read-csv}
+nc_cities <- read.csv("___")
+str(nc_cities)
+```
+
+**Q12.** What type does `str()` say each column is? Which column has the wrong type, and why? What would `mean(nc_cities$pop_2010)` give?
+
+*Your answer here.*
+
+- Fix the problem: in `nc_cities.csv`, replace `N/A` with Chapel Hill's 2010 population, **57233**. Save the CSV file, then run the `read-csv` chunk again. `pop_2010` should now be `int` (integer), a kind of number.
+- Fill in the blank to find the average 2010 population of the six cities, to check that the fix worked.
+
+```{r csv-mean}
+mean(nc_cities$___)
+```
+
+# Part 7. Reflection Questions (2 min)
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas. (You don't need to turn in the CSV file.)

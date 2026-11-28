@@ -1,0 +1,268 @@
+---
+title: "Regression Exercise: What Explains House Values?"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 19, Linear Regression**. It builds on the ANOVA exercise from Chapter 18, and uses ggplot2 and tmap. It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Tell a dependent variable from an independent variable, and correlation from regression.
+2. Fit a linear regression with `lm()`, write its equation, and use it to predict with `predict()`.
+3. Read a model summary: the coefficients, their p-values, R², and adjusted R².
+4. Build a multivariate model, interpret a coefficient "holding the others constant", and compare it with a simpler model.
+5. Map a model's residuals and explain what clusters of similar residuals mean.
+
+**Knowledge you'll gain.** You'll find out how much the number of rooms, the share of low-income residents, crime, and being on the Charles River explain the value of homes in the census tracts of Boston, and where the model gets it most wrong.
+
+**Why this matters.** Regression is the workhorse of data analysis: it is how researchers estimate how much one thing changes with another, and it is the basis of most models you'll meet after this course. For spatial data, a regression is only half done until you map its residuals: if the errors cluster in one part of the map, the model is missing something about place, and its p-values can't be trusted. That habit is what makes the analysis *spatial* data science.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- When you interpret a coefficient, give its units and the direction of the change.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 3 min |
+| 2 | A small regression: ice cream and temperature | 10 min |
+| 3 | Get to know the Boston data | 6 min |
+| 4 | A first model of house values | 10 min |
+| 5 | A multivariate model | 12 min |
+| 6 | Map the residuals | 14 min |
+| 7 | Reflect, knit, and turn in | 5 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and every graph and map appears in it.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences.
+- [ ] Every coefficient you interpret has its units ($1,000s per room, per percentage point, ...) and direction.
+- [ ] You compare models with adjusted R², not R².
+- [ ] You never say that the model shows one variable *causes* another.
+- [ ] Your residual map has a title, a legend title, and a diverging color scale centered on zero.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with every graph and map | Knits, but some chunks have errors | Doesn't knit, or no HTML turned in |
+| Code (4 pts) | Every blank filled in correctly | Most blanks correct | Many blanks missing or wrong |
+| Interpreting models (6 pts) | Coefficients, p-values, and R² interpreted with units and direction | Some interpretations missing units or wrong | Not interpreted |
+| Residual map (3 pts) | Mapped with a diverging scale, and the pattern described | Mapped but not described | Not done |
+| Questions (4 pts) | Remaining questions answered with reasons | Some missing | Most missing |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* What does the slope of the ice cream model mean?
+>
+> *Weak answer:* "6.77."
+>
+> *Strong answer:* "For every 1 °F warmer, the model predicts about 6.8 more cones sold. The slope's p-value is far below 0.05, so the relationship is unlikely to be chance, and R² = 0.96 says temperature explains about 96% of the variation in sales on these 12 days."
+
+The strong answer gives the units of both variables, the direction, and how much to trust it.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Load the Data (3 min)
+
+- Make a folder called `regression-exercise` inside your `geog215` folder, and save this file there.
+- Change `author:` and `date:` at the top of the file.
+- Run the chunk.
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sf)
+library(tmap)
+library(spData)
+```
+
+# Part 2. A Small Regression: Ice Cream and Temperature (10 min)
+
+Here are the chapter's 12 days of temperatures (°F) and ice cream cones sold.
+
+```{r ice-cream}
+temp  <- c(62, 65, 68, 70, 73, 75, 78, 80, 83, 85, 88, 91)
+cones <- c(180, 205, 190, 230, 260, 245, 290, 300, 310, 345, 330, 380)
+```
+
+- Fill in the blanks: find the correlation, then fit a model with cones as the **dependent** variable. In R's formula, the dependent variable goes on the left of `~`.
+
+```{r ice-model}
+cor(temp, cones)
+
+ice_model <- lm(___ ~ ___)
+ice_model
+```
+
+**Q1.** Write the model's equation, cones = *a* + *b* × temp, with the numbers filled in. What does the correlation tell you that the regression doesn't, and what does the regression tell you that the correlation doesn't?
+
+*Your answer here.*
+
+- Fill in the blanks to predict sales at 70 °F and 85 °F, and to find the day with the largest positive residual.
+
+```{r ice-predict}
+predict(ice_model, data.frame(temp = c(___, ___)))
+
+round(residuals(ice_model), 1)
+which.max(___(ice_model))
+```
+
+**Q2.** What does the model predict at 70 °F and at 85 °F? Which day has the largest positive residual, and what does a positive residual mean?
+
+*Your answer here.*
+
+- Fill in the blank to convert the temperatures to Celsius, then refit the model.
+
+```{r celsius}
+temp_c <- (temp - 32) * 5 / ___
+
+ice_model_c <- lm(cones ~ temp_c)
+coef(ice_model_c)
+summary(ice_model)$r.squared
+summary(ice_model_c)$r.squared
+```
+
+**Q3.** What happened to the slope, the intercept, and R²? Why?
+
+*Your answer here.*
+
+# Part 3. Get to Know the Boston Data (6 min)
+
+spData's `boston.c` is a classic data set: 506 census tracts in and around Boston, from the 1970 Census, with the median value of owner-occupied homes and possible explanations.
+
+- Run the chunk, then run `?boston` in the **Console** and read about the columns we'll use: `CMEDV`, `RM`, `LSTAT`, `CRIM`, and `CHAS`.
+
+```{r boston}
+data(boston)
+
+houses <- as_tibble(boston.c)
+glimpse(houses)
+
+summary(houses$CMEDV)
+sum(houses$CMEDV == 50)
+```
+
+**Q4.** What is one row? What are the units of `CMEDV`? Why do 16 tracts have a value of exactly 50, and why might that be a problem for a model?
+
+*Your answer here.*
+
+# Part 4. A First Model of House Values (10 min)
+
+Do tracts where homes have more rooms have higher home values?
+
+- Fill in the blanks to plot `CMEDV` against the average number of rooms, `RM`, with a straight trend line.
+
+```{r rooms-plot, message=FALSE}
+ggplot(houses, aes(x = ___, y = ___)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm") +
+  labs(x = "Average rooms per home", y = "Median home value ($1,000s, 1970)")
+```
+
+- Fill in the blanks to fit the model and read its summary.
+
+```{r first-model}
+first_model <- lm(CMEDV ~ ___, data = ___)
+summary(first_model)
+```
+
+**Q5.** Interpret the slope of `RM`, with units. Is it significant? What share of the variation in home values does the model explain? Does the intercept make sense?
+
+*Your answer here.*
+
+# Part 5. A Multivariate Model (12 min)
+
+- Fill in the blanks to add three more independent variables: `LSTAT` (the percent of residents with lower socioeconomic status), `CRIM` (crimes per person), and `CHAS` (1 if the tract borders the Charles River).
+
+```{r second-model}
+second_model <- lm(CMEDV ~ RM + ___ + CRIM + ___, data = houses)
+summary(second_model)
+```
+
+**Q6.** Interpret the coefficient of `LSTAT`, with units, "holding the other variables constant". Why did the coefficient of `RM` get smaller than in the first model?
+
+*Your answer here.*
+
+**Q7.** Interpret the coefficient of `CHAS`. Compare the two models' **adjusted** R². Why use adjusted R² rather than R² to compare them?
+
+*Your answer here.*
+
+**Q8.** Does this model show that cutting crime would *cause* home values to rise? Why or why not?
+
+*Your answer here.*
+
+# Part 6. Map the Residuals (14 min)
+
+A **residual** is the actual value minus the model's prediction. If the model captured everything important about place, the residuals would be scattered randomly on a map.
+
+- Fill in the blanks to save the residuals, turn the tracts into points from their longitude and latitude, and project them to UTM zone 19N (EPSG:32619), a projection in meters for Massachusetts.
+
+```{r residuals-sf}
+houses <- houses |>
+  mutate(resid = ___(second_model))
+
+houses_sf <- houses |>
+  st_as_sf(coords = c(___, ___), crs = 4326) |>
+  st_transform(32619)
+```
+
+- Fill in the blanks to map the residuals with a diverging color scale centered on zero, so tracts the model over-predicts and under-predicts get opposite colors.
+
+```{r residual-map}
+tm_shape(houses_sf) +
+  tm_dots(fill = ___, size = 0.5,
+          fill.scale = tm_scale_intervals(n = 6, style = "pretty", midpoint = ___,
+                                          values = "brewer.rd_bu"),
+          fill.legend = tm_legend(title = "Residual ($1,000s)")) +
+  tm_title("Residuals of the Home Value Model, Boston Tracts, 1970") +
+  tm_credits("Author: Your Name\nData Source: spData boston.c (Harrison and Rubinfeld 1978)",
+             position = c("left", "bottom"))
+```
+
+**Q9.** What does a large positive residual (blue) mean, and a large negative one (red)? Which tracts have the largest positive residuals?
+
+*Your answer here.*
+
+**Q10.** Do the residuals look randomly scattered, or clustered? Why does clustering matter?
+
+*Your answer here.*
+
+**Q11.** Name one variable you would add to the model to reduce the clustering, and explain why. (Hint: look at the other columns in `?boston`.)
+
+*Your answer here.*
+
+# Part 7. Reflection Questions (5 min)
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas.

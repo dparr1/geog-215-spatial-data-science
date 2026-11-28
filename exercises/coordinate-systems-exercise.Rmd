@@ -1,0 +1,326 @@
+---
+title: "Coordinate Systems Exercise: Measuring North Carolina"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 12, Location and Coordinate Systems**. It builds on the tmap and geographic data exercises from Chapters 10 and 11. It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Calculate the flattening of the ellipsoid, and how long a degree of longitude is at different latitudes.
+2. Convert coordinates between degrees, minutes, and seconds (DMS) and decimal degrees, with your own functions.
+3. Make an sf layer of points from a table of latitudes and longitudes.
+4. Check a layer's coordinate reference system with `st_crs()`, and change it with `st_transform()`.
+5. Measure areas and distances in different projections, and explain why the answers differ.
+6. Choose a projection for a task.
+
+**Knowledge you'll gain.** You'll measure the area of North Carolina and the distances between five of its cities, and find out how much the map projection on your phone (Web Mercator) exaggerates them.
+
+**Why this matters.** Every spatial layer comes with a coordinate reference system, and every measurement you make (an area, a distance, a buffer, a density) is only as good as the CRS it was calculated in. Mixing up degrees and meters, or measuring on a Web Mercator map, is one of the most common ways a spatial analysis goes quietly wrong. From here on, every NC assignment asks you to project to NC State Plane (EPSG:32119) before measuring anything; this exercise shows you why.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- **Before you run** each chunk, predict roughly what it will return. Then run it and check.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- Give every distance and area with its units.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 3 min |
+| 2 | The shape of the Earth and the length of a degree | 8 min |
+| 3 | Convert between DMS and decimal degrees | 10 min |
+| 4 | Make a layer of NC cities | 7 min |
+| 5 | Check and change the CRS, and measure area | 12 min |
+| 6 | Measure distances | 12 min |
+| 7 | Choose a projection, reflect, and turn in | 8 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and the author and date at the top are yours.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Your two DMS functions return the test values given in Part 3.
+- [ ] Every question (Q1 to Q12) has an answer in complete sentences, with units for every distance and area.
+- [ ] You can say which CRS each measurement was made in, and why it does or doesn't distort.
+- [ ] Longitudes west of Greenwich are negative.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with no errors | Knits, but some chunks have errors shown | Doesn't knit, or no HTML turned in |
+| Code (5 pts) | Every blank filled in correctly; functions pass their tests | Most blanks correct | Many blanks missing or wrong |
+| Questions (9 pts) | Q1 to Q12 answered correctly, with units, naming the CRS, with reasons | Some answers missing, wrong, or without units | Most answers missing |
+| Projection choices (2 pts) | Q12 names a sensible projection for each task, with a reason | Some choices without reasons | Not done |
+| Style (1 pt) | Readable code, pipe for chains, no `install.packages()` | | Several problems |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* How far is it from Chapel Hill to Raleigh?
+>
+> *Weak answer:* "40492."
+>
+> *Strong answer:* "About 40.5 km (25 miles) in a straight line, measured with `st_distance()` on the WGS84 points. NC State Plane gives the same distance to within 0.1 km, but Web Mercator says 50 km, about 23% too far."
+
+The strong answer gives units, says how the distance was measured, and compares it with the other projections.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Load the Data (3 min)
+
+- Make a folder called `coordinate-systems-exercise` inside your `geog215` folder, and save this file there.
+- Change `author:` and `date:` at the top of the file.
+- Run the chunk to load the packages.
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sf)
+library(tmap)
+library(spData)
+```
+
+# Part 2. The Shape of the Earth and the Length of a Degree (8 min)
+
+The WGS84 ellipsoid has a semi-major axis (the radius at the equator) of *a* = 6,378,137 m and a semi-minor axis (from the center to a pole) of *b* = 6,356,752.314 m. Its **flattening** is *f* = (*a* − *b*) / *a*.
+
+- Fill in the blanks to calculate the flattening, 1 / *f*, and the difference between the two radii in kilometers.
+
+```{r flattening}
+a <- 6378137
+b <- 6356752.314
+
+f <- (a - ___) / ___
+f
+1 / f
+(a - b) / 1000
+```
+
+**Q1.** By how many kilometers is the Earth's radius at the equator longer than its radius to the poles? If you drew the Earth as a circle 10 cm across, would you be able to see the difference?
+
+*Your answer here.*
+
+Lines of latitude are about 111 km apart everywhere, but lines of longitude come together at the poles. A degree of longitude is about 111.32 × cos(latitude) km long. R's `cos()` works in radians, so multiply degrees by `pi / 180` first.
+
+- Fill in the blanks to find the length of one degree of longitude at the equator, at Chapel Hill (35.9° N), at 60° N, and at 89° N.
+
+```{r degree-length}
+lat <- c(0, 35.9, 60, 89)
+
+km_per_degree_lon <- 111.32 * cos(lat * ___)
+round(km_per_degree_lon, 1)
+```
+
+**Q2.** How long is one degree of longitude at Chapel Hill? How does that compare with one degree of latitude? What does that mean for a "square" that is one degree on each side?
+
+*Your answer here.*
+
+# Part 3. Converting Between DMS and Decimal Degrees (10 min)
+
+Coordinates are often written in **degrees, minutes, and seconds** (DMS), where 1 degree = 60 minutes and 1 minute = 60 seconds. R needs **decimal degrees** (DD).
+
+- Fill in the blanks to finish a function that converts DMS to decimal degrees. The tests below it should give 35.5 and 35.91222.
+
+```{r dms-to-dd}
+dms_to_dd <- function(deg, min, sec) {
+  deg + min / ___ + sec / ___
+}
+
+# tests
+dms_to_dd(35, 30, 0)                # should be 35.5
+round(dms_to_dd(35, 54, 44), 5)     # should be 35.91222
+```
+
+The Old Well, at the center of UNC's campus, is at about 35° 54′ 44″ N, 79° 3′ 5″ W.
+
+- Fill in the blanks to convert it to decimal degrees. Remember that west longitudes are **negative**.
+
+```{r old-well}
+old_well_lat <- dms_to_dd(35, 54, 44)
+old_well_lon <- ___dms_to_dd(___, ___, ___)
+
+c(old_well_lat, old_well_lon)
+```
+
+**Q3.** What are the Old Well's coordinates in decimal degrees? Why must the longitude be negative? What would happen on a map if you forgot the minus sign?
+
+*Your answer here.*
+
+Going the other way takes three steps: the whole degrees, then the whole minutes from what's left, then the seconds.
+
+- Fill in the blanks to finish a function that converts decimal degrees to DMS. `floor()` rounds down to a whole number. The test should give 35, 52, 39.4 for Raleigh–Durham airport (RDU), at 35.8776° N.
+
+```{r dd-to-dms}
+dd_to_dms <- function(dd) {
+  dd <- abs(dd)
+  deg <- floor(dd)
+  min <- floor((dd - deg) * ___)
+  sec <- ((dd - deg) * 60 - ___) * 60
+  c(deg, min, round(sec, 1))
+}
+
+# test
+dd_to_dms(35.8776)    # should be 35 52 39.4
+
+dd_to_dms(-78.7875)   # RDU's longitude
+```
+
+**Q4.** What is RDU's longitude in DMS? Why does the function use `abs()`, and what do you have to add yourself when you write the answer?
+
+*Your answer here.*
+
+# Part 4. A Layer of North Carolina Cities (7 min)
+
+A table with latitude and longitude columns becomes an sf layer with `st_as_sf()`. You give it the names of the coordinate columns, **x (longitude) first**, and the CRS the numbers are in. GPS coordinates are WGS84, EPSG:4326.
+
+- Fill in the blanks.
+
+```{r cities}
+nc_cities <- tibble(
+  city = c("Chapel Hill", "Raleigh", "Charlotte", "Asheville", "Wilmington"),
+  lat  = c(35.9132, 35.7796, 35.2271, 35.5951, 34.2257),
+  lon  = c(-79.0558, -78.6382, -80.8431, -82.5515, -77.9447)
+) |>
+  st_as_sf(coords = c(___, ___), crs = ___)
+
+nc_cities
+```
+
+**Q5.** Why does `coords` list longitude before latitude, when we usually say "latitude and longitude"? What would the map look like if you swapped them?
+
+*Your answer here.*
+
+# Part 5. Checking and Changing the CRS, and Measuring Area (12 min)
+
+- Fill in the blanks to keep North Carolina from `us_states` and check its CRS.
+
+```{r nc}
+nc <- us_states |>
+  filter(NAME == ___)
+
+st_crs(___)$input
+```
+
+**Q6.** What CRS is `us_states` in? Is it a projected or a geographic (unprojected) CRS, and what are its units?
+
+*Your answer here.*
+
+- Fill in the blanks to transform North Carolina to three projected CRSs: NC State Plane (EPSG:32119), USA Contiguous Albers Equal Area (EPSG:5070), and Web Mercator (EPSG:3857), the projection of most web maps.
+
+```{r transform}
+nc_stateplane <- st_transform(nc, ___)
+nc_albers     <- st_transform(nc, ___)
+nc_mercator   <- st_transform(nc, ___)
+```
+
+- Plot all four side by side. Base R's `plot()` with `axes = TRUE` shows the coordinates along the edges, so you can see each CRS's units.
+
+```{r four-maps, fig.width=9, fig.height=6}
+par(mfrow = c(2, 2))
+plot(st_geometry(nc), axes = TRUE, main = "NAD83 (unprojected)")
+plot(st_geometry(nc_stateplane), axes = TRUE, main = "NC State Plane")
+plot(st_geometry(nc_albers), axes = TRUE, main = "Albers Equal Area")
+plot(st_geometry(nc_mercator), axes = TRUE, main = "Web Mercator")
+par(mfrow = c(1, 1))
+```
+
+**Q7.** Look at the numbers on the axes. What units is each map in? Which maps look most alike?
+
+*Your answer here.*
+
+- Fill in the blanks to calculate North Carolina's area in each, in square kilometers.
+
+```{r areas}
+st_area(nc) / 1e6
+st_area(___) / 1e6
+st_area(nc_albers) / 1e6
+st_area(___) / 1e6
+```
+
+**Q8.** Which three areas agree? How much bigger is North Carolina in Web Mercator, as a percentage? Why does Mercator make it bigger? (Hint: a degree of longitude is drawn the same width at every latitude.)
+
+*Your answer here.*
+
+**Q9.** Would Mercator exaggerate Minnesota more or less than North Carolina? Why?
+
+*Your answer here.*
+
+# Part 6. Measuring Distances (12 min)
+
+`st_distance()` measures the distance between every pair of features. For a geographic CRS such as WGS84, sf measures along the curved surface of the Earth, in meters.
+
+- Fill in the blanks to measure the distances from every city to every other, in km, first in WGS84 and then in NC State Plane and Web Mercator.
+
+```{r distances}
+d_wgs84 <- st_distance(nc_cities) / 1000
+d_stateplane <- st_distance(st_transform(nc_cities, ___)) / 1000
+d_mercator <- st_distance(st_transform(nc_cities, ___)) / 1000
+
+# the first row of each: distances from Chapel Hill
+round(d_wgs84[1, ], 1)
+round(d_stateplane[1, ], 1)
+round(d_mercator[1, ], 1)
+```
+
+**Q10.** How far is Chapel Hill from Asheville in WGS84 and in NC State Plane? How far does Web Mercator say it is? Which would you report, and why?
+
+*Your answer here.*
+
+A common mistake is to treat longitude and latitude as if they were x and y in meters.
+
+- Fill in the blanks to make three points: one at 36° N, 79° W; one a degree **north** of it; and one a degree **west** of it. Then measure the distances.
+
+```{r degree-points}
+three_points <- tibble(
+  name = c("start", "one degree north", "one degree west"),
+  lon  = c(-79, -79, ___),
+  lat  = c(36, ___, 36)
+) |>
+  st_as_sf(coords = c("lon", "lat"), crs = 4326)
+
+round(st_distance(three_points) / 1000, 1)
+```
+
+**Q11.** Both points are "one degree" from the start. Why is one so much farther than the other? What would go wrong if you calculated the distance between two cities with the Pythagorean theorem on their latitudes and longitudes?
+
+*Your answer here.*
+
+# Part 7. Choosing a Projection (8 min)
+
+**Q12.** Choose a CRS from this exercise (WGS84, NC State Plane, Albers Equal Area, or Web Mercator) for each task, and say why: (a) a map comparing the forest area of every US state; (b) measuring the length of every road in Orange County; (c) a zoomable web map of restaurants in Chapel Hill.
+
+*Your answer here.*
+
+## Reflection Questions
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas.

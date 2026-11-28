@@ -1,0 +1,308 @@
+---
+title: "Thematic Maps Exercise: People, Cities, and Rivers"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 10, Thematic Maps with tmap**. It builds on the tidyverse exercises from Chapters 6 to 9. It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Explain what an sf object is: a data frame of attributes with a geometry column.
+2. Build a map in layers with `tm_shape()` and `tm_polygons()`, `tm_dots()`, or `tm_lines()`.
+3. Shade features by an attribute, and control the classes with `n` and `style` in `tm_scale_intervals()`.
+4. Explain how the choice of classification style changes the story a map tells.
+5. Combine several layers in one map, and finish it with a title, a scale bar, a north arrow, and credits.
+6. Switch between static and interactive maps with `tmap_mode()`.
+
+**Knowledge you'll gain.** You'll map where people live in the United States, compare a map of population with a map of population *density*, and map the world's largest cities on top of life expectancy.
+
+**Why this matters.** Maps are the main product of spatial data science: they are how you will show your results in every remaining assignment and your final project. A thematic map can tell very different stories depending on what you map (counts or rates) and how you classify it. Learning to make those choices on purpose, and to finish a map so a reader can trust it, is the difference between a map that informs and one that misleads.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- **Before you run** each chunk, picture the map you expect. Then run it and compare.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- tmap layers are joined with `+`, like ggplot2. Data steps before `tm_shape()` use the pipe `|>`.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and look at an sf object | 6 min |
+| 2 | Map polygons: population and density | 12 min |
+| 3 | Classification: `n` and `style` | 10 min |
+| 4 | Map points: the world's largest cities | 8 min |
+| 5 | Map lines: the rivers of Paris | 5 min |
+| 6 | Put a finished map together | 14 min |
+| 7 | Reflect, knit, and turn in | 5 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and every map appears in it.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences that describes what the map shows, with place names.
+- [ ] Your finished map in Part 6 has a title, a legend title, a scale bar, a north arrow, and credits with your name and the data source.
+- [ ] Your code uses tmap version 4 arguments (`fill =`, `fill.scale =`, `tm_title()`), not the old version 3 ones.
+- [ ] The file is back in `tmap_mode("plot")` before it knits.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with every map showing | Knits, but some chunks have errors | Doesn't knit, or no HTML turned in |
+| Map code (5 pts) | Every blank filled in correctly; every map shows what was asked | Most maps correct | Many blanks missing or wrong |
+| Questions (8 pts) | Q1 to Q11 answered, describing patterns with place names and reasons | Some answers missing, or vague ("it's darker in places") | Most answers missing |
+| Finished map (3 pts) | Title, legend title, scale bar, north arrow, and credits; nothing covers the data | Some parts missing | Not done |
+| Style (1 pt) | tmap v4 arguments, `+` between layers, pipe for data steps, no `install.packages()` | | Several problems |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* Where do the states with the most people cluster?
+>
+> *Weak answer:* "On the coasts."
+>
+> *Strong answer:* "The darkest class is California, Texas, Florida, and New York, the four biggest states by population. A second band runs through the Midwest and Northeast (Illinois, Ohio, Pennsylvania). The Mountain West and Great Plains are in the lightest class."
+
+The strong answer names places, says which class they're in, and describes the pattern rather than a single impression.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Look at an sf Object (6 min)
+
+- Make a folder called `tmap-exercise` inside your `geog215` folder, and save this file there.
+- Change `author:` and `date:` at the top of the file.
+- Fill in the blanks to load the packages. All of the data comes with **spData** and **tmap**, so there's nothing to download.
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(___)
+library(___)
+library(spData)
+```
+
+`us_states` is an **sf object**: a data frame with one row per state and a special `geometry` column that holds each state's shape.
+
+- Run the chunk and read the output.
+
+```{r look}
+us_states
+
+class(us_states)
+```
+
+**Q1.** What kind of geometry does `us_states` have? How many features (rows) and attribute columns? Which states are missing, and how can you tell?
+
+*Your answer here.*
+
+# Part 2. Mapping Polygons: Population and Density (12 min)
+
+We'll project the states to an equal-area map projection so they don't look stretched. (You'll learn what that means in Chapter 12.) We'll also make a new column: **population density**, people per square kilometer. `AREA` is stored with units, so `as.numeric()` turns it into a plain number.
+
+- Fill in the blanks to make `states` and calculate density from the 2015 population.
+
+```{r states}
+states <- us_states |>
+  st_transform("EPSG:5070") |>
+  mutate(density = total_pop_15 / as.numeric(___))
+```
+
+- Fill in the blanks to draw the states, and then to shade them by their 2015 population.
+
+```{r map-plain}
+tm_shape(___) +
+  tm_polygons()
+```
+
+```{r map-pop}
+tm_shape(states) +
+  tm_polygons(fill = ___)
+```
+
+**Q2.** Where do the states with the most people cluster? Name at least three of them.
+
+*Your answer here.*
+
+- Now shade the states by `density` instead. Use five classes and Jenks natural breaks.
+
+```{r map-density}
+tm_shape(states) +
+  tm_polygons(fill = ___,
+              fill.scale = tm_scale_intervals(n = ___, style = ___))
+```
+
+**Q3.** How does the density map tell a different story from the population map? Pick one state that changes a lot and explain why.
+
+*Your answer here.*
+
+# Part 3. Classification: n and style (10 min)
+
+The **style** decides where the breaks between classes go.
+
+- Fill in the blanks to map `density` three ways, each with five classes.
+
+```{r styles}
+tm_shape(states) +
+  tm_polygons(fill = "density",
+              fill.scale = tm_scale_intervals(n = 5, style = ___)) +
+  tm_title("Equal intervals")
+
+tm_shape(states) +
+  tm_polygons(fill = "density",
+              fill.scale = tm_scale_intervals(n = 5, style = ___)) +
+  tm_title("Quantiles")
+
+tm_shape(states) +
+  tm_polygons(fill = "density",
+              fill.scale = tm_scale_intervals(n = 5, style = "jenks")) +
+  tm_title("Jenks natural breaks")
+```
+
+**Q4.** In the equal-interval map, why is almost every state in the lightest class? (Hint: what is the highest density, and where is it?)
+
+*Your answer here.*
+
+**Q5.** Which style would you choose for a report about crowded states, and why? How could a mapmaker use the choice of style to mislead?
+
+*Your answer here.*
+
+- Try changing the number of classes: copy the Jenks map into the chunk below and set `n = 3`, then `n = 7`.
+
+```{r n-classes}
+tm_shape(states) +
+  tm_polygons(fill = "density",
+              fill.scale = tm_scale_intervals(n = ___, style = "jenks")) +
+  tm_title("3 classes")
+
+tm_shape(states) +
+  tm_polygons(fill = "density",
+              fill.scale = tm_scale_intervals(n = ___, style = "jenks")) +
+  tm_title("7 classes")
+```
+
+**Q6.** Which number of classes do you find easiest to read? What do you gain and lose with more classes?
+
+*Your answer here.*
+
+# Part 4. Mapping Points: The World's Largest Cities (8 min)
+
+`urban_agglomerations` is a layer of points: the 30 largest cities in the world every five years, from 1950 to the forecasts for 2035.
+
+- Fill in the blank to keep the cities for the year 2020.
+
+```{r cities}
+cities_2020 <- urban_agglomerations |>
+  filter(year == ___)
+
+nrow(cities_2020)
+```
+
+- Fill in the blanks to draw the countries of the world (`world`) as gray polygons, and the cities on top as dots sized by their population.
+
+```{r map-cities}
+tm_shape(world) +
+  tm_polygons(fill = "gray90") +
+  tm_shape(___) +
+  ___(size = "population_millions", fill = "red")
+```
+
+**Q7.** Which continent has the most of the world's 30 largest cities? Why does the order of the layers matter?
+
+*Your answer here.*
+
+# Part 5. Mapping Lines: The Rivers of Paris (5 min)
+
+`seine` is a layer of lines: the Seine and two of its tributaries, the Marne and the Yonne, which meet near Paris.
+
+- Fill in the blanks to draw France (from `world`) and the rivers on top, colored by their name.
+
+```{r map-rivers}
+france <- world |>
+  filter(name_long == ___)
+
+tm_shape(seine) +
+  tm_lines(col = ___, lwd = 3) +
+  tm_shape(france) +
+  tm_borders()
+```
+
+**Q8.** Here the rivers came first and France second. Look at how much of the map France fills. What did putting `seine` first do to the map? (Hint: what does the first layer set?)
+
+*Your answer here.*
+
+# Part 6. A Finished Map (14 min)
+
+tmap's own `World` data has more attributes than spData's `world`, including `life_exp`, life expectancy at birth in years.
+
+- Fill in the blanks to make a finished map of life expectancy, with the 2020 megacities on top. Put your name in the credits.
+
+```{r finished-map}
+data(World)
+
+tm_shape(World) +
+  tm_polygons(fill = ___,
+              fill.scale = tm_scale_intervals(n = 5, style = "jenks"),
+              fill.legend = tm_legend(title = ___)) +
+  tm_shape(cities_2020) +
+  tm_dots(size = 0.3, fill = "black") +
+  tm_title(___) +
+  ___(position = c("left", "bottom")) +
+  ___(position = c("right", "top")) +
+  tm_credits("Author: Your Name\nData Source: tmap World data; UN World Urbanization Prospects (spData)",
+             position = c("right", "bottom"))
+```
+
+**Q9.** Describe the pattern of life expectancy. Which region has the lowest? Are the megacities mostly in places with high or low life expectancy?
+
+*Your answer here.*
+
+**Q10.** A scale bar on a map of the whole world is a little misleading. Why? (Hint: does one centimeter on this map always mean the same distance on the ground?)
+
+*Your answer here.*
+
+Last, try an interactive map. **Run these lines in the Console**, not in this file:
+
+```
+tmap_mode("view")
+tm_shape(states) + tm_polygons(fill = "density")
+tmap_mode("plot")
+```
+
+Click on a few states to see their attributes, then make sure you switch back with `tmap_mode("plot")`.
+
+**Q11.** What can you do with the interactive map that you can't with the static one? When would you use each?
+
+*Your answer here.*
+
+# Part 7. Reflection Questions (5 min)
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas.

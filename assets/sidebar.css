@@ -1,6 +1,8 @@
-/* Left sidebar: indent each chapter quiz page under its chapter, so the
-   numbered chapters stand out and each quiz reads as part of the chapter
-   above it. Quiz pages are the chapters/*-quiz.qmd files. */
+/* Left sidebar: indent each chapter exercise and quiz page under its
+   chapter, so the numbered chapters stand out and each reads as part of the
+   chapter above it. These are the chapters/*-exercise.qmd and
+   chapters/*-quiz.qmd files. */
+.sidebar-item a.sidebar-link[href$="-exercise.html"],
 .sidebar-item a.sidebar-link[href$="-quiz.html"] {
   padding-left: 1.25rem;
 }

@@ -1,0 +1,412 @@
+---
+title: "Blocks, Loops, and Functions Exercise: How Fast Are NC Cities Growing?"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 5, Blocks, Loops, and Functions**. It builds on the R Basics (Chapter 3) and Indexing (Chapter 4) exercises. It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Use `if`, `else if`, and `else` to run a block of code only when a test is `TRUE`.
+2. Use `ifelse()` to make the same decision for every element of a vector.
+3. Repeat a block with a `while` loop, and keep it from running forever.
+4. Repeat a block for each item in a vector with a `for` loop, and save the results.
+5. Decide when a loop is needed and when a vectorized function already does the job.
+6. Write your own functions, with arguments, default values, and a check that stops with a helpful error.
+7. Explain why a function doesn't change the variables outside it.
+
+**Knowledge you'll gain.** You'll estimate how many years it would take six North Carolina cities to double in size if they kept growing at their 2010 to 2020 rate, and sort the states into low, middle, and high income groups.
+
+**Why this matters.** Real projects repeat the same steps many times: the same calculation for 100 counties, the same download for five years, the same map for every state. Copying and pasting code is slow and error-prone, because a fix in one copy doesn't reach the others. Loops and functions let you write the steps **once** and reuse them, which is how analysts handle big data sets. You'll also need to *read* functions: later in the course you'll use functions that calculate the mean center and standard distance of a map layer, and they're built from exactly the pieces you'll practice today.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- **Before you run** each chunk, predict what it will return. Then run it and check.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- If R seems stuck (the stop sign in the Console stays red), you've made an infinite loop. Click the stop sign or press Esc, then fix the loop.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 3 min |
+| 2 | Make decisions with `if`, `else`, and `ifelse()` | 12 min |
+| 3 | Find a doubling time with a `while` loop | 10 min |
+| 4 | Repeat a calculation with a `for` loop | 10 min |
+| 5 | Write your own functions | 15 min |
+| 6 | Put it all together: a loop that calls your function | 7 min |
+| 7 | Reflect, knit, and turn in | 3 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors (except in the two chunks marked `error=TRUE`, which are *meant* to show an error), and the author and date at the top are yours.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every block is indented by two spaces inside its curly braces, and every `{` has a matching `}`.
+- [ ] Your functions `growth_rate()`, `doubling_time()`, and `income_group()` work and return the test values given in the instructions.
+- [ ] `doubling_time()` stops with your own helpful error message when the rate isn't positive.
+- [ ] Every question (Q1 to Q12) has an answer in complete sentences that explains *why*.
+- [ ] Function and variable names are snake_case and say what they hold or do.
+- [ ] The pipe `|>` is used where the instructions ask for it.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML; only the two `error=TRUE` chunks show errors | Knits, but other chunks show errors | Doesn't knit, or no HTML turned in |
+| if/else and loops (5 pts) | Every blank filled in correctly; loops end and save their results | Most blanks correct, or a loop doesn't save its results | Many blanks missing or wrong |
+| Functions (5 pts) | All three functions return the test values; input check works | One function wrong, or no input check | Functions missing or don't run |
+| Questions (6 pts) | Q1 to Q12 answered correctly, with reasons | Some answers missing, wrong, or with no reason | Most answers missing |
+| Style (1 pt) | Indented blocks, snake_case names, pipe where asked | | Several problems |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* Why didn't the loop `while (x < 100) { y <- y + 1 }` ever stop?
+>
+> *Weak answer:* "It was broken."
+>
+> *Strong answer:* "The test checks `x`, but the block only changes `y`. `x` never changes, so `x < 100` stays `TRUE` forever. The block has to change `x`, for example with `x <- x + 1`."
+
+The strong answer says which part of the code caused the problem, why, and how to fix it.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Load the Data (3 min)
+
+- Make a folder called `blocks-loops-functions-exercise` inside your `geog215` folder, and save this file there. Change `author:` and `date:` at the top.
+- Fill in the blank to load spData, then run both chunks.
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(___)
+```
+
+```{r load-data}
+# Median income and poverty for the 50 states and DC, 2010 and 2015
+# Source: American Community Survey, via the spData package
+states_df <- as.data.frame(us_states_df)
+
+# 2010 and 2020 Census populations of six NC cities (from the R Basics exercise)
+city_name <- c("Charlotte", "Raleigh", "Greensboro",
+               "Durham", "Winston-Salem", "Chapel Hill")
+pop_2010 <- c(731424, 403892, 269666, 228330, 229617, 57233)
+pop_2020 <- c(874579, 467665, 299035, 283506, 249545, 61960)
+names(pop_2010) <- city_name
+names(pop_2020) <- city_name
+```
+
+# Part 2. Making Decisions (12 min)
+
+## if and else
+
+An `if` statement runs its block only when its test is `TRUE`. Add `else` for a second block that runs when the test is `FALSE`. Exactly one of the two blocks runs.
+
+The **median** is the middle value: half the states are above it and half below. `median()` works like `mean()`.
+
+- Fill in the blanks so the chunk returns `"above"` if North Carolina's 2015 median income is greater than the median of all the states, and `"below"` if it isn't.
+
+```{r if-else}
+nc_income <- states_df[states_df$state == "North Carolina", "median_income_15"]
+us_median <- median(states_df$median_income_15)
+
+if (nc_income ___ us_median) {
+  "above"
+} ___ {
+  "below"
+}
+```
+
+## else if
+
+Chain more tests with `else if`. R checks them from the top and runs the **first** block whose test is `TRUE`.
+
+- Fill in the blanks so the chunk returns `"low"` for incomes under 24,000, `"middle"` for incomes under 30,000, and `"high"` for anything else.
+
+```{r else-if}
+income <- nc_income
+
+if (income < 24000) {
+  "low"
+} else if (income ___ 30000) {
+  "___"
+} else {
+  "___"
+}
+```
+
+**Q1.** Which group is North Carolina in? Change `income <- nc_income` to `income <- 24000` and run the chunk again. Which group does it return, and why not `"low"`? (Change it back to `nc_income` when you're done.)
+
+*Your answer here.*
+
+## if only takes one TRUE or FALSE
+
+What if we try to sort **every** state at once? This chunk has `error=TRUE` in its header, so the file still knits even though the chunk gives an error.
+
+```{r if-vector, error=TRUE}
+if (states_df$median_income_15 < 24000) {
+  "low"
+}
+```
+
+**Q2.** What error did you get? Why can't `if` decide for a whole column at once? (Hint: how many `TRUE`s and `FALSE`s does the test return?)
+
+*Your answer here.*
+
+`ifelse(test, yes, no)` is the vectorized version: it makes the decision for every element and returns one answer for each. You can put one `ifelse()` inside another for three groups.
+
+- Fill in the blanks to add an `income_group` column with the same three groups as above.
+
+```{r ifelse}
+states_df$income_group <- ifelse(states_df$median_income_15 < 24000, "low",
+                                 ifelse(states_df$median_income_15 < 30000, "___", "___"))
+
+# the low-income states
+states_df[states_df$income_group == "low", "state"]
+
+# how many states are in the high group?
+sum(states_df$income_group == "___")
+```
+
+**Q3.** How many states are in the high group? Which of North Carolina's neighbors (Virginia, Tennessee, Georgia, and South Carolina) are in the low group?
+
+*Your answer here.*
+
+# Part 3. A while Loop: How Long Until a City Doubles? (10 min)
+
+From 2010 to 2020, Durham grew about 2.4% a year. If it kept growing at that rate, how many years would it take to double in size? Each year, the population is multiplied by 1.024. A `while` loop can keep multiplying until the population reaches twice its starting size, and count the years as it goes.
+
+- Fill in the blanks. The test should keep the loop going **while** the population is less than double the start. Inside the block, grow the population by one year and add one to the count of years.
+
+```{r while}
+start <- pop_2020["Durham"]
+pop <- start
+years <- 0
+
+while (pop < ___ * start) {
+  pop <- pop * ___
+  years <- years + ___
+}
+
+years
+```
+
+**Q4.** How many years would Durham take to double? Check your answer with the "rule of 70": a place growing at *r*% a year doubles in about 70 / *r* years.
+
+*Your answer here.*
+
+**Q5.** Suppose you deleted the line `pop <- pop * 1.024` from the loop. What would happen when you ran it, and why? (Don't actually run it!)
+
+*Your answer here.*
+
+# Part 4. A for Loop: Growth for Every City (10 min)
+
+A `for` loop runs its block once for each item in a vector. `seq_along(city_name)` gives the positions 1, 2, 3, ... 6, so the loop variable `i` can index each vector.
+
+- Run this loop and read its output. `paste()` joins text and numbers into one sentence.
+
+```{r for-print}
+for (i in seq_along(city_name)) {
+  print(paste(city_name[i], "grew from", pop_2010[i], "to", pop_2020[i]))
+}
+```
+
+`print()` only shows the results. To **keep** them, make an empty vector before the loop and fill in one element on each pass. The average yearly growth rate is the total change divided by the starting population, divided by the 10 years between Censuses: (new - old) / old / 10.
+
+- Fill in the blanks to save each city's yearly growth rate.
+
+```{r for-save}
+# an empty numeric vector, one 0 for each city
+yearly_rate <- numeric(length(city_name))
+
+for (i in seq_along(city_name)) {
+  yearly_rate[i] <- (pop_2020[i] - pop_2010[___]) / pop_2010[i] / ___
+}
+
+names(yearly_rate) <- city_name
+yearly_rate
+```
+
+Subtraction and division are **vectorized**, so you can do the same job in one line, with no loop.
+
+- Fill in the blank to calculate the same rates without a loop. Then the second line checks that the two answers match.
+
+```{r vectorized}
+yearly_rate_2 <- (pop_2020 - pop_2010) / ___ / 10
+
+yearly_rate == yearly_rate_2
+```
+
+**Q6.** Do the loop and the one-line version give the same answer? Which would you rather write, and why? Give an example of a job where you *would* need a loop.
+
+*Your answer here.*
+
+# Part 5. Writing Your Own Functions (15 min)
+
+A function is a block with a name, arguments, and a return value. The last line of the body is what the function returns.
+
+```
+function_name <- function(argument1, argument2 = default) {
+  # the body
+}
+```
+
+## A growth rate function
+
+- Fill in the body of `growth_rate()` so it returns the average yearly growth rate, (new - old) / old / years. `years` has a default value of 10.
+
+```{r growth-rate}
+growth_rate <- function(old, new, years = 10) {
+  ___
+}
+
+# test it: each line should give 0.01
+growth_rate(100, 110)
+growth_rate(old = 100, new = 105, years = 5)
+
+# use it on the whole vectors
+growth_rate(pop_2010, pop_2020)
+```
+
+**Q7.** What is `years` in the first test, and why didn't you have to type it? Why does `growth_rate(pop_2010, pop_2020)` return six answers when the function has no loop in it?
+
+*Your answer here.*
+
+## A doubling time function
+
+Now turn the `while` loop from Part 3 into a function, so it works for **any** growth rate. Because doubling time doesn't depend on the starting population, we can start at 1 and stop at 2.
+
+- Fill in the blanks. Copy the loop's logic from Part 3, but use the argument `rate` instead of 1.024. (A rate of 0.024 means 2.4%, so each year multiplies by `1 + rate`.)
+
+```{r doubling-time}
+doubling_time <- function(rate) {
+  pop <- 1
+  years <- 0
+  while (pop < ___) {
+    pop <- pop * (1 + ___)
+    years <- years + 1
+  }
+  ___
+}
+
+# test it: these should give 70, 36, and 15
+doubling_time(0.01)
+doubling_time(0.02)
+doubling_time(0.05)
+```
+
+What happens if the rate is 0 or negative? The population never grows, so the loop never ends. A good function checks its input and stops with a helpful message.
+
+- Add an `if` statement **at the top** of `doubling_time()`'s body that calls `stop("rate must be greater than 0")` when `rate` is 0 or less. Then run the chunk below. It has `error=TRUE`, so the file will still knit. **Don't run it until you've added the check**, or it will run forever.
+
+```{r doubling-check, error=TRUE}
+doubling_time(0.024)
+doubling_time(-0.01)
+```
+
+**Q8.** How does your `if` statement keep `doubling_time(-0.01)` from running forever? What message does it give?
+
+*Your answer here.*
+
+## An income group function
+
+- Turn the nested `ifelse()` from Part 2 into a function. `low` and `high` are the cutoffs, with defaults of 24000 and 30000.
+
+```{r income-group}
+income_group <- function(income, low = 24000, high = 30000) {
+  ifelse(income < low, "low",
+         ifelse(income < ___, "middle", "high"))
+}
+
+# test it: should give "low" "middle" "high"
+income_group(c(20000, 25000, 35000))
+
+# with a higher cutoff for "high", how many states are high?
+states_df$median_income_15 |>
+  income_group(high = 32000) |>
+  table()
+```
+
+`table()` counts how many times each value appears.
+
+**Q9.** How many states are "high" with the default cutoffs (from Q3), and how many with `high = 32000`? Why is it useful to make the cutoffs arguments instead of typing them into the body?
+
+*Your answer here.*
+
+## Scope
+
+- **Before you run** this chunk, predict what the last line will print.
+
+```{r scope}
+rate <- 0.5
+doubling_time(0.03)
+rate
+```
+
+**Q10.** What did `rate` print? `doubling_time()` uses a variable called `rate` too. Why didn't calling it change your `rate`?
+
+*Your answer here.*
+
+# Part 6. Putting It Together (7 min)
+
+Now use a `for` loop that calls your function: find the doubling time for each of the six cities, using the yearly rates you saved in Part 4.
+
+- Fill in the blanks. Make an empty vector, then fill one element per city by calling `doubling_time()` on that city's rate.
+
+```{r all-cities}
+city_doubling <- numeric(length(yearly_rate))
+
+for (i in seq_along(yearly_rate)) {
+  city_doubling[i] <- ___(yearly_rate[___])
+}
+
+names(city_doubling) <- city_name
+city_doubling
+```
+
+- Fill in the blanks to return the names of the cities that would double in **less than 40 years**, using indexing from Chapter 4. Use the pipe to `sort()` the doubling times from fastest to slowest.
+
+```{r fastest}
+names(city_doubling)[city_doubling ___ 40]
+
+city_doubling |>
+  ___()
+```
+
+**Q11.** Which cities would double in less than 40 years? Which would take longest?
+
+*Your answer here.*
+
+**Q12.** Why did we need a loop here, when `growth_rate()` worked on the whole vector without one? (Hint: does `doubling_time()` work if you give it a vector of six rates? Look at the test in its `while`.)
+
+*Your answer here.*
+
+# Part 7. Reflection Questions (3 min)
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas.

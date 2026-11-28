@@ -1,0 +1,293 @@
+---
+title: "Summarize and Group Exercise: Which North Carolina Airport Has the Worst Delays?"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 8, Into the Tidyverse: summarize, group_by, and drop_na**. It builds on the Chapter 6 and 7 exercises, and uses the same flights to North Carolina. It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Collapse a data frame into summary statistics with `summarize()`, using `mean()`, `median()`, `sd()`, `max()`, and `n()`.
+2. Calculate the same statistics for each group with `group_by()` and `summarize()`, and count groups with `count()`.
+3. Group by two columns, and know when a result is still grouped.
+4. Handle missing values on purpose, with `na.rm = TRUE`, `sum(is.na())`, or `drop_na()`, and explain how they differ.
+5. Tell an average of averages from a weighted average, and calculate the weighted one.
+
+**Knowledge you'll gain.** You'll compare delays and cancellations at North Carolina's five airports, find out which airlines were most often late, and see how much the "average speed" of a route depends on how you average it.
+
+**Why this matters.** Most numbers in a report are summaries: the median income of a county, the average commute in a state, the rate of a disease in a region. `group_by()` and `summarize()` make those numbers for every place at once, and they are how you'll turn tract data into county data later in the course. Choosing between a mean and a median, deciding what to do with missing values, and weighting an average correctly are the judgment calls that make a summary honest.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- **Before you run** each chunk, predict how many rows it will return. Then run it and check.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- Give every summary column a name, as in `summarize(mean_delay = mean(dep_delay, na.rm = TRUE))`.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and keep the flights to North Carolina | 3 min |
+| 2 | Summarize every flight with `summarize()` | 8 min |
+| 3 | One result per airport and airline with `group_by()` | 15 min |
+| 4 | Group by two columns | 8 min |
+| 5 | Missing values: `na.rm`, `is.na()`, and `drop_na()` | 10 min |
+| 6 | The average of averages | 12 min |
+| 7 | Reflect, knit, and turn in | 4 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and the author and date at the top are yours.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences.
+- [ ] Answers that ask for a statistic say which statistic it is (mean or median), give its units, and name the group it belongs to.
+- [ ] Every column made in `summarize()` has a clear, snake_case name.
+- [ ] Every chain uses the pipe `|>`, with one step per line.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with no errors | Knits, but some chunks have errors shown | Doesn't knit, or no HTML turned in |
+| Code (6 pts) | Every blank filled in correctly; every chunk returns what was asked | Most blanks correct | Many blanks missing or wrong |
+| Questions (8 pts) | Q1 to Q11 answered correctly, using the output, with units and reasons | Some answers missing, wrong, or with no reason | Most answers missing |
+| Weighted average (2 pts) | Part 6 calculates both averages and explains why they differ | Calculates both, but doesn't explain | Not done |
+| Style (1 pt) | Named summary columns, pipe for every chain, one step per line, no `install.packages()` | | Several problems |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* How late were flights from New York in 2013, on average?
+>
+> *Weak answer:* "12.6."
+>
+> *Strong answer:* "The mean departure delay was 12.6 minutes, but the median was −2 minutes: more than half of the flights left early. A few very long delays pull the mean up, so the median is the better 'typical' delay."
+
+The strong answer names the statistic and its units, compares the mean with the median, and says which one describes a typical flight.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Load the Data (3 min)
+
+- Make a folder called `summarize-group-by-exercise` inside your `geog215` folder, and save this file there.
+- Change `author:` and `date:` at the top of the file.
+- Fill in the blanks to load the packages and keep the flights to North Carolina's five airports, as in the Chapter 7 exercise.
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(nycflights13)
+
+nc_airports <- c("AVL", "CLT", "GSO", "ILM", "RDU")
+
+nc_flights <- flights |>
+  filter(dest ___ ___)
+```
+
+# Part 2. One Number from Many Rows (8 min)
+
+`summarize()` collapses every row into one row of statistics.
+
+- Run this chunk. Then fill in the blank in the second line so that it skips the missing values.
+
+```{r summarize-na}
+nc_flights |>
+  summarize(mean_delay = mean(dep_delay))
+
+nc_flights |>
+  summarize(mean_delay = mean(dep_delay, ___))
+```
+
+**Q1.** Why does the first line return `NA`?
+
+*Your answer here.*
+
+- Fill in the blanks to calculate several statistics at once: the number of flights, and the mean, median, standard deviation, and maximum departure delay.
+
+```{r summarize-many}
+nc_flights |>
+  summarize(flights = ___,
+            mean_delay = mean(dep_delay, na.rm = TRUE),
+            median_delay = ___(dep_delay, na.rm = TRUE),
+            sd_delay = sd(dep_delay, na.rm = TRUE),
+            max_delay = ___(dep_delay, na.rm = TRUE))
+```
+
+**Q2.** The mean and median departure delays are very different. Which one better describes a *typical* flight to North Carolina, and why?
+
+*Your answer here.*
+
+# Part 3. One Result per Group (15 min)
+
+`group_by()` splits the rows into groups. The `summarize()` after it then gives one row **per group**.
+
+- Fill in the blanks to calculate, for each destination, the number of flights and the mean and median departure delays. Sort with the worst mean delay first.
+
+```{r by-dest}
+dest_delays <- nc_flights |>
+  group_by(___) |>
+  summarize(flights = n(),
+            mean_delay = mean(dep_delay, na.rm = TRUE),
+            median_delay = median(dep_delay, na.rm = TRUE)) |>
+  arrange(___)
+
+dest_delays
+```
+
+**Q3.** Which North Carolina airport had the worst mean departure delay? Do the means and medians put the airports in the same order? Which airport would you trust least, and why?
+
+*Your answer here.*
+
+Counting the rows in each group is so common that dplyr has a shortcut, `count()`.
+
+- Fill in the blank so that the second chain gives the same counts as the first.
+
+```{r count-shortcut}
+nc_flights |>
+  group_by(dest) |>
+  summarize(n = n())
+
+nc_flights |>
+  count(___)
+```
+
+- Now group by airline. Fill in the blanks to find each `carrier`'s number of flights and mean **arrival** delay, worst first.
+
+```{r by-carrier}
+nc_flights |>
+  group_by(___) |>
+  summarize(flights = n(),
+            mean_arr_delay = mean(___, na.rm = TRUE)) |>
+  arrange(desc(mean_arr_delay))
+```
+
+**Q4.** Which airline had the worst mean arrival delay? Would you tell a friend to avoid that airline? (Look at the `flights` column.)
+
+*Your answer here.*
+
+# Part 4. Grouping by Two Columns (8 min)
+
+- Fill in the blanks to count the flights for each combination of destination and month.
+
+```{r two-groups}
+dest_month <- nc_flights |>
+  group_by(dest, ___) |>
+  summarize(flights = n())
+
+dest_month
+```
+
+**Q5.** Look at the line above the table, `# Groups: dest [5]`. Is `dest_month` still grouped? By which column? Why does that matter if you add another step?
+
+*Your answer here.*
+
+- Fill in the blanks to keep only the RDU rows of `dest_month` and sort them, busiest month first.
+
+```{r rdu-busiest}
+dest_month |>
+  filter(dest == ___) |>
+  arrange(___)
+```
+
+**Q6.** In which month did RDU get the most flights from New York, and in which the fewest?
+
+*Your answer here.*
+
+# Part 5. Missing Values Three Ways (10 min)
+
+`is.na()` returns `TRUE` for each missing value, and `sum()` counts the `TRUE`s. So `sum(is.na(dep_delay))` counts the missing delays, which here means the cancelled flights.
+
+- Fill in the blanks to count, for each destination, the flights and the cancelled flights, and to calculate the percentage cancelled.
+
+```{r cancelled}
+nc_flights |>
+  group_by(dest) |>
+  summarize(flights = n(),
+            cancelled = sum(___(dep_delay))) |>
+  mutate(pct_cancelled = cancelled / ___ * 100) |>
+  arrange(desc(pct_cancelled))
+```
+
+**Q7.** Which airport had the highest *percentage* of cancelled flights? Is it the same airport that had the most cancelled flights? Why do we compare percentages rather than counts?
+
+*Your answer here.*
+
+`drop_na()` removes whole rows that have a missing value. With no columns named, it checks **every** column.
+
+- Run this chunk, and compare the three row counts.
+
+```{r drop-na}
+nrow(nc_flights)
+
+nc_flights |>
+  drop_na() |>
+  nrow()
+
+nc_flights |>
+  drop_na(dep_delay) |>
+  nrow()
+```
+
+**Q8.** Why does `drop_na()` with no columns remove more rows than `drop_na(dep_delay)`? Which would you use before calculating the mean departure delay, and why?
+
+*Your answer here.*
+
+# Part 6. The Average of Averages (12 min)
+
+How fast do planes fly to each airport? One way is to calculate each flight's speed, then average the speeds. Another is to add up all the miles and all the hours, then divide.
+
+- Fill in the blanks. The first column averages the speeds of the flights; the second divides the total distance by the total time.
+
+```{r two-averages}
+dest_speed <- nc_flights |>
+  drop_na(air_time) |>
+  group_by(dest) |>
+  summarize(avg_of_speeds = mean(distance / air_time * 60),
+            total_speed = ___ / ___ * 60)
+
+dest_speed
+```
+
+**Q9.** For each airport, are the two speeds the same? Which is higher?
+
+*Your answer here.*
+
+**Q10.** Why do they differ? Which one is the "real" average speed of all the flights to an airport? (Hint: in the second, a flight that spent longer in the air counts for more.)
+
+*Your answer here.*
+
+**Q11.** Where else might averaging averages mislead you? Think of a geographic example, such as the average income of North Carolina's counties versus the average income of North Carolinians.
+
+*Your answer here.*
+
+# Part 7. Reflection Questions (4 min)
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file and your `.html` file on Canvas.

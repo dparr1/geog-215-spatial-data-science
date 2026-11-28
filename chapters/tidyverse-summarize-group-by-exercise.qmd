@@ -1,0 +1,89 @@
+# Chapter exercise: Into the Tidyverse: summarize, group_by, and drop_na {.unnumbered}
+
+**Which North Carolina Airport Has the Worst Delays?**
+
+This exercise goes with **Chapter 8, Into the Tidyverse: summarize, group_by, and drop_na**. It builds on the Chapter 6 and 7 exercises, and uses the same flights to North Carolina. It should take you about **one hour**. Read this whole section before you start.
+
+::: {.callout-tip appearance="simple"}
+## Get the exercise file
+
+:::: {.content-visible when-format="html"}
+[Download summarize-group-by-exercise.Rmd](../exercises/summarize-group-by-exercise.Rmd){download="summarize-group-by-exercise.Rmd"}
+::::
+
+:::: {.content-visible when-format="pdf"}
+Download the file from <https://daveparr.com/intro-spatial-data-science/exercises/summarize-group-by-exercise.Rmd>.
+::::
+
+Save it in a new folder called `summarize-group-by-exercise` inside your `geog215` folder, open it in RStudio, and work through it from top to bottom. Everything on this page is also at the top of the file.
+:::
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Collapse a data frame into summary statistics with `summarize()`, using `mean()`, `median()`, `sd()`, `max()`, and `n()`.
+2. Calculate the same statistics for each group with `group_by()` and `summarize()`, and count groups with `count()`.
+3. Group by two columns, and know when a result is still grouped.
+4. Handle missing values on purpose, with `na.rm = TRUE`, `sum(is.na())`, or `drop_na()`, and explain how they differ.
+5. Tell an average of averages from a weighted average, and calculate the weighted one.
+
+**Knowledge you'll gain.** You'll compare delays and cancellations at North Carolina's five airports, find out which airlines were most often late, and see how much the "average speed" of a route depends on how you average it.
+
+**Why this matters.** Most numbers in a report are summaries: the median income of a county, the average commute in a state, the rate of a disease in a region. `group_by()` and `summarize()` make those numbers for every place at once, and they are how you'll turn tract data into county data later in the course. Choosing between a mean and a median, deciding what to do with missing values, and weighting an average correctly are the judgment calls that make a summary honest.
+
+## Task
+
+Work through Parts 1 to 7 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- **Before you run** each chunk, predict how many rows it will return. Then run it and check.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- Give every summary column a name, as in `summarize(mean_delay = mean(dep_delay, na.rm = TRUE))`.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and keep the flights to North Carolina | 3 min |
+| 2 | Summarize every flight with `summarize()` | 8 min |
+| 3 | One result per airport and airline with `group_by()` | 15 min |
+| 4 | Group by two columns | 8 min |
+| 5 | Missing values: `na.rm`, `is.na()`, and `drop_na()` | 10 min |
+| 6 | The average of averages | 12 min |
+| 7 | Reflect, knit, and turn in | 4 min |
+
+**Turn in** your `.Rmd` file and your knitted `.html` file on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors, and the author and date at the top are yours.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences.
+- [ ] Answers that ask for a statistic say which statistic it is (mean or median), give its units, and name the group it belongs to.
+- [ ] Every column made in `summarize()` has a clear, snake_case name.
+- [ ] Every chain uses the pipe `|>`, with one step per line.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with no errors | Knits, but some chunks have errors shown | Doesn't knit, or no HTML turned in |
+| Code (6 pts) | Every blank filled in correctly; every chunk returns what was asked | Most blanks correct | Many blanks missing or wrong |
+| Questions (8 pts) | Q1 to Q11 answered correctly, using the output, with units and reasons | Some answers missing, wrong, or with no reason | Most answers missing |
+| Weighted average (2 pts) | Part 6 calculates both averages and explains why they differ | Calculates both, but doesn't explain | Not done |
+| Style (1 pt) | Named summary columns, pipe for every chain, one step per line, no `install.packages()` | | Several problems |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* How late were flights from New York in 2013, on average?
+>
+> *Weak answer:* "12.6."
+>
+> *Strong answer:* "The mean departure delay was 12.6 minutes, but the median was −2 minutes: more than half of the flights left early. A few very long delays pull the mean up, so the median is the better 'typical' delay."
+
+The strong answer names the statistic and its units, compares the mean with the median, and says which one describes a typical flight.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.

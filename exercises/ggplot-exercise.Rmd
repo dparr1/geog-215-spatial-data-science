@@ -1,0 +1,307 @@
+---
+title: "Graphs Exercise: Picturing Flights to North Carolina"
+author: "Your Name"
+date: "Today's Date"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About this exercise
+
+This exercise goes with **Chapter 9, Into the Tidyverse: Graphs with ggplot2**. It uses the flights to North Carolina from the Chapter 6 to 8 exercises. It should take you about **one hour**. Read this whole section before you start.
+
+## Purpose
+
+**Skills you'll practice.** By the end of this exercise you will be able to:
+
+1. Build a graph from the ggplot2 template: data, aesthetic mappings in `aes()`, and a geom.
+2. Make scatterplots, bar charts, boxplots, and line graphs, and choose the right one for a question.
+3. Tell *setting* an aesthetic (one color for every point) from *mapping* one (a color for each group).
+4. Compare groups with stacked, filled, and side-by-side bars, and with small multiples (`facet_wrap()`).
+5. Finish a graph with a title, axis labels with units, a caption, and a theme, and save it with `ggsave()`.
+
+**Knowledge you'll gain.** You'll see whether flights that leave late also arrive late, which New York airports serve North Carolina, and which months were worst for delays to each North Carolina airport.
+
+**Why this matters.** A table answers a precise question, but a graph shows you the pattern, the outliers, and the mistakes in your data at a glance. Every report and final project in this course needs clear, labeled graphics. ggplot2 also uses the same grammar as tmap, which you'll use for maps in the next chapter: data, then layers, then the details. Learning the grammar here makes mapping much easier.
+
+## Task
+
+Work through Parts 1 to 8 in order, top to bottom. In each part:
+
+- Read the short explanation, then do each step marked with a bullet (•).
+- Wherever you see `___`, replace it with the missing code **before** you run the chunk. A chunk with `___` in it won't run.
+- **Before you run** each chunk, sketch in your head what the graph will look like. Then run it and compare.
+- Answer each question (**Q1**, **Q2**, ...) in a sentence or two of Markdown, where it says *Your answer here.*
+- Remember that ggplot2 layers are joined with `+`, not with the pipe.
+
+| Part | What you'll do | About |
+|:-----|:---------------|:------|
+| 1 | Set up your file and load the data | 3 min |
+| 2 | Scatterplots and trend lines | 10 min |
+| 3 | Setting and mapping aesthetics | 7 min |
+| 4 | Bar charts: counts and shares | 10 min |
+| 5 | Boxplots | 8 min |
+| 6 | Line graphs from a summary table | 8 min |
+| 7 | Small multiples with facets | 6 min |
+| 8 | Finish and save a graph, reflect, and turn in | 8 min |
+
+**Turn in** your `.Rmd` file, your knitted `.html` file, and the PNG file you save in Part 8, on Canvas.
+
+## Criteria for success
+
+Use this checklist before you turn your work in. Each item matches a row of the rubric below.
+
+- [ ] The file knits to HTML with no errors (except in the chunk marked `error=TRUE`), and every graph appears in it.
+- [ ] Every `___` has been filled in, and every chunk runs.
+- [ ] Every question (Q1 to Q11) has an answer in complete sentences that describes what the graph shows.
+- [ ] The finished graph in Part 8 has a title, axis labels with units, a caption with the data source, and a theme.
+- [ ] `nc_flights_delays.png` is saved, 7 inches wide and 5 inches tall.
+- [ ] Layers are joined with `+`, and data steps before `ggplot()` use the pipe `|>`.
+- [ ] No `install.packages()` line is anywhere in the file.
+- [ ] The three reflection questions are answered.
+
+| Criterion | Full credit | Partial credit | No credit |
+|:----------|:------------|:---------------|:----------|
+| Knits (2 pts) | Knits to HTML with every graph showing | Knits, but some chunks have errors | Doesn't knit, or no HTML turned in |
+| Graph code (5 pts) | Every blank filled in correctly; every graph shows what was asked | Most graphs correct | Many blanks missing or wrong |
+| Questions (8 pts) | Q1 to Q11 answered, describing the pattern in the graph, with reasons | Some answers missing, or vague ("it goes up") | Most answers missing |
+| Finished graph (3 pts) | Title, labeled axes with units, caption with source, theme; PNG saved at 7 × 5 in | Some labels or the PNG missing | Not done |
+| Style (1 pt) | `+` between layers, pipe for data steps, no `install.packages()` | | Several problems |
+| Reflection (1 pt) | All three answered | | Missing |
+
+**What a good answer looks like.** Here is a question, a weak answer, and a strong one.
+
+> *Question:* What does a histogram of `distance` for all flights from New York show?
+>
+> *Weak answer:* "Most flights are short."
+>
+> *Strong answer:* "Most flights are under about 1,200 miles, with a big peak between 500 and 1,100 miles (the East Coast and Midwest). There's a smaller group near 2,500 miles (the West Coast), almost nothing in between, and a few flights near 5,000 miles to Hawaii."
+
+The strong answer describes the shape with numbers and units, names the groups, and explains them.
+
+**IMPORTANT!** Save often. Before you knit, choose **Run > Restart R and Run All Chunks** to make sure every chunk works from a fresh start.
+
+# Part 1. Set Up Your File and Load the Data (3 min)
+
+- Make a folder called `ggplot-exercise` inside your `geog215` folder, and save this file there.
+- Change `author:` and `date:` at the top of the file.
+- Run the chunk to load the packages and keep the flights to North Carolina. (`library(tidyverse)` loads ggplot2.)
+
+```{r load-libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(nycflights13)
+
+nc_flights <- flights |>
+  filter(dest %in% c("AVL", "CLT", "GSO", "ILM", "RDU"))
+```
+
+# Part 2. Scatterplots and Trend Lines (10 min)
+
+Do flights that leave late also arrive late? Let's look at October.
+
+- Fill in the blanks: keep the October flights with both delays recorded, then plot departure delay on the x axis and arrival delay on the y axis.
+
+```{r scatter}
+nc_october <- nc_flights |>
+  filter(month == ___) |>
+  drop_na(dep_delay, arr_delay)
+
+ggplot(nc_october, aes(x = ___, y = ___)) +
+  geom_point()
+```
+
+**Q1.** Describe the pattern. Do flights that leave late arrive late? Are there any flights that left late but arrived early?
+
+*Your answer here.*
+
+- Add a trend line. Fill in the blank with the geom that draws one, and use `method = "lm"` for a straight line.
+
+```{r scatter-trend, message=FALSE}
+ggplot(nc_october, aes(x = dep_delay, y = arr_delay)) +
+  geom_point() +
+  ___(method = "lm")
+```
+
+**Q2.** About how late does a flight that leaves 100 minutes late arrive, according to the line?
+
+*Your answer here.*
+
+# Part 3. Setting and Mapping Aesthetics (7 min)
+
+**Setting** an aesthetic gives every point the same look; it goes *outside* `aes()`. **Mapping** an aesthetic links it to a column, so it changes from point to point; it goes *inside* `aes()`.
+
+- Fill in the blanks. In the first graph, *set* every point to `"darkgreen"`. In the second, *map* color to `dest`.
+
+```{r set-map}
+ggplot(nc_october, aes(x = dep_delay, y = arr_delay)) +
+  geom_point(color = ___)
+
+ggplot(nc_october, aes(x = dep_delay, y = arr_delay, color = ___)) +
+  geom_point()
+```
+
+A classmate wanted the points colored by airport, and wrote this. Run it.
+
+```{r set-map-mistake, error=TRUE}
+ggplot(nc_october, aes(x = dep_delay, y = arr_delay)) +
+  geom_point(color = "dest")
+```
+
+**Q3.** What went wrong? Fix it in words: where should `color = dest` go, and why doesn't it need quotation marks?
+
+*Your answer here.*
+
+# Part 4. Bar Charts: Counts and Shares (10 min)
+
+`geom_bar()` counts the rows for each value of `x`, so you don't have to count them first.
+
+- Fill in the blank to make a bar chart of the number of flights to each North Carolina airport.
+
+```{r bar}
+ggplot(nc_flights, aes(x = ___)) +
+  geom_bar()
+```
+
+- Now map `fill` to `origin`, so each bar shows which New York airport the flights left from. Then try the two other `position` options.
+
+```{r bar-fill}
+# stacked (the default)
+ggplot(nc_flights, aes(x = dest, fill = ___)) +
+  geom_bar()
+
+# every bar is 100%
+ggplot(nc_flights, aes(x = dest, fill = origin)) +
+  geom_bar(position = ___)
+
+# side by side
+ggplot(nc_flights, aes(x = dest, fill = origin)) +
+  geom_bar(position = ___)
+```
+
+**Q4.** Which of the three graphs is best for answering each question, and what is the answer? (a) Which New York airport sent the largest *share* of the flights to RDU? (b) Did more flights go from LaGuardia to CLT or to RDU?
+
+*Your answer here.*
+
+# Part 5. Boxplots (8 min)
+
+A boxplot shows a distribution: the median (the line), the middle half of the values (the box), and outliers (the dots).
+
+- Fill in the blanks to make a boxplot of `dep_delay` for each destination.
+
+```{r boxplot, warning=FALSE}
+ggplot(nc_flights, aes(x = ___, y = ___)) +
+  geom_boxplot()
+```
+
+The long delays squash the boxes. `coord_cartesian()` zooms in without throwing away any data.
+
+- Fill in the blank to zoom in to delays between −20 and 60 minutes.
+
+```{r boxplot-zoom, warning=FALSE}
+ggplot(nc_flights, aes(x = dest, y = dep_delay)) +
+  geom_boxplot() +
+  coord_cartesian(ylim = c(-20, ___))
+```
+
+**Q5.** What does the zoomed-in plot show that the first one hid? Which airport has the widest box, and what does that mean?
+
+*Your answer here.*
+
+# Part 6. Line Graphs from a Summary Table (8 min)
+
+To plot a statistic, such as the mean delay each month, make a summary table first with `group_by()` and `summarize()` (Chapter 8), then plot the table.
+
+- Fill in the blanks to calculate the mean departure delay for each destination in each month, then draw one line per destination.
+
+```{r monthly-lines, message=FALSE}
+monthly <- nc_flights |>
+  group_by(dest, ___) |>
+  summarize(mean_delay = mean(dep_delay, na.rm = ___))
+
+ggplot(monthly, aes(x = month, y = mean_delay, color = ___)) +
+  geom_line() +
+  geom_point()
+```
+
+**Q6.** Which months were worst for delays to North Carolina? Are they the same for every airport?
+
+*Your answer here.*
+
+**Q7.** Why did we need to make `monthly` first, instead of putting `nc_flights` straight into `ggplot()`?
+
+*Your answer here.*
+
+# Part 7. Small Multiples with Facets (6 min)
+
+A facet draws the same graph once for each group, side by side, on the same axes.
+
+- Fill in the blank to draw a histogram of departure time (`dep_time`, as a 24-hour clock like 1430) for each destination.
+
+```{r facets, warning=FALSE, message=FALSE}
+ggplot(nc_flights, aes(x = dep_time)) +
+  geom_histogram(binwidth = 100) +
+  facet_wrap(~ ___)
+```
+
+**Q8.** What times of day do flights to North Carolina leave? Why are the bars for AVL and ILM so short?
+
+*Your answer here.*
+
+**Q9.** Add `scales = "free_y"` inside `facet_wrap()` and run the chunk again. What changes? When would you want that, and when would it mislead?
+
+*Your answer here.*
+
+# Part 8. Finish and Save a Graph (8 min)
+
+A finished graph tells a reader what it shows without the code: a title, axis labels with units, a caption with the source, and a clean theme.
+
+- Fill in the blanks to finish the line graph from Part 6. Put your name in the caption.
+
+```{r finished, message=FALSE}
+delay_plot <- ggplot(monthly, aes(x = month, y = mean_delay, color = dest)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = 1:12) +
+  labs(title = ___,
+       x = "Month",
+       y = ___,
+       color = "Destination",
+       caption = "Author: Your Name\nData Source: nycflights13 (US Bureau of Transportation Statistics)") +
+  ___
+
+delay_plot
+```
+
+- Fill in the blanks to save the graph as a PNG file 7 inches wide and 5 inches tall. It will appear in your `ggplot-exercise` folder.
+
+```{r save}
+ggsave("nc_flights_delays.png", plot = delay_plot, width = ___, height = ___)
+```
+
+**Q10.** Why does a graph in a report need a caption with the data source, when the reader can't run your code anyway?
+
+*Your answer here.*
+
+**Q11.** Look back at all the graphs you made. Which kind of graph would you choose to show (a) the share of flights from each New York airport, (b) how delays change through the year, and (c) whether late departures mean late arrivals?
+
+*Your answer here.*
+
+## Reflection Questions
+
+1. How long did the exercise take you to complete?
+
+*Your answer here.*
+
+2. Where did you get stuck? Where did you go for help?
+
+*Your answer here.*
+
+3. Did you find any errors in the exercise?
+
+*Your answer here.*
+
+- Choose **Run > Restart R and Run All Chunks** one last time, then knit your file into HTML.
+- Turn in your `.Rmd` file, your `.html` file, and `nc_flights_delays.png` on Canvas.
