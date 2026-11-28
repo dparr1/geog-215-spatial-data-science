@@ -297,6 +297,7 @@
       <button role="tab" data-tab="activity" aria-selected="false">Activity</button>
       <button role="tab" data-tab="pages" aria-selected="false">Pages</button>
       <button role="tab" data-tab="scores" aria-selected="false">Quiz scores</button>
+      <button role="tab" data-tab="weekly" aria-selected="false">Weekly quiz</button>
       <button role="tab" data-tab="cq" aria-selected="false">Chapter quizzes</button>
       <button role="tab" data-tab="quiz" aria-selected="false">Self-checks</button>
       <button role="tab" data-tab="code" aria-selected="false">Code</button>
@@ -430,6 +431,42 @@
         <table>
           <thead id="scores-head"></thead>
           <tbody id="scores-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Weekly quiz scores (the leaderboard students see after a quiz) -->
+    <div class="panel" data-panel="weekly" hidden>
+      <div class="toolbar">
+        <div>
+          <label for="weekly-week">Week</label>
+          <select id="weekly-week"></select>
+        </div>
+        <div>
+          <label for="weekly-note">Group</label>
+          <select id="weekly-note"><option value="">All</option></select>
+        </div>
+        <div>
+          <button class="btn secondary" type="button" id="weekly-csv"
+            title="Download this week's scores (with the current group) as a CSV file">Export to CSV</button>
+        </div>
+      </div>
+      <p class="hint">Each student's quiz points for one week. Weeks end on <strong>Friday</strong>: they run
+        from Saturday 12:00 AM to Friday 11:59 PM Eastern time. A week's score adds up every chapter and unit
+        quiz the student <strong>started</strong> that week, with the same points as the Quiz scores tab. After
+        finishing a quiz, students see the top 10 of the current week for their course and term, with their own
+        place. Classmates appear as &ldquo;Classmate&rdquo; unless they ticked <strong>Show my first name and
+        last initial</strong> (the <strong>Name shown</strong> column). Students who are locked out aren't on
+        the students' leaderboard.</p>
+      <p class="hint" id="weekly-msg" hidden></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th class="num" data-sort-first="asc">Rank</th><th>Student</th><th>Group</th>
+            <th class="num">Week score</th><th class="num" title="Quizzes started this week">Quizzes</th>
+            <th class="num">Finished</th><th class="num">Correct</th><th class="num">Incorrect</th>
+            <th class="num">Success</th><th class="num">Best streak</th><th>Quizzes taken</th>
+            <th>Name shown</th><th>Last quiz</th></tr></thead>
+          <tbody id="weekly-body"></tbody>
         </table>
       </div>
     </div>
@@ -739,6 +776,9 @@
     // Polls tab: which view is showing, and the poll (admin_poll) and its
     // responses on the Results view.
     pollView: "list", poll: null, pollResponses: [],
+    // Weekly quiz tab: the weeks with quizzes (admin_quiz_weeks) and one
+    // week's rows (admin_quiz_week), for the course and term they were for.
+    weeks: [], weekly: [], weeklyKey: "", weeklyError: "",
   };
   let pendingEmail = "";
 
@@ -914,7 +954,7 @@
       state.quizFor = null;
       state.codeFor = null;
       renderAll();
-      await Promise.all([loadQuizFor(), loadCodeFor()]);
+      await Promise.all([loadQuizFor(), loadCodeFor(), loadWeekly(true)]);
     } catch (e) {
       banner("Couldn't load data: " + e.message, true);
     }
@@ -1067,6 +1107,7 @@
     const notes = [...new Set(state.roster.map((s) => s.note).filter(Boolean))].sort();
     fillSelect($("student-note"), notes.map((n) => [n, n]), '<option value="">All</option>');
     fillSelect($("scores-note"), notes.map((n) => [n, n]), '<option value="">All</option>');
+    fillSelect($("weekly-note"), notes.map((n) => [n, n]), '<option value="">All</option>');
     $("note-options").innerHTML = notes.map((n) => `<option value="${esc(n)}">`).join("");
     const students = state.roster.map((s) => [s.code, s.student_name + " (" + (s.email || s.code) + ")" +
       (scope.term ? "" : " · " + s.term)]);
@@ -1891,6 +1932,106 @@
     }).join("") : `<tr><td colspan="${chs.length + 5}" class="empty">No students yet.</td></tr>`;
   }
 
+  // ---- Weekly quiz -----------------------------------------------------------
+  // Weeks end on Friday (Saturday to Friday, Eastern time); see section 11 of
+  // supabase/setup.sql. A week needs one course and one term.
+  const fmtDay = (d, year) => new Date(d + "T12:00:00").toLocaleDateString("en-US",
+    { weekday: "short", month: "short", day: "numeric", ...(year ? { year: "numeric" } : {}) });
+  const weekLabel = (w) => `${fmtDay(w.week_start)} \u2013 ${fmtDay(w.week_end, true)}`;
+
+  // fresh: reload the list of weeks too (after Refresh or a new course/term).
+  async function loadWeekly(fresh) {
+    const key = scope.course + "|" + scope.term;
+    state.weeklyError = "";
+    if (!scope.term) {
+      state.weeks = []; state.weekly = []; state.weeklyKey = key;
+      state.weeklyError = "Pick a term at the top to see weekly quiz scores.";
+      renderWeekly();
+      return;
+    }
+    try {
+      if (fresh || state.weeklyKey !== key) {
+        const keep = state.weeklyKey === key ? $("weekly-week").value : "";
+        state.weeks = (await rpc("admin_quiz_weeks", { p_course: scope.course, p_term: scope.term })) || [];
+        fillSelect($("weekly-week"), state.weeks.map((w, i) =>
+          [w.week_start, weekLabel(w) + (i === 0 ? " (this week)" : "") +
+            (Number(w.quizzes) ? ` \u00b7 ${Number(w.students)} ${Number(w.students) === 1 ? "student" : "students"}` : "")]), "");
+        $("weekly-week").value = state.weeks.some((w) => w.week_start === keep) ? keep
+          : (state.weeks[0] ? state.weeks[0].week_start : "");
+        state.weeklyKey = key;
+      }
+      state.weekly = (await rpc("admin_quiz_week",
+        { p_course: scope.course, p_term: scope.term, p_week: $("weekly-week").value || null })) || [];
+    } catch (e) {
+      state.weekly = [];
+      // Section 11 of setup.sql hasn't been run yet.
+      state.weeklyError = /admin_quiz_week|function/i.test(e.message)
+        ? "Weekly scores need section 11 of supabase/setup.sql. Run it in the Supabase SQL Editor, then Refresh."
+        : "Couldn't load weekly scores: " + e.message;
+    }
+    renderWeekly();
+  }
+
+  function weeklyRows() {
+    const note = $("weekly-note").value;
+    return state.weekly.filter((r) => !note || r.note === note);
+  }
+
+  function renderWeekly() {
+    $("weekly-msg").hidden = !state.weeklyError;
+    $("weekly-msg").textContent = state.weeklyError;
+    const rows = weeklyRows();
+    // Ties share a rank (1, 2, 2, 4) among students who took a quiz, like the
+    // students' leaderboard (which leaves out locked-out students).
+    let rank = 0, prev = null, n = 0;
+    $("weekly-body").innerHTML = rows.length ? rows.map((r) => {
+      const took = Number(r.quizzes) > 0;
+      if (took) { n++; if (Number(r.score) !== prev) { rank = n; prev = Number(r.score); } }
+      const c = Number(r.correct), i = Number(r.incorrect);
+      return `<tr>
+        <td class="num">${took ? rank : "–"}</td>
+        <td><button class="linkish" data-code="${esc(r.code)}" title="See this student's chapter quizzes">${esc(r.student_name)}</button>${r.active ? "" : ' <span class="badge danger">Locked out</span>'}</td>
+        <td>${esc(r.note || "")}</td>
+        <td class="num">${scoreCell(r.score, took ? 1 : 0)}</td>
+        <td class="num">${took ? Number(r.quizzes) : "–"}</td>
+        <td class="num">${took ? Number(r.completed) : "–"}</td>
+        <td class="num">${took ? c : "–"}</td>
+        <td class="num">${took ? i : "–"}</td>
+        <td class="num">${c + i ? Math.round((100 * c) / (c + i)) + "%" : "–"}</td>
+        <td class="num">${took ? Number(r.best_streak) : "–"}</td>
+        <td class="wrap">${esc(r.chapters || "")}</td>
+        <td>${r.show_on_leaderboard ? "Yes" : "No"}</td>
+        <td>${took ? when(r.last_at) : '<span class="muted-dash">–</span>'}</td>
+      </tr>`;
+    }).join("") : `<tr><td colspan="13" class="empty">${state.weeklyError ? "" : "No students yet."}</td></tr>`;
+  }
+
+  function exportWeeklyCsv() {
+    const rows = weeklyRows();
+    if (!rows.length) { banner("No students to export for this week.", true); return; }
+    const w = state.weeks.find((x) => x.week_start === $("weekly-week").value) || rows[0];
+    const head = ["Name", "Email", "Group", "Week start (Sat)", "Week end (Fri)", "Week score", "Quizzes started",
+      "Quizzes finished", "Correct answers", "Incorrect answers", "Success (%)", "Best streak", "Quizzes taken",
+      "Name shown to classmates", "Last quiz"];
+    const lines = rows.map((r) => {
+      const c = Number(r.correct), i = Number(r.incorrect);
+      return [r.student_name, r.email || "", r.note || "", w.week_start, w.week_end,
+        Number(r.quizzes) ? Number(r.score) : "", Number(r.quizzes), Number(r.completed), c, i,
+        c + i ? Math.round((100 * c) / (c + i)) : "", Number(r.quizzes) ? Number(r.best_streak) : "",
+        r.chapters || "", r.show_on_leaderboard ? "Yes" : "No", localStamp(r.last_at)];
+    });
+    const csv = "\ufeff" + [head, ...lines].map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = [scope.course, "weekly-quiz", w.week_start].join("-") + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    banner("Exported " + rows.length + (rows.length === 1 ? " student." : " students."));
+  }
+
   // ---- Self-checks and code ------------------------------------------------
   // "n of total" with a bar, as on the Pages tab.
   function share(n, total) {
@@ -2574,6 +2715,16 @@
     ["cq-student", "cq-chapter"].forEach((id) => $(id).addEventListener("input", renderChapterQuizzes));
     $("scores-note").addEventListener("input", renderScores);
     $("scores-body").addEventListener("click", (event) => {
+      const btn = event.target.closest("button[data-code]");
+      if (!btn) return;
+      $("cq-student").value = btn.dataset.code;
+      selectTab("cq");
+      renderChapterQuizzes();
+    });
+    $("weekly-week").addEventListener("change", () => loadWeekly(false));
+    $("weekly-note").addEventListener("input", renderWeekly);
+    $("weekly-csv").addEventListener("click", exportWeeklyCsv);
+    $("weekly-body").addEventListener("click", (event) => {
       const btn = event.target.closest("button[data-code]");
       if (!btn) return;
       $("cq-student").value = btn.dataset.code;

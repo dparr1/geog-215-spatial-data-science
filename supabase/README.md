@@ -343,6 +343,30 @@ you're ready, or delete it. Re-running `setup.sql` never re-adds or changes it.
 A direct link opens a poll on any page: `https://geog215.org/preface.html?sds-poll=<poll id>`
 (the id is in `public.polls`), for example from a Canvas announcement.
 
+## Weekly quiz leaderboard
+
+When a student finishes any chapter or unit quiz, the finish card shows
+**this week's leaderboard**: the 10 highest quiz point totals in their course
+and term, plus their own place if they're further down. Weeks **end on
+Friday**: each runs from Saturday 12:00 AM to Friday 11:59 PM Eastern time
+(America/New_York). A student's weekly score adds up every quiz session they
+started that week (finished or not), with the same points as the Quiz scores
+tab. Ties share a place. Locked-out students aren't on it.
+
+Privacy: classmates are shown as "Classmate" unless they tick **Show my first
+name and last initial to classmates** under the leaderboard
+(`roster.show_on_leaderboard`, per course and term, off by default). A
+student's own row says "You". The privacy page says so.
+
+The admin page's **Weekly quiz** tab lists every student's score for a week,
+with a week picker (every week with quizzes, plus this week), a group filter
+and CSV export. It needs one course and one term picked at the top.
+
+Section 11 of `setup.sql` adds this (`quiz_week_start`, `quiz_week_totals`,
+`quiz_week_leaderboard`, `set_leaderboard_name`, `admin_quiz_week`,
+`admin_quiz_weeks`). Run it before merging the site changes; until then the
+finish card simply shows no leaderboard and the tab says to run it.
+
 ## Exercise answer keys
 
 Each chapter from 3 to 19, plus chapters 21 and 22, has an exercise page after the chapter (before

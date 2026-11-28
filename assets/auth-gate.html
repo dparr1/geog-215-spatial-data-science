@@ -135,8 +135,8 @@
   // an answer given just before the student leaves the page is still saved.
   // Every call says which course it's for; the database works out the term.
   function record(fn, args) {
-    if (!tracking || !accessToken) return;
-    fetch(SUPABASE_URL + "/rest/v1/rpc/" + fn, {
+    if (!tracking || !accessToken) return Promise.resolve();
+    return fetch(SUPABASE_URL + "/rest/v1/rpc/" + fn, {
       method: "POST",
       keepalive: true,
       headers: {
@@ -154,7 +154,22 @@
   // The chapter quiz pages (assets/quiz/quiz.js) save results through this.
   // It does nothing until an active student is let in, and it doesn't exist
   // at all on the public daveparr.com copy, which has no gate.
-  window.sdsProgress = { record };
+  // leaderboard() is the weekly quiz leaderboard for this course (top 10 of
+  // the week ending Friday, plus the student's own place), or null when it
+  // can't be loaded; showName(on) turns "Show my name" on or off.
+  async function leaderboard() {
+    if (!sb) return null;
+    const { data, error } = await sb.rpc("quiz_week_leaderboard", { p_course: SDS_COURSE });
+    if (error) { console.warn("Leaderboard not loaded:", error.message); return null; }
+    return data || [];
+  }
+  async function showName(on) {
+    if (!sb) return null;
+    const { data, error } = await sb.rpc("set_leaderboard_name", { p_show: !!on, p_course: SDS_COURSE });
+    if (error) throw error;
+    return data;
+  }
+  window.sdsProgress = { record, leaderboard, showName };
 
   const clean = (s, n) => String(s || "").replace(/\s+/g, " ").trim().slice(0, n);
 
