@@ -23,7 +23,7 @@ This textbook site, geog215.org, asks students in GEOG 215 to sign in so it can 
 | Pages you open | Which textbook pages you visit, how many times, and when you first and last opened each one. |
 | Practice questions | Your answers to the "check your understanding" questions: your latest answer, the number of attempts, and whether you got it right. |
 | Practice code | The R code you run in the textbook's code boxes (the latest version only, up to 4,000 characters), how many times you ran it, and whether it produced an error. |
-| Chapter practice quizzes | How many questions you answered right and wrong, practice points and streaks, and whether you finished the quiz. |
+| Chapter practice quizzes | How many questions you answered right and wrong, practice points and streaks, and whether you finished the quiz. Your weekly points are used for the class leaderboard (see "Who can see it"), and whether you chose to show your name on it. |
 | Questions you ask | If you highlight text in the textbook and click **Ask a question**: the highlighted text, your question, the page and section it is on, and when you asked. Your instructor's answer, if any, is stored with it. Each question is also emailed to your instructor (see "Who can see it"). |
 | Polls and surveys | If you answer a poll or survey on the site (for example, a start-of-semester survey): your answers, which poll they belong to, and when you submitted and last changed them. Answers are saved with your name, so they are not anonymous. Poll answers are not used in grading. |
 | Notifications | Only if you turn on **Notifications** on a device: the address your device's push service (Apple, Google or Mozilla) gives for delivering notifications to this site, two encryption keys for it, your browser type, and when you turned it on. It contains no messages, location, or contacts. Turning notifications off removes it; if you delete the app, it is removed the next time an announcement is sent. |
@@ -48,8 +48,9 @@ Your information is never sold, never used for advertising, and never used to ca
 
 ## Who can see it
 
-- **You.** When signed in, you can only see your own records. Other students cannot see your name, email, or activity.
+- **You.** When signed in, you can only see your own records. Other students cannot see your name, email, or activity, except your weekly quiz points on the leaderboard described below (without your name unless you choose to show it).
 - **Your instructor.** The instructor can view the class roster, activity, and poll and survey answers on a protected admin page and can download them as a spreadsheet for course purposes. Instructors can only see the courses they are assigned to. Other students never see your poll answers.
+- **Other students, on the weekly quiz leaderboard.** After a practice quiz, students see the 10 highest practice quiz point totals in their class for that week (Saturday to Friday). Other students appear only as "Classmate" with their points, unless they choose **Show my first name and last initial** under the leaderboard, which shows, for example, "Ada L." You can turn this on or off at any time. Your email address and full name are never shown to other students.
 - **Questions you ask** are also sent to your instructor's university email address as a notice, with the page, the highlighted text, and your question, but not your name or email address. That copy is kept in the instructor's UNC email under the university's email policies.
 - **Service providers.** The companies below run the site on the course's behalf. They handle your information only to provide their service.
 

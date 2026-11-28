@@ -72,10 +72,15 @@
     return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
   }
 
+  // Returns a promise that settles when the answer is saved (or right away
+  // when nothing is saved, as on daveparr.com). It never rejects.
   function record(fn, args) {
     try {
-      if (window.sdsProgress && window.sdsProgress.record) window.sdsProgress.record(fn, args);
+      if (window.sdsProgress && window.sdsProgress.record) {
+        return Promise.resolve(window.sdsProgress.record(fn, args)).catch(() => {});
+      }
     } catch (_) { /* saving never breaks the quiz */ }
+    return Promise.resolve();
   }
 
   const el = (tag, attrs, html) => {
@@ -679,7 +684,7 @@
         this.stats.incorrect++;
         item.missed = true;
       }
-      record("record_chapter_quiz_answer", {
+      this.lastSave = record("record_chapter_quiz_answer", {
         p_session: this.session, p_chapter: this.bank.id, p_chapter_title: this.bank.title,
         // The label includes the code, so "What does this code print?"
         // questions can be told apart on the admin page.
@@ -739,7 +744,9 @@
     }
 
     finish() {
-      record("record_chapter_quiz_finish", { p_session: this.session });
+      // Answers are sent one by one as they're given; wait for the last
+      // answer and the finish to be saved before loading the leaderboard.
+      const saved = Promise.all([this.lastSave, record("record_chapter_quiz_finish", { p_session: this.session })]);
       const s = this.stats;
       const total = s.correct + s.incorrect;
       const success = total ? Math.round((s.correct / total) * 100) : 100;
@@ -759,6 +766,7 @@
           <div><span class="n">${s.incorrect}</span><span class="l">incorrect answers</span></div>
           <div><span class="n">${success}%</span><span class="l">success</span></div>
         </div>
+        <div class="sds-q-board" hidden></div>
         <div class="sds-q-actions">
           <button type="button" class="sds-q-btn sds-q-primary">New quiz</button>
         </div>`);
@@ -769,7 +777,57 @@
       again.focus();
       playSound("finish");
       if (!reduceMotion()) confetti(this.root);
+      showLeaderboard(card.querySelector(".sds-q-board"), saved);
     }
+  }
+
+  // ---- Weekly leaderboard ----------------------------------------------------------
+  // After a quiz, the top 10 quiz scores in the class this week (weeks end on
+  // Friday, Eastern time), from quiz_week_leaderboard() in supabase/setup.sql.
+  // Classmates appear as "Classmate" unless they chose to show their name.
+  // Only on geog215.org: daveparr.com has no sign-in, so nothing shows there.
+  const fmtDay = (d) => new Date(d + "T12:00:00").toLocaleDateString("en-US",
+    { weekday: "short", month: "short", day: "numeric" });
+
+  async function showLeaderboard(box, saved) {
+    const api = window.sdsProgress;
+    if (!box || !api || !api.leaderboard) return;
+    await saved;
+    const rows = await api.leaderboard().catch(() => null);
+    if (!rows || !rows.length || !box.isConnected) return;
+    const render = () => {
+      const first = rows[0];
+      const me = rows.find((r) => r.is_me);
+      // The top 10, then the student's own row when they're further down.
+      const top = rows.slice(0, 10);
+      const mine = me && !top.includes(me) ? me : null;
+      const row = (r) => `<li class="${r.is_me ? "is-me" : ""}">
+          <span class="sds-q-board-place">${r.place}</span>
+          <span class="sds-q-board-name">${esc(r.display_name)}</span>
+          <span class="sds-q-board-score">${fmtScore(Number(r.score) || 0)}</span></li>`;
+      box.innerHTML = `
+        <h3>This week\u2019s leaderboard</h3>
+        <p class="sds-q-board-week">${fmtDay(first.week_start)} \u2013 ${fmtDay(first.week_end)} \u00b7 ends Friday night</p>
+        <ol class="sds-q-board-list">${top.map(row).join("")}</ol>
+        ${mine ? `<p class="sds-q-board-gap" aria-hidden="true">\u22ee</p><ol class="sds-q-board-list">${row(mine)}</ol>` : ""}
+        <p class="sds-q-board-note">Points from every chapter and unit quiz you start this week, out of
+          ${Number(first.players)} ${Number(first.players) === 1 ? "student" : "students"} who took one.</p>
+        ${me && api.showName ? `<label class="sds-q-board-show"><input type="checkbox"${me.name_shown ? " checked" : ""}>
+          Show my first name and last initial to classmates</label>` : ""}`;
+      const toggle = box.querySelector(".sds-q-board-show input");
+      if (toggle) toggle.addEventListener("change", async () => {
+        toggle.disabled = true;
+        try {
+          await api.showName(toggle.checked);
+          me.name_shown = toggle.checked;
+        } catch (_) {
+          toggle.checked = !toggle.checked;
+        }
+        toggle.disabled = false;
+      });
+    };
+    render();
+    box.hidden = false;
   }
 
   // ---- Celebration -----------------------------------------------------------------

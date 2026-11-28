@@ -227,6 +227,28 @@
 .sds-q-stats .n { display: block; font-size: 1.5rem; font-weight: 800; color: var(--q-accent); font-variant-numeric: tabular-nums; }
 .sds-q-stats .l { font-size: 0.82rem; color: var(--q-muted); }
 .sds-q-stats .sds-q-stat-score { border-color: var(--q-accent); }
+
+/* Weekly leaderboard on the finish card (top 10 in the class, week ends Friday) */
+.sds-q-board {
+  max-width: 26em; margin: 0 auto 20px; padding: 14px 16px 12px;
+  border: 2px solid var(--q-border); border-radius: 12px; text-align: left;
+}
+.sds-q-board h3 { margin: 0; font-size: 1.05rem; text-align: center; border: 0; padding: 0; }
+.sds-q-done .sds-q-board p { margin: 2px 0 10px; max-width: none; font-size: 0.85rem; text-align: center; }
+.sds-q-board-list { list-style: none; margin: 0; padding: 0; }
+.sds-q-board-list li {
+  display: flex; align-items: center; gap: 10px; padding: 5px 8px; border-radius: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.sds-q-board-list li:nth-child(odd) { background: var(--q-surface-2); }
+.sds-q-board-list li.is-me { background: #fff4cc; color: #4b3a00; font-weight: 700; }
+.sds-q-board-place { flex: none; width: 2em; font-weight: 800; color: var(--q-accent); text-align: right; }
+.sds-q-board-list li.is-me .sds-q-board-place { color: inherit; }
+.sds-q-board-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sds-q-board-score { flex: none; font-weight: 700; }
+.sds-q-done .sds-q-board .sds-q-board-gap { margin: 0; line-height: 1; color: var(--q-muted); }
+.sds-q-done .sds-q-board .sds-q-board-note { margin: 10px 0 6px; }
+.sds-q-board-show { display: flex; justify-content: center; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; }
 .sds-q-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .sds-q-confetti { position: absolute; inset: 0; pointer-events: none; }
 .sds-q-error { color: #b42318; }

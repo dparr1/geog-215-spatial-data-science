@@ -42,6 +42,11 @@
 --      as push subscriptions (one row per device and course); the admin
 --      page's Announcements tab sends to them through the `push` Edge
 --      Function (supabase/functions/push/).
+--  10. Exercise answer keys (section 10) are in a private Storage bucket.
+--  11. Weekly quiz leaderboard (section 11): after a quiz, students see the
+--      top 10 of the week (ending Friday) in their course and term, with
+--      classmates' names hidden unless they opt in; the admin page's Weekly
+--      quiz tab shows every student's weekly score.
 --
 -- Upgrading from the one-class version: running this file adds course and
 -- term to the roster and every progress table, and fills them in for the
@@ -3003,6 +3008,250 @@ create policy "Instructors delete exercise keys" on storage.objects
   using (bucket_id = 'exercise-keys'
          and (storage.foldername(name))[1] is not null
          and public.is_instructor((storage.foldername(name))[1]));
+
+-- 11. Weekly quiz leaderboard ------------------------------------------------------
+-- After a student finishes a chapter or unit quiz, the quiz page shows the top
+-- 10 quiz scores in their course and term for the current week. Weeks end on
+-- Friday: each one runs from Saturday 00:00 to Friday 23:59, Eastern time
+-- (America/New_York). A student's weekly score is the total score of every
+-- quiz session they started that week (finished or not), using the same
+-- points as the Quiz scores tab (section 5c).
+--
+-- Privacy: other students never see names unless the student turns on "Show
+-- my name" under the leaderboard (roster.show_on_leaderboard, per course and
+-- term, off by default). Then classmates see their first name and last
+-- initial ("Ada L."); everyone else is shown as "Classmate". Each student sees
+-- their own row as "You". The admin page's Weekly quiz tab shows every
+-- student's full name and weekly score to instructors.
+
+alter table public.roster add column if not exists show_on_leaderboard boolean not null default false;
+
+create index if not exists chapter_quiz_sessions_week_idx
+  on public.chapter_quiz_sessions (course, term, started_at);
+
+-- The Saturday that starts the quiz week holding p_at (Eastern time).
+create or replace function public.quiz_week_start(p_at timestamptz default now())
+returns date
+language sql
+stable
+set search_path = ''
+as $$
+  select (p_at at time zone 'America/New_York')::date
+         - ((extract(dow from (p_at at time zone 'America/New_York'))::int + 1) % 7);
+$$;
+
+grant execute on function public.quiz_week_start(timestamptz) to authenticated;
+
+-- Every student's quiz totals for one course, term and week (internal: the
+-- two functions below check who is asking first). p_week can be any day of
+-- the week; it is moved back to that week's Saturday.
+create or replace function public.quiz_week_totals(p_course text, p_term text, p_week date)
+returns table (
+  code text, user_id uuid, student_name text, active boolean, show_on_leaderboard boolean,
+  score bigint, quizzes bigint, completed bigint, correct bigint, incorrect bigint,
+  best_streak integer, first_at timestamptz, last_at timestamptz, chapters text
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  with w as (
+    select d as week_start,
+           (d::timestamp at time zone 'America/New_York') as t0,
+           ((d + 7)::timestamp at time zone 'America/New_York') as t1
+    from (select public.quiz_week_start((p_week::timestamp + interval '12 hours') at time zone 'America/New_York') as d) x
+  )
+  select r.code, r.user_id, r.student_name, r.active, r.show_on_leaderboard,
+         coalesce(sum(s.score), 0)::bigint,
+         count(s.id),
+         count(s.id) filter (where s.completed_at is not null),
+         coalesce(sum(s.correct), 0)::bigint,
+         coalesce(sum(s.incorrect), 0)::bigint,
+         coalesce(max(s.best_streak), 0),
+         min(s.started_at),
+         max(s.last_at),
+         string_agg(distinct coalesce(s.chapter_title, s.chapter), '; ')
+  from public.roster r
+  cross join w
+  left join public.chapter_quiz_sessions s
+    on s.user_id = r.user_id and s.course = r.course and s.term = r.term
+   and s.started_at >= w.t0 and s.started_at < w.t1
+  where r.course = p_course and r.term = p_term
+  group by r.code;
+$$;
+
+revoke all on function public.quiz_week_totals(text, text, date) from public, anon, authenticated;
+
+-- The leaderboard a student sees: the top 10 of their course and term this
+-- week (or the week holding p_week), plus their own row when they're not in
+-- it. Ties share a rank; the 10 shown break ties by who got there first.
+-- Instructors get the course's newest term, with no "You" row, so they can
+-- see what students see.
+drop function if exists public.quiz_week_leaderboard(text, date);
+create or replace function public.quiz_week_leaderboard(p_course text default null, p_week date default null)
+returns table (
+  place integer, display_name text, score bigint, quizzes bigint,
+  is_me boolean, name_shown boolean, week_start date, week_end date, players bigint
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_course text;
+  v_term   text;
+  v_week   date := public.quiz_week_start(coalesce(
+                     (p_week::timestamp + interval '12 hours') at time zone 'America/New_York', now()));
+begin
+  if auth.uid() is null then
+    return;
+  end if;
+  select e.course, e.term into v_course, v_term from public.current_enrollment(p_course) e;
+  if v_course is null then
+    v_course := nullif(lower(btrim(coalesce(p_course, ''))), '');
+    if v_course is null or not public.is_instructor(v_course) then
+      return;
+    end if;
+    select r.term into v_term from public.roster r
+    where r.course = v_course order by r.added_at desc limit 1;
+    if v_term is null then
+      return;
+    end if;
+  end if;
+
+  return query
+    with t as (
+      select x.*, x.user_id = auth.uid() as me
+      from public.quiz_week_totals(v_course, v_term, v_week) x
+      where x.active and x.quizzes > 0
+    ),
+    ranked as (
+      select t.*,
+             rank() over (order by t.score desc)::int as place,
+             row_number() over (order by t.score desc, t.last_at, t.code) as n,
+             count(*) over () as players
+      from t
+    )
+    select k.place,
+           case when k.me then 'You'
+                when k.show_on_leaderboard then
+                  split_part(btrim(k.student_name), ' ', 1) ||
+                  case when btrim(k.student_name) like '% %'
+                       then ' ' || upper(left(regexp_replace(btrim(k.student_name), '^.*\s', ''), 1)) || '.'
+                       else '' end
+                else 'Classmate' end,
+           k.score, k.quizzes, k.me, k.show_on_leaderboard,
+           v_week, v_week + 6, k.players
+    from ranked k
+    where k.n <= 10 or k.me
+    order by k.n;
+end;
+$$;
+
+revoke all on function public.quiz_week_leaderboard(text, date) from public, anon;
+grant execute on function public.quiz_week_leaderboard(text, date) to authenticated;
+
+-- "Show my name on the leaderboard" (true) or hide it (false), for the
+-- student's current enrollment in the course. Returns the new setting, or
+-- null when the caller isn't an active student of the course.
+create or replace function public.set_leaderboard_name(p_show boolean, p_course text default null)
+returns boolean
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_course text;
+  v_term   text;
+begin
+  if auth.uid() is null then
+    return null;
+  end if;
+  select e.course, e.term into v_course, v_term from public.current_enrollment(p_course) e;
+  if v_course is null then
+    return null;
+  end if;
+  update public.roster r set show_on_leaderboard = coalesce(p_show, false)
+  where r.user_id = auth.uid() and r.course = v_course and r.term = v_term;
+  return coalesce(p_show, false);
+end;
+$$;
+
+revoke all on function public.set_leaderboard_name(boolean, text) from public, anon;
+grant execute on function public.set_leaderboard_name(boolean, text) to authenticated;
+
+-- Admin page, Weekly quiz tab: every student in the course and term with
+-- their totals for the week holding p_week (this week when null).
+create or replace function public.admin_quiz_week(p_course text, p_term text, p_week date default null)
+returns table (
+  code text, student_name text, email text, note text, active boolean, show_on_leaderboard boolean,
+  score bigint, quizzes bigint, completed bigint, correct bigint, incorrect bigint,
+  best_streak integer, first_at timestamptz, last_at timestamptz, chapters text,
+  week_start date, week_end date
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_courses text[] := public.require_instructor(p_course);
+  v_week    date := public.quiz_week_start(coalesce(
+                      (p_week::timestamp + interval '12 hours') at time zone 'America/New_York', now()));
+begin
+  if array_length(v_courses, 1) is distinct from 1 or nullif(btrim(coalesce(p_term, '')), '') is null then
+    raise exception 'Pick a course and a term to see weekly quiz scores.';
+  end if;
+  return query
+    select t.code, t.student_name, r.email, r.note, t.active, t.show_on_leaderboard,
+           t.score, t.quizzes, t.completed, t.correct, t.incorrect,
+           t.best_streak, t.first_at, t.last_at, t.chapters,
+           v_week, v_week + 6
+    from public.quiz_week_totals(v_courses[1], p_term, v_week) t
+    join public.roster r on r.code = t.code
+    order by t.quizzes > 0 desc, t.score desc, t.student_name;
+end;
+$$;
+
+-- The weeks with any quiz activity in a course and term (newest first), and
+-- always the current week, for the Weekly quiz tab's week picker.
+create or replace function public.admin_quiz_weeks(p_course text, p_term text)
+returns table (week_start date, week_end date, students bigint, quizzes bigint)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_courses text[] := public.require_instructor(p_course);
+begin
+  return query
+    select w.d, w.d + 6, count(distinct s.user_id), count(s.id)
+    from (
+      select distinct public.quiz_week_start(s.started_at) as d
+      from public.chapter_quiz_sessions s
+      where s.course = any (v_courses) and s.term = p_term
+      union
+      select public.quiz_week_start(now())
+    ) w
+    left join public.chapter_quiz_sessions s
+      on s.course = any (v_courses) and s.term = p_term
+     and public.quiz_week_start(s.started_at) = w.d
+    group by w.d
+    order by w.d desc;
+end;
+$$;
+
+revoke all on function public.admin_quiz_week(text, text, date) from public, anon;
+grant execute on function public.admin_quiz_week(text, text, date) to authenticated;
+revoke all on function public.admin_quiz_weeks(text, text) from public, anon;
+grant execute on function public.admin_quiz_weeks(text, text) to authenticated;
 
 -- Everyday tasks (the admin page at geog215.org/admin/ does most of these) --
 --
