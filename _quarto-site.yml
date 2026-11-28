@@ -102,8 +102,10 @@ book:
         - chapters/writing-spatial-data-science.qmd
         - chapters/writing-spatial-data-science-quiz.qmd
         - chapters/distance-neighborhoods.qmd
+        - chapters/distance-neighborhoods-exercise.qmd
         - chapters/distance-neighborhoods-quiz.qmd
         - chapters/spatial-autocorrelation.qmd
+        - chapters/spatial-autocorrelation-exercise.qmd
         - chapters/spatial-autocorrelation-quiz.qmd
         - units/unit-5-quiz.qmd
     - part: units/unit-6.qmd
