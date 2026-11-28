@@ -32,6 +32,8 @@
 --      the term comes from the student's newest active roster row for that
 --      course. Students can only see their own rows; the admin page shows
 --      them with names, one course at a time.
+--      After a quiz, students see a weekly top-ten leaderboard of their
+--      class under made-up names (section 5d), never real names.
 --   7. Instructors see the courses listed in instructors.courses, or every
 --      course when that is empty (null).
 --   8. Polls and surveys (section 8) are written and opened on the admin
@@ -795,6 +797,161 @@ grant execute on function public.record_chapter_quiz_answer(uuid, text, text, in
 revoke all on function public.record_chapter_quiz_finish(uuid, text) from public, anon;
 grant execute on function public.record_chapter_quiz_finish(uuid, text) to authenticated;
 
+-- 5d. Weekly quiz leaderboard -----------------------------------------------------
+-- When a student finishes a chapter or unit quiz, the quiz page shows the top
+-- ten quiz scores in their class (course and term) for the current week. A
+-- week runs Saturday through Friday, Chapel Hill time, so it "ends on Friday".
+-- A quiz counts toward the week it was started in, and a student's weekly
+-- score is the sum of the points from every quiz they started that week (the
+-- same points as the Quiz scores tab).
+--
+-- Privacy (FERPA): quiz scores are education records, so the leaderboard
+-- never shows students' names. Each student gets a made-up leaderboard name,
+-- such as "Swift Meridian", from a hash of their account, course and term.
+-- It stays the same all term, other students can't work out whose it is, and
+-- the student sees their own row marked "You". The admin page's Weekly
+-- quizzes tab shows each student's real name next to their leaderboard name.
+
+-- The Friday that ends the week containing p_at (Chapel Hill time).
+create or replace function public.sds_quiz_week_end(p_at timestamptz default now())
+returns date
+language sql
+stable
+set search_path = ''
+as $$
+  select d + ((12 - extract(dow from d)::int) % 7)
+  from (select (p_at at time zone 'America/New_York')::date as d) x;
+$$;
+
+-- The first and last moment of the week that ends on p_week_end.
+create or replace function public.sds_quiz_week_bounds(p_week_end date)
+returns table (starts timestamptz, ends timestamptz)
+language sql
+stable
+set search_path = ''
+as $$
+  select ((p_week_end - 6)::timestamp at time zone 'America/New_York'),
+         ((p_week_end + 1)::timestamp at time zone 'America/New_York');
+$$;
+
+-- A student's leaderboard name in one course and term.
+create or replace function public.sds_quiz_nickname(p_user uuid, p_course text, p_term text)
+returns text
+language sql
+immutable
+set search_path = ''
+as $$
+  with h as (
+    select md5(p_user::text || '|' || p_course || '|' || p_term || '|leaderboard') as x
+  ), w as (
+    select array['Swift', 'Bold', 'Bright', 'Calm', 'Clever', 'Daring', 'Eager', 'Fearless',
+                 'Gentle', 'Golden', 'Happy', 'Keen', 'Lively', 'Lucky', 'Mighty', 'Nimble',
+                 'Noble', 'Patient', 'Quick', 'Quiet', 'Rapid', 'Ready', 'Sharp', 'Silver',
+                 'Steady', 'Sunny', 'Tidy', 'Brave', 'Witty', 'Zesty', 'Cosmic', 'Crimson',
+                 'Azure', 'Amber', 'Coral', 'Jade', 'Misty', 'Rugged', 'Rocky', 'Sandy',
+                 'Snowy', 'Stormy', 'Windy', 'Wild', 'Polar', 'Tropical', 'Arctic', 'Coastal',
+                 'Northern', 'Southern', 'Eastern', 'Western', 'Lofty', 'Hidden', 'Wandering', 'Roving',
+                 'Curious', 'Jolly', 'Plucky', 'Spry', 'Stellar', 'Radiant', 'Vivid', 'Breezy'] as adj,
+           array['Meridian', 'Contour', 'Compass', 'Atlas', 'Raster', 'Pixel', 'Vector', 'Polygon',
+                 'Vertex', 'Node', 'Datum', 'Geoid', 'Ellipsoid', 'Azimuth', 'Bearing', 'Latitude',
+                 'Longitude', 'Equator', 'Isobar', 'Isoline', 'Hillshade', 'Watershed', 'Delta', 'Estuary',
+                 'Mesa', 'Butte', 'Ridge', 'Summit', 'Canyon', 'Glacier', 'Fjord', 'Lagoon',
+                 'Atoll', 'Prairie', 'Tundra', 'Savanna', 'Plateau', 'Valley', 'Basin', 'Cartographer',
+                 'Surveyor', 'Navigator', 'Explorer', 'Pathfinder', 'Wayfinder', 'Mapper', 'Geocoder', 'Buffer',
+                 'Centroid', 'Graticule', 'Benchmark', 'Transect', 'Quadrangle', 'Legend', 'Scale Bar', 'Basemap',
+                 'Layer', 'Waypoint', 'Landmark', 'Isthmus', 'Peninsula', 'Archipelago', 'Monadnock', 'Sandhill'] as noun
+  )
+  select w.adj[1 + (('x' || substr(h.x, 1, 7))::bit(28)::int % 64)] || ' ' ||
+         w.noun[1 + (('x' || substr(h.x, 8, 7))::bit(28)::int % 64)]
+  from h, w;
+$$;
+
+-- Leaderboard names for everyone on a course and term's roster. Two students
+-- whose names come out the same get " 2", " 3", ... in the order they were
+-- added, so every name on a leaderboard is different.
+create or replace function public.sds_quiz_nicknames(p_course text, p_term text)
+returns table (user_id uuid, nickname text)
+language sql
+stable
+set search_path = ''
+as $$
+  select n.user_id,
+         n.base || case when n.k > 1 then ' ' || n.k else '' end
+  from (
+    select r.user_id, x.base,
+           row_number() over (partition by x.base order by r.added_at, r.code) as k
+    from public.roster r
+    cross join lateral (select public.sds_quiz_nickname(r.user_id, r.course, r.term) as base) x
+    where r.course = p_course and r.term = p_term and r.user_id is not null
+  ) n;
+$$;
+
+revoke all on function public.sds_quiz_week_end(timestamptz) from public, anon;
+grant execute on function public.sds_quiz_week_end(timestamptz) to authenticated;
+revoke all on function public.sds_quiz_week_bounds(date) from public, anon;
+grant execute on function public.sds_quiz_week_bounds(date) to authenticated;
+revoke all on function public.sds_quiz_nickname(uuid, text, text) from public, anon, authenticated;
+revoke all on function public.sds_quiz_nicknames(text, text) from public, anon, authenticated;
+
+-- This week's top ten in the caller's class, plus the caller's own row when
+-- they aren't in the top ten. Ties share a rank. Only leaderboard names,
+-- scores and quiz counts come back, never names, emails or account ids.
+-- Instructors (and anyone without an active enrollment) get no rows.
+drop function if exists public.quiz_week_leaderboard(text);
+create or replace function public.quiz_week_leaderboard(p_course text default null)
+returns table (
+  rank bigint, name text, score bigint, quizzes bigint, is_me boolean,
+  students bigint, week_start date, week_end date
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_course text;
+  v_term   text;
+  v_end    date := public.sds_quiz_week_end(now());
+  v_from   timestamptz;
+  v_to     timestamptz;
+begin
+  if auth.uid() is null then
+    return;
+  end if;
+  select e.course, e.term into v_course, v_term from public.current_enrollment(p_course) e;
+  if v_course is null then
+    return;
+  end if;
+  select b.starts, b.ends into v_from, v_to from public.sds_quiz_week_bounds(v_end) b;
+
+  return query
+    with totals as (
+      select s.user_id, sum(s.score)::bigint as score, count(*)::bigint as quizzes
+      from public.chapter_quiz_sessions s
+      join public.roster r on r.user_id = s.user_id and r.course = s.course and r.term = s.term
+      where s.course = v_course and s.term = v_term and r.active
+        and s.started_at >= v_from and s.started_at < v_to
+        and (s.correct + s.incorrect) > 0
+      group by s.user_id
+    ), ranked as (
+      select t.*, rank() over (order by t.score desc) as rnk,
+             row_number() over (order by t.score desc, t.quizzes desc, t.user_id) as pos,
+             count(*) over () as n
+      from totals t
+    )
+    select k.rnk, coalesce(nn.nickname, 'Classmate'), k.score, k.quizzes,
+           k.user_id = auth.uid(), k.n, v_end - 6, v_end
+    from ranked k
+    left join public.sds_quiz_nicknames(v_course, v_term) nn on nn.user_id = k.user_id
+    where k.pos <= 10 or k.user_id = auth.uid()
+    order by k.pos;
+end;
+$$;
+
+revoke all on function public.quiz_week_leaderboard(text) from public, anon;
+grant execute on function public.quiz_week_leaderboard(text) to authenticated;
+
 -- 6. Admin page functions (instructors only) ------------------------------------
 -- Used by geog215.org/admin/. Each one stops with "Instructors only." unless
 -- the caller is signed in as an instructor, so the admin page can't be used by
@@ -1332,6 +1489,48 @@ begin
 end;
 $$;
 
+-- Weekly quizzes: one row per enrollment and quiz bank for the week that ends
+-- on p_week_end (a Friday; the current week when null), from quizzes started
+-- that week (see 5d). nickname is the student's name on the students'
+-- weekly leaderboard.
+drop function if exists public.admin_quiz_week(text, text, date);
+create or replace function public.admin_quiz_week(
+  p_course text default null, p_term text default null, p_week_end date default null)
+returns table (
+  student_name text, code text, nickname text, chapter text, chapter_title text,
+  started bigint, completed bigint, correct bigint, incorrect bigint,
+  score bigint, best_score integer, best_streak integer, last_at timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_courses text[] := public.require_instructor(p_course);
+  v_end     date := public.sds_quiz_week_end(coalesce(p_week_end::timestamp at time zone 'America/New_York', now()));
+  v_from    timestamptz;
+  v_to      timestamptz;
+begin
+  select b.starts, b.ends into v_from, v_to from public.sds_quiz_week_bounds(v_end) b;
+  return query
+    select r.student_name, r.code,
+           (select nn.nickname from public.sds_quiz_nicknames(r.course, r.term) nn
+            where nn.user_id = r.user_id),
+           s.chapter, max(s.chapter_title),
+           count(*), count(*) filter (where s.completed_at is not null),
+           sum(s.correct)::bigint, sum(s.incorrect)::bigint,
+           sum(s.score)::bigint, max(s.score), max(s.best_streak), max(s.last_at)
+    from public.chapter_quiz_sessions s
+    join public.roster r on r.user_id = s.user_id and r.course = s.course and r.term = s.term
+    where r.course = any (v_courses) and (p_term is null or r.term = p_term)
+      and s.started_at >= v_from and s.started_at < v_to
+    group by r.code, r.student_name, r.user_id, r.course, r.term, s.chapter
+    order by r.student_name, s.chapter;
+end;
+$$;
+
 -- 7. Questions on highlighted text -------------------------------------------
 -- A signed-in student highlights text in a chapter, clicks "Ask a question",
 -- and types a question (assets/questions.html). record_question() saves it
@@ -1746,6 +1945,7 @@ begin
     'admin_quiz(text, text)', 'admin_quiz_responses(text, integer, text, text)',
     'admin_code(text, text)', 'admin_code_runs(text, integer, text, text)',
     'admin_chapter_quizzes(text, text)', 'admin_chapter_quiz_questions(text, text)',
+    'admin_quiz_week(text, text, date)',
     'admin_questions(text, text, text, integer)', 'admin_answer_question(uuid, text, text)',
     'admin_delete_question(uuid)'
   ] loop
